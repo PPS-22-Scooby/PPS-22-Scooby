@@ -8,6 +8,7 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("org.unibo.scooby")
   )
 
+wartremoverWarnings ++= Warts.all
 resolvers += "sonatype releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
 libraryDependencies ++= Seq(
