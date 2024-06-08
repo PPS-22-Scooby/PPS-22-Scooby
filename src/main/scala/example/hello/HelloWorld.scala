@@ -1,9 +1,7 @@
 package org.unibo.scooby
-package example
+package example.hello
 
-import akka.actor.typed.ActorRef
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 
 object HelloWorld :
