@@ -45,8 +45,8 @@ jobs:
       - name: Generate Scaladoc
         run: |
           sbt doc
-          ls -lah ./target/scala-3.3.3/api/
           mkdir -p ./docs/api-doc && cp -r ./target/scala-3.3.3/api/ ./docs/api-doc
+          ls -lah ./docs/api-doc
 
       - name: Deploy auth docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
