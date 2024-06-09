@@ -39,12 +39,8 @@ jobs:
           sbt sbtVersion
 
       - name: Generate Scaladoc
-        run: sbt doc
-
-      - name: Publish Scaladoc to GitHub Pages
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          sbt ghpagesPushSite
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          sbt doc
+          ls -lah ./target/scala-3.3.3/api/
+
+      

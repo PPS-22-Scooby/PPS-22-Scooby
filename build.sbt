@@ -23,12 +23,6 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.13.2" % Test
 )
 
-// Start configuration for github pages
-enablePlugins(GhpagesPlugin)
-enablePlugins(SiteScaladocPlugin)
-git.remoteRepo := "git@github.com:PPS-22-Scooby/PPS-22-Scooby.git"
-// End configuration for github pages
-
 // Start configuration for wartremover
 wartremoverWarnings ++= Warts.all
 // End configuration for wartremover
