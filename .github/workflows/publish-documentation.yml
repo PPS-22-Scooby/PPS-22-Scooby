@@ -6,6 +6,9 @@ on:
       - develop
       - config/repo-configuration
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
