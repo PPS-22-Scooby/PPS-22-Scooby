@@ -43,5 +43,11 @@ jobs:
         run: |
           sbt doc
           ls -lah ./target/scala-3.3.3/api/
+          mkdir -p ./docs/api-doc && cp -r ./target/scala-3.3.3/api/ ./docs/api-doc
 
-      
+      - name: Deploy auth docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs
