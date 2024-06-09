@@ -26,3 +26,13 @@ libraryDependencies ++= Seq(
 // Start configuration for wartremover
 wartremoverWarnings ++= Warts.all
 // End configuration for wartremover
+
+// Start configuration for scoverage
+coverageEnabled := true
+coverageFailOnMinimum := true
+coverageMinimumStmtTotal := 60
+coverageMinimumBranchTotal := 60
+coverageMinimumStmtPerFile := 50
+coverageMinimumBranchPerFile := 50
+// End configuration for scoverage
+
