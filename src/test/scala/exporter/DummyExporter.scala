@@ -36,9 +36,8 @@ object DummyExporter:
 
       """.trim
       
-  trait ListStrategy extends ExportStrategy:
-
+  trait ListCountStrategy extends ExportStrategy:
     override def publish(result: DataTable): Exporter = this
   
-  trait CsvStrategy extends ExportStrategy:
+  trait CsvCountStrategy extends ExportStrategy:
     override def publish(result: DataTable): Exporter = this

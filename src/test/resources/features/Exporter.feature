@@ -9,8 +9,8 @@ Feature: Exporter
 
     Examples:
       | format      | expectedOutput |
-      | "list"      | '[]'           |
-      | "csv"       | ''             |
+      | "listCount"      | '[]'           |
+      | "csvCount"       | ''             |
 
   Scenario Outline: Result to <format>
     Given I have an Exporter with a <format> strategy
@@ -22,9 +22,9 @@ Feature: Exporter
     Then it should return <expectedOutput>
 
     Examples:
-      | format      | expectedOutput                    |
-      | "list"      | '[[a,10],[button,20]]'            |
-      | "csv"       | 'tag;amount\n<a>;10\n<button>;20' |
+      | format           | expectedOutput                    |
+      | "listCount"      | '[[a,10],[button,20]]'            |
+      | "csvCount"       | 'tag;amount\n<a>;10\n<button>;20' |
 
   Scenario Outline: Result to stream with <format>
     Given I have an Exporter with a <format> strategy
@@ -38,9 +38,9 @@ Feature: Exporter
     Then it should return first <expectedOutput1> and then <expectedOutput2>
 
     Examples:
-      | format      | expectedOutput1      | expectedOutput2                   |
-      | "list"      | '[[a,10]]'           | '[[a,10],[button,20]]'            |
-      | "csv"       | 'tag;amount\n<a>;10' | 'tag;amount\n<a>;10\n<button>;20' |
+      | format           | expectedOutput1      | expectedOutput2                   |
+      | "listCount"      | '[[a,10]]'           | '[[a,10],[button,20]]'            |
+      | "csvCount"       | 'tag;amount\n<a>;10' | 'tag;amount\n<a>;10\n<button>;20' |
 
 
 

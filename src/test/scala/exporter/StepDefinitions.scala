@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package exporter
 
-import exporter.DummyExporter.{CsvStrategy, Exporter, ListStrategy}
+import exporter.DummyExporter.{CsvCountStrategy, Exporter, ListCountStrategy}
 
 import io.cucumber.datatable.DataTable
 import io.cucumber.scala.{EN, ScalaDsl}
@@ -17,8 +17,8 @@ class StepDefinitions extends ScalaDsl with EN:
 
   Given("""I have an Exporter with a {string} strategy""") { (format: String) =>
     exporter = format match
-      case "list" => new Exporter() with ListStrategy()
-      case "csv" => new Exporter() with CsvStrategy()
+      case "listCount" => new Exporter() with ListCountStrategy()
+      case "csvCount" => new Exporter() with CsvCountStrategy()
       case _ => new Exporter()
   }
 
