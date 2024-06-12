@@ -25,6 +25,14 @@ Feature: Crawler exploration strategy
       And it start crawling a website
       Then it will start crawl using the last exploration strategy setted
 
+  Rule: An exploration strategy should be able to respect external constraints
+
+    Example: Robot.txt
+      Given a crawler with a certain exploration strategy
+      And a website with a robot.txt file on the root path
+      When it start crawling the website
+      Then will visit only the pages listed on robot.txt
+
   Scenario: Custom exploration strategy
 
     Given an user Giovanni that want to set up a custom exploration rule for a website
