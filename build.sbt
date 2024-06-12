@@ -18,8 +18,9 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   "io.cucumber" %% "cucumber-scala" % "8.23.0" % Test,
   "io.cucumber" % "cucumber-junit" % "7.18.0" % Test,
-  "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
+  "com.github.sbt" % "junit-interface" % "0.13.3" % Test,
   "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+  "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
   "junit" % "junit" % "4.13.2" % Test
 )
 
@@ -35,4 +36,3 @@ coverageMinimumBranchTotal := 60
 coverageMinimumStmtPerFile := 50
 coverageMinimumBranchPerFile := 50
 // End configuration for scoverage
-
