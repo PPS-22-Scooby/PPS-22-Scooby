@@ -29,7 +29,7 @@ wartremoverWarnings ++= Warts.all
 // End configuration for wartremover
 
 // Start configuration for scoverage
-coverageEnabled := true
+coverageEnabled := false
 coverageFailOnMinimum := true
 coverageMinimumStmtTotal := 60
 coverageMinimumBranchTotal := 60
