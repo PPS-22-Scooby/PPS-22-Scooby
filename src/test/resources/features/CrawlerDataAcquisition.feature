@@ -20,7 +20,7 @@ Feature: Crawler data acquisition.
 
   Rule: The type supported by the crawler should be only textual data
 
-    Example Download a video
+    Example: Download a video
       Given a user Fred that want to crawl the url https://www.youtube.com/watch?v=dQw4w9WgXcQ
       And the url will return the Content-Type header video/webm
       When it will start crawling
