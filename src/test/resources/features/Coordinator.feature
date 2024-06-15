@@ -9,6 +9,22 @@ Feature: Coordinator
       | pages |
       | www.google.it, www.unibo.it, www.wikipedia.com  |
       | www.microsoft.com, www.sony.com |
-      | www.test.it   |
+      | www.test.it |
 
-  Scenario:
+  Scenario Outline: Page is already present in the crawled list
+    Given I have this <pages> are already crawled
+    When I check if <page> is already crawled
+    Then The result should be true
+
+    Examples:
+      | pages | page |
+      | www.google.it, www.unibo.it, www.wikipedia.com | www.unibo.it |
+
+  Scenario Outline: Page is not present in the crawled list
+    Given I have this <pages> are already crawled
+    When I check if <page> is already crawled
+    Then The result should be false
+
+    Examples:
+      | pages | page |
+      | www.google.it, www.unibo.it, www.wikipedia.com  | www.ubisoft.com |
