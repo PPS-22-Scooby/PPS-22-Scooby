@@ -21,7 +21,8 @@ libraryDependencies ++= Seq(
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test,
   "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
-  "junit" % "junit" % "4.13.2" % Test
+  "junit" % "junit" % "4.13.2" % Test,
+  "com.softwaremill.sttp.client3" %% "core" % "3.9.7"
 )
 
 // Start configuration for wartremover

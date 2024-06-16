@@ -1,18 +1,24 @@
 package org.unibo.scooby
 package crawler
 
-trait Parser
+import scala.util.matching.Regex
 
-trait Document:
-  def url: URL
-  def docType: String
-  def content: String
+trait Parser[A]:
+  def parse(content: String): A
 
-class CrawlDocument:
-  ???
+trait DocumentType[P <: Parser[_]]:
+  def frontier()(using parser: P): Seq[String]
 
 
-trait ScrapeDocument:
-  ???
 
-object Document
+final case class CrawlDocument(url: String, content: String)
+    extends DocumentType[Parser[Seq[String]]]:
+
+  override def frontier()(using parser: Parser[Seq[String]]): Seq[String] =
+    parser.parse(content)
+
+
+object CrawlDocument:
+
+  given linkParser: Parser[Seq[String]] = (content: String) =>
+    """<a\b[^>]*href="([^#][^"]*)"""".r.findAllMatchIn(content).map(_.group(1)).toSeq
