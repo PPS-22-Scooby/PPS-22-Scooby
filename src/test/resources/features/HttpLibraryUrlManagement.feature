@@ -25,10 +25,10 @@ Feature: simple URL creation and management
   Scenario: navigating up
     Given the URL "https://www.example.com/example"
     When i go to the parent
-    Then it should return an URL "https://www.example.com/"
+    Then it should return the URL "https://www.example.com/"
 
   Scenario: comparing the depth
-    Given two URLs two URLs "https://www.example.com/" and "https://www.example.com/example"
+    Given two URLs "https://www.example.com/" and "https://www.example.com/example"
     When i compare them
     Then the first should be lower than the second
 
