@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 import java.net.URL
+import scala.Seq
 
 class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
@@ -35,3 +36,18 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
     val document = new Document(html, URL) with LinkExplorer
     document.frontier should be(Seq("/example", "www.google.com",
       "https://blog.example.com", "https://www.blog.example.com"))
+
+  "A document with HtmlExplorer" should "create an HTML document" in:
+    val html =
+      """<html>
+        | <a href="/example">Ping</a>
+        | <a href="www.google.com">Pong</a>
+        | <a href="https://blog.example.com">Pang</a>
+        | <a href="https://www.blog.example.com">Prum</a>
+        |</html>
+        |""".stripMargin
+    val URL = new URL("https://www.example.com")
+    val document = new Document(html, URL) with SelectorExplorer
+    document.select("a").length should be(4)
+    document.select("a").map(_.text) should be(Seq("Ping", "Pong", "Pang","Prum"))
+    

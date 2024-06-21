@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
   "junit" % "junit" % "4.13.2" % Test,
-  "org.jsoup" % "jsoup" % "1.17.2" % Test,
+  "org.jsoup" % "jsoup" % "1.17.2",
 )
 
 // Start configuration for wartremover
