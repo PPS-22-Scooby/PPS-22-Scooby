@@ -9,12 +9,12 @@ Feature: Rule
     Then I obtain a result rule <ruleC> that's the <combination> of the two
 
     Examples:
-      | ruleA                         | ruleB                                             | combination    | ruleC                          |
+      | ruleA                         | ruleB                                             | combination    | ruleC                                |
       | filter all the explored links |  return all <a href=""> links with a certain text | "union"        | unexplored links with a certain text |
 
 
-  Scenario Outline: Join two conditional rules
-    Given I've two conditional rules <ruleA>, <ruleB>
+  Scenario Outline: Join two policy rules
+    Given I've two policy rules <ruleA>, <ruleB>
     When I join them togheter
     Then I obtain a result rule <ruleC> that's the <combination> of the two
 
