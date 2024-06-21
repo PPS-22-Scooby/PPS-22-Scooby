@@ -13,14 +13,19 @@ Feature: simple URL creation and management
     Then it should result in a Malformed URL error
 
   Scenario: appending two URL
-    Given two URLs "https://www.example.com/" and "/example"
+    Given two URLs "https://www.example.com/" and "https://www.example.com/example"
     When i append them
+    Then it should return the URL "https://www.example.com/example"
+
+  Scenario: appending one URL and a string
+    Given two URLs "https://www.example.com/" and a string "/example"
+    When i append the string to the url
     Then it should return the URL "https://www.example.com/example"
 
   Scenario: obtaining the domain
     Given the URL "https://www.example.com/"
     When i get the domain
-    Then it should return "www.example.com"
+    Then it should return the domain "www.example.com"
 
   Scenario: navigating up
     Given the URL "https://www.example.com/example"
