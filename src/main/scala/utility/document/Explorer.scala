@@ -27,6 +27,14 @@ trait SelectorExplorer extends HtmlExplorer:
   def select(selectors: String*): Seq[HTMLElement] =
     htmlDocument.select(selectors*)
 
+trait CommonHTMLExplorer extends HtmlExplorer:
+  def getElementById(id: String): HTMLElement = htmlDocument.getElementById(id)
+  def getElementByTag(tag: String): Seq[HTMLElement] = htmlDocument.getElementByTag(tag)
+  def getElementByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
+  
 
-class CrawlDocument(content: String, url: URL) extends Document(content, url) with LinkExplorer
-
+class CrawlDocument(content: String, url: URL) extends Document(content, url) 
+  with LinkExplorer
+class ScrapeDocument(content: String, url: URL) extends Document(content, url) 
+  with SelectorExplorer 
+  with CommonHTMLExplorer
