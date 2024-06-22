@@ -8,7 +8,7 @@ sealed case class ClientBackend()
 sealed case class ClientFrontend()
 
 sealed case class HttpClient():
-  def send(response: Request): Response = ???
+  def send(request: Request): Response = ???
 
 trait ResponseDeserializer[T]:
   def deserialize(response: Response): T
