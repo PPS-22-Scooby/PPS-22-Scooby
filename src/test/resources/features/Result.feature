@@ -20,13 +20,26 @@ Feature: Result update and aggregation
       Then The Result class must manage different formats of entries
 
     Scenario Outline: Gather data in various format
-      Given I have Scrapers that elaborate documents with different filtering policies which generates different data <type> from the document
+      Given I have Scrapers that elaborate documents with different filtering policies which generates different data <type>
       And There are different <documents>
       When The scraper starts filtering the document, obtaining data to aggregate
-      Then It will obtain a <result>
+      Then It will obtain <result>
 
       Examples:
         |           type            |                   documents                              |              result              |
-        |         String            | <a>txt_match_filter</a><div>txt_not_match_filter</div>   |  <a>txt_match_filter</a>         |
-        | Map[String, String]       | <a>txt_match_filter</a><div>txt_not_match_filter</div>   |   Map(a -> txt_match_filter)     |
-        |         String            | <a>match</a><div>non_match</div><div>match</div>         |  <a>match</a>\n<div>match</div>  |
+        |         String            | <a>txt_match_filter</a><a>txt2_match_filter</a>   |    <a>txt_match_filter</a><a>txt2_match_filter</a> |
+        | Map[String, String]       | <a>txt_match_filter</a><div>txt_match_filter</div>   |    {"a": "<a>txt_match_filter</a>", "div": "<div>txt_match_filter</div>"}     |
+        |         String            | <a>match</a><div>non_match</div><div>match</div>         |  <a>match</a><div>match</div>  |
+
+  Rule: Result should be aggregated
+
+    Scenario Outline: Aggregate different results
+      Given I have 2 Scrapers that elaborate documents with the same filtering policies of <type>, which works on different documents
+      And generated different <results>
+      When The scrapers finished to scrape
+      Then They will aggregate partial results obtaining <aggregate>
+
+      Examples:
+        |           type            |                                                 results                                                                   |                   aggregate                              |
+        |         String            |                     ["<a>txt_match_filter</a>", "<a>txt2_match_filter</a>"]                                                   | <a>txt_match_filter</a> <a>txt2_match_filter</a>   |
+        | Map[String, String]       | [{"a": "<a>txt_match_filter</a>", "div": "<div>txt_match_filter</div>"},{"a": "", "p": "<p>match</p>", "div": "match"}]  | {"a": "<a>txt_match_filter</a>", "div": "<div>txt_match_filter</div> match", "p": "<p>match</p>"}   |

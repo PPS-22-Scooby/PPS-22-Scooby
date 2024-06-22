@@ -1,14 +1,96 @@
 package org.unibo.scooby
 package core.scraper
 
+/**
+ * Class representing {@link Scraper}'s results.
+ * @param data representing actual result.
+ * @tparam T representing result's type.
+ */
+class Result[T](private val data: Option[T]):
+
+  /**
+   * Returns true if data is defined, false otherwise.
+   * @return true if data defined, false otherwise.
+   */
+  def isDefined: Boolean = data.isDefined
+
+  /**
+   * Returns result's data.
+   * @return the data as {@link Option}
+   */
+  def getData: Option[T] = data
+
+  /**
+   * Batch a single data to result.
+   * @param newData single data to add.
+   * @param updater data aggregator.
+   * @return a new Result instance with data updated.
+   */
+  def updateStream(newData: T)(implicit updater: (T, T) => T): Result[T] =
+    data.fold(Result(newData))(elem => Result(updater(elem, newData)))
+
+  /**
+   * Batch a sequence of data to result.
+   * @param newData sequence of data to add.
+   * @param updater data aggregator.
+   * @return a new Result instance with data updated.
+   */
+  def updateBatch(newData: Seq[T])(implicit updater: (T, T) => T): Result[T] =
+    data.fold(Result(newData.reduce(updater)))(elem => Result(newData.foldLeft(elem)(updater)))
+
+  /**
+   * Aggregate actual Result with a given one.
+   * @param newResult the Result to aggregate.
+   * @param updater data aggregator.
+   * @return a new Result instance with data aggregated.
+   */
+  def aggregate(newResult: Result[T])(implicit updater: (T, T) => T): Result[T] =
+    newResult.data.fold(this)(elem => updateStream(elem)(updater))
+
+/**
+ * Companion object for Result class.
+ */
 object Result:
 
+  /**
+   * A builder with a starting data.
+   * @param data the starting data.
+   * @tparam T the data type.
+   * @return a new Result instance with given data.
+   */
   def apply[T](data: T): Result[T] = new Result(Some(data))
+
+
+  /**
+   * A builder with an empty data.
+   * @tparam T the data type.
+   * @return a new Result instance with empty data.
+   */
   def apply[T](): Result[T] = new Result(None)
 
-  implicit val stringUpdater: (String, String) => String = _ concat "\n" concat _
+  /**
+   * A string aggregator.
+   */
+  implicit val stringUpdater: (String, String) => String = (str1, str2) =>
+    (str1, str2) match
+      case ("", s2) => s2
+      case (s1, "") => s1
+      case (s1, s2) => s1 concat " " concat s2
+
+  /**
+   * An Int aggregator.
+   */
   implicit val countUpdater: (Int, Int) => Int = _ + _
 
+  /**
+   * A Map aggregator.
+   * @param map1 the first Map to aggregate.
+   * @param map2 the second Map to aggregate.
+   * @param aggregator the aggregator function used to aggregate values corresponding to the same keys of both given maps.
+   * @tparam K the Maps' keys type.
+   * @tparam V the Maps' values type.
+   * @return the Map aggregated.
+   */
   private def mergeMaps[K, V](map1: Map[K, V], map2: Map[K, V])(aggregator: (V, V) => V): Map[K, V] =
     (map1.keySet ++ map2.keySet).map {
       key =>
@@ -25,20 +107,12 @@ object Result:
         key -> value
     }.toMap
 
-  // Implicit updater for Map[K, V] with a custom aggregator
+  /**
+   * Return a map aggregator.
+   * @param aggregator a Map's values aggregator function.
+   * @tparam K Map's keys type.
+   * @tparam V Map's values type.
+   * @return the Map's aggregator.
+   */
   implicit def mapUpdater[K, V](implicit aggregator: (V, V) => V): (Map[K, V], Map[K, V]) => Map[K, V] =
     (map1, map2) => mergeMaps(map1, map2)(aggregator)
-
-final case class Result[T](private val data: Option[T]):
-  def isDefined: Boolean = data.isDefined
-
-  def getData: Option[T] = data
-
-  def updateStream(newData: T)(implicit updater: (T, T) => T): Result[T] =
-    data.fold(Result(newData))(elem => Result(updater(elem, newData)))
-
-  def updateBatch(newData: Seq[T])(implicit updater: (T, T) => T): Result[T] =
-    data.fold(Result(newData.reduce(updater)))(elem => Result(newData.foldLeft(elem)(updater)))
-
-  def aggregate(newResult: Result[T])(implicit updater: (T, T) => T): Result[T] =
-    newResult.data.fold(Result(data))(elem => updateStream(elem)(updater))
