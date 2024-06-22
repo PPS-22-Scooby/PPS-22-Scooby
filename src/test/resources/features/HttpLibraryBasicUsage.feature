@@ -28,7 +28,7 @@ Feature: basic HTTP calls
     Given a simple <requestType> request
     And a URL <url>
     When i make the HTTP call
-    Then the status code should be <statusCode> and the header Content-Type <contentType>
+    Then the status code should be <statusCode> and the header content-type <contentType>
 
     Examples:
       | url                               | requestType   | statusCode | contentType                |
