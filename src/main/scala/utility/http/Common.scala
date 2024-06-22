@@ -11,7 +11,8 @@ enum HttpMethod:
   case PUT
   case DELETE
 
-enum HttpStatus(code: Int, description: String):
+enum HttpStatus(val code: Int, val description: String):
+  case INVALID extends HttpStatus(-1, "Invalid Response")
   case OK extends HttpStatus(200, "OK")
   case BAD_REQUEST extends HttpStatus(400, "Bad Request")
   case UNAUTHORIZED extends HttpStatus(401, "Unauthorized")
@@ -71,5 +72,5 @@ object Request:
   def builder: RequestBuilder = RequestBuilder(GET, URL.empty, Map.empty, Option.empty)
 
 object Response:
-  def empty: Response = Response(NOT_FOUND, Map.empty, Option.empty)
+  def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty)
 
