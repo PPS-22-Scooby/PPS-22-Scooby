@@ -53,6 +53,7 @@ object Request:
     def post(): RequestBuilder = copy(method = POST)
     def put(): RequestBuilder = copy(method = PUT)
     def delete(): RequestBuilder = copy(method = DELETE)
+    def method(httpMethod: HttpMethod): RequestBuilder = copy(method = httpMethod)
     def at(url: URL): RequestBuilder = copy(url = url)
     def at(url: String): RequestBuilder = copy(url = URL(url).getOrElse(URL.empty))
     def headers(headers: Header*): RequestBuilder = copy(headers = this.headers ++ headers)
