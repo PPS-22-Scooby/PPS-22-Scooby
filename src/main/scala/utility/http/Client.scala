@@ -1,17 +1,17 @@
 package org.unibo.scooby
 package utility.http
 
-import utility.http.HttpMethod.*
+trait HttpClient
+
+object Clients:
+  import utility.http.Backends.SttpBackend
+
+  class SimpleHttpClient extends HttpClient with SttpBackend
 
 
-sealed case class ClientBackend()
-sealed case class ClientFrontend()
+trait Deserializer[R, T]:
+  def deserialize(response: R): T
 
-sealed case class HttpClient():
-  def send(request: Request): Response = ???
-
-trait ResponseDeserializer[T]:
-  def deserialize(response: Response): T
-
-object ResponseDeserializer:
-  given default: ResponseDeserializer[Response] = (response: Response) => response
+object Deserializer:
+  given default: Deserializer[Response, Response] = (response: Response) => response
+  given string: Deserializer[Response, String] = (response: Response) => response.body.getOrElse("")
