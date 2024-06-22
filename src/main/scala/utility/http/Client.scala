@@ -12,3 +12,6 @@ sealed case class HttpClient():
 
 trait ResponseDeserializer[T]:
   def deserialize(response: Response): T
+
+object ResponseDeserializer:
+  given default: ResponseDeserializer[Response] = (response: Response) => response
