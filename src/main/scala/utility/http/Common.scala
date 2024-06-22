@@ -1,8 +1,6 @@
 package org.unibo.scooby
 package utility.http
 
-import org.unibo.scooby.utility.http.HttpStatus.{BAD_REQUEST, NOT_FOUND}
-
 import scala.util.Try
 
 enum HttpMethod:
