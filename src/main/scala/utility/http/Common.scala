@@ -22,6 +22,9 @@ enum HttpStatus(val code: Int, val description: String):
   case INTERNAL_SERVER_ERROR extends HttpStatus(500, "Internal Server Error")
   case BAD_GATEWAY extends HttpStatus(502, "Bad Gateway")
   case GATEWAY_TIMEOUT extends HttpStatus(504, "Gateway Timeout")
+  
+object HttpStatus:
+  def of(code: Int): Option[HttpStatus] = HttpStatus.values.find(_.code == code)
 
 
 type Headers = Map[String, String]
@@ -35,7 +38,7 @@ sealed case class Request private(
                                    headers: Headers,
                                    body: Option[Body])
 
-sealed case class Response private(
+sealed case class Response (
                              status: HttpStatus,
                              headers: Headers,
                              body: Option[Body]
@@ -60,8 +63,9 @@ object Request:
     def headers(headers: Header*): RequestBuilder = copy(headers = this.headers ++ headers)
     def body(body: Body): RequestBuilder = copy(body = Some(body))
 
-    def send[T: ResponseDeserializer](using deserializer: ResponseDeserializer[T])(using client: HttpClient): T =
-      deserializer.deserialize(build.map(client.send(_)).getOrElse(Response.empty))
+    def send[R, T](using deserializer: Deserializer[R, T])(using client: HttpClient with Backend[R]): Try[T] =
+      Try:
+        deserializer.deserialize(client.send(build.get))
 
     def build: Try[Request] =
       Try {
@@ -73,4 +77,6 @@ object Request:
 
 object Response:
   def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty)
+
+
 
