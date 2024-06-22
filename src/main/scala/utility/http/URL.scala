@@ -81,3 +81,4 @@ object URL:
 
       new URL(protocol, host, port, path, parseQueryParams(queryString), fragment)
 
+  def empty: URL = new URL("", "", Option.empty, "", Map.empty, Option.empty)
