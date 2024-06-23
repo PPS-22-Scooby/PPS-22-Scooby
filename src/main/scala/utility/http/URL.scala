@@ -5,6 +5,16 @@ import scala.annotation.targetName
 import scala.math.Ordered
 import scala.util.Try
 
+/**
+ * Class that represents a URL used for HTTP calls.
+ * @param protocol protocol used (e.g. "https")
+ * @param host host of the URL (e.g. "www.google.com")
+ * @param port port of the URL. [[Some]] containing the port or [[Empty]] if the URL doesn't contain a port.
+ * @param path path of the URL (e.g. "/example/path")
+ * @param queryParams [[Map]] that contains the query params of the URL (e.g. "service=mail&passive=true")
+ * @param fragment fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no
+ *                 fragment
+ */
 final case class URL private(private val protocol: String,
                              private val host: String,
                              private val port: Option[Int],
@@ -12,22 +22,46 @@ final case class URL private(private val protocol: String,
                              private val queryParams: Map[String, String],
                              private val fragment: Option[String]) extends Ordered[URL]:
 
+  /**
+   * Gets the domain from the URL
+   * @return a [[String]] containing the domain
+   */
   def domain: String = host + port.getOrElse("")
 
+  /**
+   * Gets the "parent" of this URL, that is the preceding path (e.g. the parent of "/example/path" is "/example/")
+   * @return the parent [[URL]] of this URL.
+   */
   def parent: URL = URL(protocol, host, port,
     path.split("/").dropRight(1).mkString("/") + "/",
     Map.empty, Option.empty)
 
+  /**
+   * Compares the depth of two URLs. Returns a value greater that 0 if this URL is has greater depth, equal to 0 if they
+   * have the same depth, less than 0 otherwise
+   * @param that [[URL]] to compare with this URL
+   * @return a [[Int]] value representing the result of the comparison
+   */
   override def compare(that: URL): Int =
     val thisPathLength = path.split("/").length
     val thatPathLength = that.path.split("/").length
     thisPathLength compare thatPathLength
 
-
+  /**
+   * Utility method that appends to this URL a [[String]], placing the trailing backslashes correctly
+   * @param other the path (e.g. "/example") to be appended to this URL
+   * @return a new [[URL]] with the new path appended
+   */
   @targetName("append")
   infix def /(other: String): URL =
     this / URL(protocol, host, port, path + other, Map.empty, Option.empty)
 
+  /**
+   * Utility method that appends an another [[URL]] to this URL, with the same protocol, host and post,
+   * placing the trailing backslashes correctly
+   * @param other URL to be appended
+   * @return a new [[URL]] with the new path appended
+   */
   @targetName("append")
   infix def /(other: URL): URL =
     def removeLeadingTrailingSlashes(input: String): String =
@@ -50,6 +84,11 @@ final case class URL private(private val protocol: String,
     s"$protocol://$host$portString$path$queryString$fragmentString"
 
 object URL:
+  /**
+   * Entry point for instantiating a URL. It parses the provided [[String]].
+   * @param url String parsed as URL
+   * @return a [[Try]] with `Success` if the provided string was formatted correctly, `Failure` otherwise.
+   */
   def apply(url: String): Try[URL] =
     def parseQueryParams(queryString: String): Map[String, String] =
       if (queryString.isEmpty) {
@@ -81,4 +120,8 @@ object URL:
 
       new URL(protocol, host, port, path, parseQueryParams(queryString), fragment)
 
+  /**
+   * Used to generate an empty URL, mainly as placeholder or for testing purposes.
+   * @return an empty URL
+   */
   def empty: URL = new URL("", "", Option.empty, "", Map.empty, Option.empty)
