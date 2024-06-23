@@ -10,7 +10,7 @@ Feature: Rule
 
     Examples:
       | ruleA                         | ruleB                                             | combination    | ruleC                                |
-      | filter all the explored links |  return all <a href=""> links with a certain text | "union"        | unexplored links with a certain text |
+      | filter all the explored links |  return all a links with a certain text | "union"        | unexplored links with a certain text |
 
 
   Scenario Outline: Join two policy rules
