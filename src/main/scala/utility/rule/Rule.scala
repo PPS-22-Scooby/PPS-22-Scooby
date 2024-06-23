@@ -69,7 +69,7 @@ object Rule:
    * @tparam B the output type of the rule
    * @return a new `Rule` that wraps the function `f`
    */
-  def apply[A, B](f: A => B): Rule[A, B] = Base(f)
+  def apply[A, B](f: A => B): Base[A, B] = Base(f)
 
   /**
    * Creates a new `Policy` from a predicate function.
@@ -78,7 +78,7 @@ object Rule:
    * @tparam A the input type of the rule
    * @return a new `Policy` that wraps the predicate function `f`
    */
-  def policy[A](f: A => Boolean): Rule[A, Boolean] = Policy(f)
+  def policy[A](f: A => Boolean): Policy[A, Boolean] = Policy(f)
 
   /**
    * Given instance of `Conversion` that allows implicit conversion from a function `A => B` to a `Rule[A, B]`.
