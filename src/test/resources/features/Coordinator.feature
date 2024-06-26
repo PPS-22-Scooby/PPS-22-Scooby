@@ -18,7 +18,6 @@ Feature: Coordinator
       | crawled_pages | page |
       | http://www.google.it, http://www.unibo.it, http://www.wikipedia.com  | http://www.ubisoft.com |
 
-  #--------------
 
   Scenario Outline: Update the list of crawled pages
     Given I have a list of already crawled pages <crawled_pages>
