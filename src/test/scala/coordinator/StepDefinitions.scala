@@ -1,53 +1,60 @@
-
 package org.unibo.scooby
 package coordinator
 
-import coordinator.DummyCoordinator.Coordinator
-
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import core.coordinator.Coordinator
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.junit.Assert.*
 
 class StepDefinitions extends ScalaDsl with EN :
 
-  private val coordinator = Coordinator()
+  private val testKit = ActorTestKit()
+  private val coordinator = testKit.spawn(Coordinator())
   private var pages: List[String] = List.empty
   private var crawablePages: Map[String, Boolean] = Map.empty
   private var checkResult: Option[Boolean] = None
 
-  Given("""I have a list of already crawled pages (.*)$""") : (crawledPages: String) =>
+  Given("""I have a list of already crawled pages (.*)$""") { (crawledPages: String) =>
     val pages = crawledPages.split(",").map(_.trim).toList
-    coordinator.setCrawledPages(pages)
-  
+    coordinator ! Coordinator.SetCrawledPages(pages)
+  }
 
-  Given("""I have an empty list of already crawled pages""") : () =>
-    coordinator.setCrawledPages(List.empty)
-  
+  Given("""I have an empty list of already crawled pages""") { () =>
+    coordinator ! Coordinator.SetCrawledPages(List.empty)
+  }
 
-  When("""I check if (.*) is already crawled$""") : (page: String) =>
-    this.checkResult = coordinator.checkPages(List(page)).values.headOption
-  
+  When("""I check if (.*) is already crawled$""") { (page: String) =>
+    val probe = testKit.createTestProbe[Coordinator.PagesChecked]()
+    coordinator ! Coordinator.CheckPages(List(page), probe.ref)
+    this.checkResult = probe.receiveMessage().result.values.headOption
+  }
 
-  When("""I add (.*) to the crawled list$""") : (newPages: String) =>
+  When("""I add (.*) to the crawled list$""") { (newPages: String) =>
     val pages = newPages.split(",").map(_.trim).toList
-    coordinator.checkPages(pages)
-  
+    coordinator ! Coordinator.SetCrawledPages(pages)
+  }
 
-  Then("""The result should be (true|false)$""") : (expectedResult: Boolean) =>
+  Then("""The result should be (true|false)$""") { (expectedResult: Boolean) =>
     assertEquals(expectedResult, this.checkResult.getOrElse(true))
-  
+  }
 
-  Then("""The updated crawled list should be (.*)$""") : (updatedList: String) =>
+  Then("""The updated crawled list should be (.*)$""") { (updatedList: String) =>
+    val probe = testKit.createTestProbe[List[String]]()
+    coordinator ! Coordinator.GetCrawledPages(probe.ref)
     val expectedList = updatedList.split(",").map(_.trim).toList
-    assertEquals(expectedList, coordinator.getCrawledPages)
-  
+    assertEquals(expectedList, probe.receiveMessage())
+  }
 
-  Then("""Only valid URLs should be added to the list, resulting in (.*)$""") : (updatedList: String) =>
+  Then("""Only valid URLs should be added to the list, resulting in (.*)$""") { (updatedList: String) =>
+    val probe = testKit.createTestProbe[List[String]]()
+    coordinator ! Coordinator.GetCrawledPages(probe.ref)
     val expectedList = updatedList.split(",").map(_.trim).toList
-    assertEquals(expectedList, coordinator.getCrawledPages)
-  
+    assertEquals(expectedList, probe.receiveMessage())
+  }
 
-  Then("""The updated crawled list should not contain duplicates and be (.*)$""") : (updatedList: String) =>
+  Then("""The updated crawled list should not contain duplicates and be (.*)$""") { (updatedList: String) =>
+    val probe = testKit.createTestProbe[List[String]]()
+    coordinator ! Coordinator.GetCrawledPages(probe.ref)
     val expectedList = updatedList.split(",").map(_.trim).toList
-    assertEquals(expectedList, coordinator.getCrawledPages.distinct)
-  
-
+    assertEquals(expectedList, probe.receiveMessage().distinct)
+  }
