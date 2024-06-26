@@ -1,10 +1,11 @@
 package org.unibo.scooby
 package coordinator
 
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import org.scalatest.wordspec.AnyWordSpecLike
+import core.coordinator.Coordinator
+
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import org.scalatest.BeforeAndAfterAll
-import org.unibo.scooby.core.coordinator.Coordinator
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll {
   val testKit: ActorTestKit = ActorTestKit()
