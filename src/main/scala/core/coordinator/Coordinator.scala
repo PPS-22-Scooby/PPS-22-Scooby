@@ -3,15 +3,9 @@ package core.coordinator
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
+import utility.rule.ConditionalRule
 
-/**
- * The Coordinator object contains the definitions of the messages that the Coordinator actor can receive.
- */
-object Coordinator:
-  /**
-   * The base trait for all messages that the Coordinator actor can receive.
-   */
-  sealed trait Command
+enum CoordinatorCommand:
 
   /**
    * A message that instructs the Coordinator actor to check a list of pages.
@@ -19,36 +13,65 @@ object Coordinator:
    * @param pages   The list of pages to check.
    * @param replyTo The actor to send the result to.
    */
-  final case class CheckPages(pages: List[String], replyTo: ActorRef[PagesChecked]) extends Command
+  case CheckPages(pages: List[String], replyTo: ActorRef[PagesChecked])
 
   /**
    * A message that instructs the Coordinator actor to set a list of pages as crawled.
    *
    * @param pages The list of pages to set as crawled.
    */
-  final case class SetCrawledPages(pages: List[String]) extends Command
+  case SetCrawledPages(pages: List[String])
 
   /**
    * A message that instructs the Coordinator actor to get the list of crawled pages.
    *
    * @param replyTo The actor to send the result to.
    */
-  final case class GetCrawledPages(replyTo: ActorRef[List[String]]) extends Command
+  case GetCrawledPages(replyTo: ActorRef[List[String]])
 
   /**
    * A message that contains the result of a CheckPages message.
    *
    * @param result A map of pages and their crawled status.
    */
-  final case class PagesChecked(result: Map[String, Boolean])
+  case PagesChecked(result: Map[String, Boolean])
+
+/**
+ * The Coordinator object contains the definitions of the messages that the Coordinator actor can receive.
+ */
+object Coordinator:
+  /**
+   * Normalizes a URL by removing the http:// or https:// prefix.
+   *
+   * @param url The URL to normalize.
+   * @return The normalized URL.
+   */
+  def normalizeURL(url: String): String = url.replaceFirst("^(http://|https://)", "")
+
+  /**
+   * Checks if a URL is valid.
+   *
+   * @param url The URL to check.
+   * @return True if the URL is valid, false otherwise.
+   */
+  def isValidURL(url: String): Boolean =
+    val regex = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(\\S*)?$"
+    url.matches(regex)
 
   /**
    * The behavior of the Coordinator actor when it is first created.
    */
-  def apply(): Behavior[Command] =
-    Behaviors.setup { context =>
-      new Coordinator(context).idle(Set.empty)
-    }
+  def apply(): Behavior[CoordinatorCommand] =
+    import utility.rule.Rule.policy
+    Behaviors.setup:
+      context =>
+        val defaultUrlPolicy: ConditionalRule[(String, Set[String])] = policy(
+          (url: String, crawledPages: Set[String]) =>
+            val normalizedPage = normalizeURL(url)
+            val isCrawled = crawledPages.contains(normalizedPage)
+            isValidURL(url) && !isCrawled
+        )
+        new Coordinator(context, defaultUrlPolicy).idle(Set.empty)
 
 
 /**
@@ -56,9 +79,10 @@ object Coordinator:
  *
  * @param context The context in which the actor is running.
  */
-class Coordinator(context: ActorContext[Coordinator.Command]):
+class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: ConditionalRule[(String, Set[String])]):
 
-  import Coordinator._
+  import CoordinatorCommand.*
+  import Coordinator.*
 
   /**
    * The behavior of the Coordinator actor when it is idle.
@@ -72,19 +96,18 @@ class Coordinator(context: ActorContext[Coordinator.Command]):
    *                     multiple times.
    * @return A Behavior[Command] that describes how the actor should process the next message it receives.
    */
-  private def idle(crawledPages: Set[String]): Behavior[Command] =
-    Behaviors.receiveMessage {
+  def idle(crawledPages: Set[String]): Behavior[CoordinatorCommand] =
+    Behaviors.receiveMessage :
       case CheckPages(pages, replyTo) =>
-        val (updatedPages, result) = pages.foldLeft((crawledPages, Map.empty[String, Boolean])) {
+        val (updatedPages, result) = pages.foldLeft((crawledPages, Map.empty[String, Boolean])) :
           case ((updatedPages, result), page) =>
             val normalizedPage = normalizeURL(page)
-            val isCrawled = updatedPages.contains(normalizedPage)
-            if (isValidURL(page) && !isCrawled) {
+            val isCrawled = crawledPages.contains(normalizedPage)
+            if (urlPolicy executeOn (page, updatedPages))
               (updatedPages + normalizedPage, result + (page -> false))
-            } else {
+            else
               (updatedPages, result + (page -> isCrawled))
-            }
-        }
+
         replyTo ! PagesChecked(result)
         idle(updatedPages)
 
@@ -95,23 +118,8 @@ class Coordinator(context: ActorContext[Coordinator.Command]):
       case GetCrawledPages(replyTo) =>
         replyTo ! crawledPages.toList
         Behaviors.same
-    }
 
-  /**
-   * Normalizes a URL by removing the http:// or https:// prefix.
-   *
-   * @param url The URL to normalize.
-   * @return The normalized URL.
-   */
-  private def normalizeURL(url: String): String = url.replaceFirst("^(http://|https://)", "")
+      case _ => Behaviors.same
 
-  /**
-   * Checks if a URL is valid.
-   *
-   * @param url The URL to check.
-   * @return True if the URL is valid, false otherwise.
-   */
-  private def isValidURL(url: String): Boolean =
-    val regex = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(\\S*)?$"
-    url.matches(regex)
+
 

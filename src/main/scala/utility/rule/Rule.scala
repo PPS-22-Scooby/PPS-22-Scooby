@@ -120,12 +120,12 @@ object Rule:
     def apply(f: A => B): Base[A, B] = Base(f)
 
   /**
-   * Creates a conditional rule from a function.
+   * Creates a policy rule from a function.
    * @param f the function to convert to a rule
    * @tparam A the type of the input to the function
    * @return a conditional rule that represents the function
    */
-  def conditional[A](f: A => Boolean): ConditionalRule[A] = Policy(f)
+  def policy[A](f: A => Boolean): Policy[A] = Policy(f)
 
   /**
    * Creates a base rule from a function.
