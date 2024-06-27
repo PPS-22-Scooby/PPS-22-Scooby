@@ -9,8 +9,8 @@ import scala.util.Try
 class UrlManagementStepDefinitions extends ScalaDsl with EN:
 
   var inputString: String = ""
-  var inputUrl1: Try[URL] = URL("")
-  var inputUrl2: Try[URL] = URL("")
+  var inputUrl1: Either[String, URL] = URL("")
+  var inputUrl2: Either[String, URL] = URL("")
   var compareResult: Boolean = false
 
   Given("""the string {string}"""): (string: String) =>
@@ -33,27 +33,33 @@ class UrlManagementStepDefinitions extends ScalaDsl with EN:
     inputUrl1 = URL(inputString)
 
   When("""i append them"""): () =>
-    inputUrl1 = Try { inputUrl1.get / inputUrl2.get }
+    inputUrl1 = (inputUrl1, inputUrl2) match
+      case (u1, u2) if u1.isLeft || u2.isLeft  => Left("Illegal URL")
+      case (Right(url1), Right(url2)) => Right(url1 / url2)
 
   When("""i append the string to the url"""): () =>
-    inputUrl1 = Try { inputUrl1.get / inputString }
+    inputUrl1 = inputUrl1 match
+      case Left(_) => Left("Illegal URL")
+      case Right(u) => Right(u / inputString)
 
   When("""i get the domain"""): () =>
     inputString = inputUrl1.getOrElse{ fail("Illegal URL") }.domain
 
   When("""i go to the parent"""): () =>
-    inputUrl1 = Try { inputUrl1.get.parent }
+    inputUrl1 = inputUrl1 match
+      case Left(_) => Left("Illegal URL")
+      case Right(u) => Right(u.parent)
 
   When("""i compare them"""): () =>
     compareResult = inputUrl1.getOrElse{ fail("Illegal URL") } < inputUrl2.getOrElse{ fail("Illegal URL") }
 
 
   Then("""it should return a valid URL"""): () =>
-    assert(inputUrl1.isSuccess)
+    assert(inputUrl1.isRight)
 
   Then("""it should result in a Malformed URL error"""): () =>
     // Write code here that turns the phrase above into concrete actions
-    assert(inputUrl1.isFailure)
+    assert(inputUrl1.isLeft)
 
   Then("""it should return the URL {string}"""): (url: String) =>
     val result = inputUrl1.getOrElse{ fail("Illegal URL") }

@@ -16,6 +16,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.5.6",
+  "org.typelevel" %% "cats-core" % "2.12.0",
   "io.cucumber" %% "cucumber-scala" % "8.23.0" % Test,
   "io.cucumber" % "cucumber-junit" % "7.18.0" % Test,
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test,

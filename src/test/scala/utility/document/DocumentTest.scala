@@ -1,10 +1,11 @@
 package org.unibo.scooby
 package utility.document
 
+import utility.http.URL
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import java.net.URL
 
 class DocumentTest extends AnyFlatSpec with should.Matchers:
 
@@ -15,9 +16,13 @@ class DocumentTest extends AnyFlatSpec with should.Matchers:
                     "</head>" +
                   "<body></body>" +
                 "</html>"
-      val URL = new URL("http://www.example.com")
-      val document = Document(html, URL)
-      document.content should be (html)
-      document.url should be (URL)
+      val urlEither = URL("http://www.example.com")
+      assert(urlEither.isRight)
+      urlEither.fold(_ => fail("Illegal URL"), url =>
+        val document = Document(html, url)
+        document.content should be (html)
+        document.url should be (url)
+      )
+      
 
 
