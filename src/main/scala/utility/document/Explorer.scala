@@ -1,9 +1,9 @@
 package org.unibo.scooby
 package utility.document
 
-import java.net.URL
 import scala.util.matching.Regex
 import html.*
+import org.unibo.scooby.utility.http.URL
 
 /**
  * Trait that provides functionality to explore a document using regular expressions.
