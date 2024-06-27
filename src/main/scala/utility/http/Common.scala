@@ -154,9 +154,8 @@ object Request:
      * @tparam T The type to which we want the response provided by the client to be deserialized
      * @return a [[Try]] of [[T]], `Success` if the request went good (no network exceptions), `Failure` otherwise.
      */
-    def send[R, T](using deserializer: Deserializer[R, T])(using client: HttpClient with Backend[R]): Try[T] =
-      Try:
-        deserializer.deserialize(client.send(build.get))
+    def send[R, T](using deserializer: Deserializer[R, T])(using client: HttpClient with Backend[R]): Either[String, T] =
+      Try { deserializer.deserialize(client.send(build.get)) }.toEither.left.map(_.getMessage)
 
     /**
      * Builds the [[Request]]
