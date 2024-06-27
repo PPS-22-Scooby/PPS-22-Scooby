@@ -1,7 +1,6 @@
 package org.unibo.scooby
 package utility.http
 
-import scala.util.Try
 
 /**
  * Method selected for the HTTP request
@@ -152,20 +151,27 @@ object Request:
      *               with responses of type [[R]]
      * @tparam R type of responses that the client's backend works with
      * @tparam T The type to which we want the response provided by the client to be deserialized
-     * @return a [[Try]] of [[T]], `Success` if the request went good (no network exceptions), `Failure` otherwise.
+     * @return a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing
+     *         an error otherwise.
      */
     def send[R, T](using deserializer: Deserializer[R, T])(using client: HttpClient with Backend[R]): Either[String, T] =
-      Try { deserializer.deserialize(client.send(build.get)) }.toEither.left.map(_.getMessage)
+      build.fold(
+        _ => Left("Empty or illegal URL provided"),
+        request =>
+          try Right(deserializer.deserialize(client.send(request)))
+          catch
+            case ex: Exception => Left(ex.getMessage)
+      )
+
 
     /**
      * Builds the [[Request]]
-     * @return a [[Try]] of [[Request]], `Success` if the provided URL was provided and well formatted, `Failure` otherwise
+     * @return a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a String
+     *         representing an error messsage otherwise
      */
-    def build: Try[Request] =
-      Try {
-        if url != URL.empty then Request(method, url, headers, body) else
-          throw new IllegalArgumentException("You must provide a URL")
-      }
+    def build: Either[String, Request] =
+      if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a URL")
+
 
   /**
    * Used to instantiate a builder that builds [[Request]]s

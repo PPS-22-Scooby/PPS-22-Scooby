@@ -3,7 +3,6 @@ package utility.http
 
 import scala.annotation.targetName
 import scala.math.Ordered
-import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -88,7 +87,7 @@ object URL:
   /**
    * Entry point for instantiating a URL. It parses the provided [[String]].
    * @param url String parsed as URL
-   * @return a [[Try]] with `Success` if the provided string was formatted correctly, `Failure` otherwise.
+   * @return a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
    */
   def apply(url: String): Either[String, URL] =
     def parseQueryParams(queryString: String): Map[String, String] =

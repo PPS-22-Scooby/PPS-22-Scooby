@@ -7,8 +7,6 @@ import utility.http.Request.RequestBuilder
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.scalatest.Assertions.*
 
-import scala.util.Try
-
 
 class BasicUsageStepDefinitions extends ScalaDsl with EN:
 
