@@ -35,5 +35,13 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
       Behaviors.same
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")
+      links.foreach :
+          case (returnedUrl, true) => URL(returnedUrl) match
+            case Right(url) =>
+              val childName = s"crawler-${url.domain}"
+              val children = context.spawn(Crawler(coordinator), childName)
+              children ! Crawl(url)
+            case _ => ()
+          case _ => ()
       Behaviors.same
 

@@ -3,7 +3,7 @@ package crawler
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, ScalaTestWithActorTestKit}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, ScalaTestWithActorTestKit}
 import akka.actor.typed.{ActorRef, ActorSystem}
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.{Coordinator, CoordinatorCommand}
@@ -11,6 +11,7 @@ import utility.http.URL
 import core.crawler.{Crawler, CrawlerCommand}
 import utility.MockServer
 
+import akka.actor.testkit.typed.Effect._
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
@@ -18,7 +19,7 @@ import scala.concurrent.duration.*
 import akka.actor.typed.scaladsl.AskPattern.*
 import akka.util.Timeout
 
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 
 class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
   implicit val timeout: Timeout = 30.seconds
@@ -47,3 +48,19 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
     crawler ! Crawl(url)
     coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List("https://www.fortest.it"), crawler))
+
+  it should "spawn a new Crawler actor for each link received" in :
+    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
+    val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
+
+    val linksMap = Map("https://www.fortest.it" -> true, "https://www.google.com" -> true)
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
+
+    behaviorTestKit.expectEffectType[Spawned[Crawler]]
+
+    val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.fortest.it")
+    val child2Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.google.com")
+
+    child1Inbox.expectMessage(Crawl(URL("https://www.fortest.it").getOrElse(fail("Invalid URL"))))
+    child2Inbox.expectMessage(Crawl(URL("https://www.google.com").getOrElse(fail("Invalid URL"))))
+
