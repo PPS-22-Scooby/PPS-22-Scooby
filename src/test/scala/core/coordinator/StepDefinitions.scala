@@ -1,5 +1,5 @@
 package org.unibo.scooby
-package coordinator
+package core.coordinator
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import core.coordinator.Coordinator

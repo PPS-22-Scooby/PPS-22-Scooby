@@ -1,23 +1,24 @@
 package org.unibo.scooby
-package crawler
+package core.crawler
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, ScalaTestWithActorTestKit}
 import akka.actor.typed.{ActorRef, ActorSystem}
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
-import core.coordinator.{Coordinator, CoordinatorCommand}
+import core.coordinator.CoordinatorCommand
 import utility.http.URL
-import core.crawler.{Crawler, CrawlerCommand}
 import utility.MockServer
 
-import akka.actor.testkit.typed.Effect._
+import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.Effect.*
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration.*
 import akka.actor.typed.scaladsl.AskPattern.*
 import akka.util.Timeout
+import org.slf4j.event.Level
 
 import scala.language.{implicitConversions, postfixOps}
 
@@ -53,14 +54,24 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
 
-    val linksMap = Map("https://www.fortest.it" -> true, "https://www.google.com" -> true)
+    val linksMap = Map("https://www.facebook.it" -> true, "https://www.google.com" -> true)
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler]]
 
-    val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.fortest.it")
+    val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.facebook.it")
     val child2Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.google.com")
 
-    child1Inbox.expectMessage(Crawl(URL("https://www.fortest.it").getOrElse(fail("Invalid URL"))))
+    child1Inbox.expectMessage(Crawl(URL("https://www.facebook.it").getOrElse(fail("Invalid URL"))))
     child2Inbox.expectMessage(Crawl(URL("https://www.google.com").getOrElse(fail("Invalid URL"))))
 
+  it should "log an error message when the URL can't be parsed" in :
+    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
+    val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
+
+    val url = URL("http://localhost:23111").getOrElse(fail("Invalid URL"))
+    behaviorTestKit.run(CrawlerCommand.Crawl(URL("http://localhost:23111").getOrElse(fail("Invalid URL"))))
+
+    behaviorTestKit.logEntries() shouldBe Seq(
+      CapturedLogEvent(Level.ERROR, f"Error while crawling $url: Exception when sending request: GET $url")
+    )

@@ -28,10 +28,19 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
   def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage:
     case Crawl(url) =>
       Request.builder.get().at(url).send match
-        case Left(s: String) => context.log.error(s"Error while crawling $url: $s")
+        case Left(s: String) =>
+          context.log.error(s"Error while crawling $url: $s")
+
         case Right(response: Response) =>
-          val links: Seq[String] = new CrawlDocument(response.body.get, url).frontier
-          this.coordinator ! CoordinatorCommand.CheckPages(links.toList, context.self)
+          println(response.headers.get("content-type"))
+          response.headers.get("content-type") match
+            case Some(contentType) if contentType.startsWith("text/") =>
+              val links: Seq[String] = new CrawlDocument(response.body.get, url).frontier
+              this.coordinator ! CoordinatorCommand.CheckPages(links.toList, context.self)
+            case _ =>
+              context.log.error(s"$url does not have a text content type")
+
+
       Behaviors.same
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")

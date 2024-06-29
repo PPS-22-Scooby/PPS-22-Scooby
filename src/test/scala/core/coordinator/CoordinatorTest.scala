@@ -1,5 +1,5 @@
 package org.unibo.scooby
-package coordinator
+package core.coordinator
 
 import core.coordinator.Coordinator
 import core.coordinator.CoordinatorCommand.*
