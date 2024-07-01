@@ -1,12 +1,14 @@
 package org.unibo.scooby
-package coordinator
+package core.coordinator
 
 import core.coordinator.Coordinator
-import core.coordinator.CoordinatorCommand._
+import core.coordinator.CoordinatorCommand.*
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
+import core.crawler.CrawlerCommand
+import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 
 class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
 
@@ -17,41 +19,41 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
   "A Coordinator" must :
 
     "return a map of pages and their crawled status" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
 
 
     "return an empty map when no pages are provided" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List.empty, probe.ref)
-      probe.expectMessage(PagesChecked(Map.empty))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map.empty))
 
 
     "return a map with false values for pages that have not been crawled" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
 
 
     "return a map with true values for pages that have been crawled" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! SetCrawledPages(List("http://www.google.com"))
       coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
 
 
     "return a map with true values for pages that have been checked" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false)))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map("http://www.google.com" -> false)))
       coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
+      probe.expectMessage(CrawlerCoordinatorResponse(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
 
 
     "update the list of crawled pages" in :
