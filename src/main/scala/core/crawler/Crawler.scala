@@ -10,7 +10,6 @@ import utility.document.CrawlDocument
 
 import core.coordinator.CoordinatorCommand
 
-
 enum CrawlerCommand:
   case Crawl(url: URL)
   case CrawlerCoordinatorResponse(result: Map[String, Boolean])
@@ -45,7 +44,7 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")
       links.foreach :
-          case (returnedUrl, true) => URL(returnedUrl) match
+          case (returnedUrl, false) => URL(returnedUrl) match
             case Right(url) =>
               val childName = s"crawler-${url.domain}"
               val children = context.spawn(Crawler(coordinator), childName)
