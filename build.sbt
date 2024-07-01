@@ -23,6 +23,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
   "junit" % "junit" % "4.13.2" % Test,
+  "com.typesafe.play" %% "play-json" % "2.10.5" % Test,
   "org.jsoup" % "jsoup" % "1.17.2",
   "com.softwaremill.sttp.client3" %% "core" % "3.9.7",
 )
