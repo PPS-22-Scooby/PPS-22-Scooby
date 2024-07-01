@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package core.scraper.result
 
-import core.scraper.{Result, Aggregator}
+import core.scraper.{Result, ResultImpl, Aggregator}
 
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.jsoup.Jsoup
@@ -32,12 +32,12 @@ class StepDefinitions extends ScalaDsl with EN:
     print(typeToUse)
     typeToUse match
       case "String" =>
-        resultString = Result(Iterable(part_res))
+        resultString = ResultImpl(Iterable(part_res))
       case "Map[String, String]" =>
         val res = Json.parse(part_res).validate[Map[String, String]]
         res match {
           case JsSuccess(resMap, _) =>
-            resultMap = Result(resMap)
+            resultMap = ResultImpl(resMap)
           case JsError(errors) =>
             println(errors)
         }
@@ -107,7 +107,7 @@ class StepDefinitions extends ScalaDsl with EN:
             ).values.mkString("")
           }
         }
-        resultString = Result(Iterable(scraper.scrape(this.document)))
+        resultString = ResultImpl(Iterable(scraper.scrape(this.document)))
 
       case "Map[String, String]" =>
         val scraper = new Scraper[Map[String, String]] {
@@ -131,7 +131,7 @@ class StepDefinitions extends ScalaDsl with EN:
             )
           }
         }
-        resultMap = Result(scraper.scrape(this.document))
+        resultMap = ResultImpl(scraper.scrape(this.document))
 
   When("""^The scrapers finished, generated different (.*)$"""): (result: String) =>
     typeToUse match
@@ -139,8 +139,8 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[List[String]]
         res match {
           case JsSuccess(resList, _) =>
-            resultString1 = Result(Iterable(resList(0)))
-            resultString2 = Result(Iterable(resList(1)))
+            resultString1 = ResultImpl(Iterable(resList(0)))
+            resultString2 = ResultImpl(Iterable(resList(1)))
           case JsError(errors) =>
             println(errors)
         }
@@ -148,8 +148,8 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[List[Map[String, String]]]
         res match {
           case JsSuccess(resMap, _) =>
-            resultMap1 = Result(resMap(0))
-            resultMap2 = Result(resMap(1))
+            resultMap1 = ResultImpl(resMap(0))
+            resultMap2 = ResultImpl(resMap(1))
           case JsError(errors) =>
             println(errors)
         }
@@ -160,7 +160,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[List[String]]
         res match {
           case JsSuccess(resList, _) =>
-            assertEquals(resList, resultString.getData)
+            assertEquals(resList, resultString.data)
           case JsError(errors) =>
             println(errors)
         }
@@ -168,7 +168,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[Map[String, String]]
         res match {
           case JsSuccess(resMap, _) =>
-            assertEquals(resMap, resultMap.getData)
+            assertEquals(resMap, resultMap.data)
           case JsError(errors) =>
             println(errors)
         }
@@ -179,7 +179,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[List[String]]
         res match {
           case JsSuccess(resList, _) =>
-            assertEquals(resList, this.resultString.getData)
+            assertEquals(resList, this.resultString.data)
           case JsError(errors) =>
             println(errors)
         }
@@ -187,7 +187,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[Map[String, String]]
         res match {
           case JsSuccess(resMap, _) =>
-            assertEquals(resMap, this.resultMap.getData)
+            assertEquals(resMap, this.resultMap.data)
           case JsError(errors) =>
             println(errors)
         }
@@ -198,7 +198,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(aggregate).validate[List[String]]
         res match {
           case JsSuccess(resList, _) =>
-            assertEquals(resList, this.resultString1.aggregate(this.resultString2).getData)
+            assertEquals(resList, this.resultString1.aggregate(this.resultString2).data)
           case JsError(errors) =>
             println(errors)
         }
@@ -206,7 +206,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(aggregate).validate[Map[String, String]]
         res match {
           case JsSuccess(resMap, _) =>
-            assertEquals(resMap, this.resultMap1.aggregate(this.resultMap2).getData)
+            assertEquals(resMap, this.resultMap1.aggregate(this.resultMap2).data)
           case JsError(errors) =>
             println(errors)
         }

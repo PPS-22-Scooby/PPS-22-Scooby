@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.scraper
 
 /**
- * Object used to provide aggregators to {@link Result}.
+ * Object used to provide aggregators to {@link ResultImpl}.
  */
 object Aggregator:
 
