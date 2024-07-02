@@ -70,11 +70,13 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
 
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")
-      for (returnedUrl <- links) URL(returnedUrl) match
-        case Right(url) =>
-          val childName = s"crawler-${url.domain}"
-          val children = context.spawn(Crawler(coordinator), childName)
-          children ! Crawl(url)
-        case _ => ()
+      for 
+        returnedUrl <- links
+        url <- URL(returnedUrl).toOption
+      do
+        val childName = s"crawler-${url.domain}"
+        val children = context.spawn(Crawler(coordinator), childName)
+        children ! Crawl(url)
+      
       Behaviors.same
 
