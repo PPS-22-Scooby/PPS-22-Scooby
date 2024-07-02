@@ -3,7 +3,7 @@ Feature: Coordinator
   Scenario Outline: Page is already present in the crawled list
     Given I have a list of already crawled pages <crawled_pages>
     When I check if <page> is already crawled
-    Then The result should be true
+    Then The coordinator response result should be true
 
     Examples:
       | crawled_pages | page |
@@ -12,7 +12,7 @@ Feature: Coordinator
   Scenario Outline: Page is not present in the crawled list
     Given I have a list of already crawled pages <crawled_pages>
     When I check if <page> is already crawled
-    Then The result should be false
+    Then The coordinator response result should be false
 
     Examples:
       | crawled_pages | page |
@@ -43,7 +43,7 @@ Feature: Coordinator
   Scenario: Handle empty list of crawled pages
     Given I have an empty list of already crawled pages
     When I check if www.google.it is already crawled
-    Then The result should be false
+    Then The coordinator response result should be false
 
   Scenario Outline: Avoid duplicates in the crawled list
     Given I have a list of already crawled pages <crawled_pages>

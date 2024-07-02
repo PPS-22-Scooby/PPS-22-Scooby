@@ -40,7 +40,7 @@ class StepDefinitions extends ScalaDsl with EN :
       coordinator ! SetCrawledPages(pages)
 
 
-  Then("""The result should be (true|false)$""") :
+  Then("""The coordinator response result should be (true|false)$""") :
     (expectedResult: Boolean) =>
       assertEquals(expectedResult, this.checkResult.getOrElse(true))
 
