@@ -8,38 +8,49 @@ object Aggregator:
 
   /**
    * Aggregates single elements.
-   * @tparam T type of elements to aggregate.
+   * @tparam T
+   *   type of elements to aggregate.
    */
   trait SingleElemAggregator[T]:
 
     /**
      * Aggregate elements provided.
-     * @param x first element to aggregate.
-     * @param y second element to aggregate.
-     * @return aggregated element.
+     * @param x
+     *   first element to aggregate.
+     * @param y
+     *   second element to aggregate.
+     * @return
+     *   aggregated element.
      */
     def aggregate(x: T, y: T): T
 
   /**
    * Aggregates elements provided as iterators.
-   * @tparam T type of elements to aggregate.
+   * @tparam T
+   *   type of elements to aggregate.
    */
   trait ItAggregator[T]:
 
     /**
      * Aggregate elements provided both as {@link Iterable}.
-     * @param x first {@link Iterable} to aggregate.
-     * @param y second {@link Iterable} to aggregate.
-     * @return the {@link Iterable} obtained aggregating given ones.
+     * @param x
+     *   first {@link Iterable} to aggregate.
+     * @param y
+     *   second {@link Iterable} to aggregate.
+     * @return
+     *   the {@link Iterable} obtained aggregating given ones.
      */
     def aggregateBatch(x: Iterable[T], y: Iterable[T]): Iterable[T]
 
     /**
      * Aggregate elements provided as {@link Iterable} and single element.
      *
-     * @param x the {@link Iterable} to aggregate.
-     * @param y the element to aggregate.
-     * @return the {@link Iterable} obtained aggregating given ones.
+     * @param x
+     *   the {@link Iterable} to aggregate.
+     * @param y
+     *   the element to aggregate.
+     * @return
+     *   the {@link Iterable} obtained aggregating given ones.
      */
     def aggregateStream(x: Iterable[T], y: T): Iterable[T]
 
