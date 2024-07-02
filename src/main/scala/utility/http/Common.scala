@@ -65,7 +65,7 @@ sealed case class Request private(
    * @return a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing
    *         an error otherwise.
    */
-  def send[R](client: HttpClient with Backend[R]): Either[String, R] =
+  def send[R](client: Client[R]): Either[String, R] =
       try Right(client.send(this))
       catch
         case ex: Exception => Left(ex.getMessage)
