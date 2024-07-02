@@ -5,6 +5,9 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.rule.ConditionalRule
 
+import core.crawler.CrawlerCommand
+import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
+
 enum CoordinatorCommand:
 
   /**
@@ -13,7 +16,7 @@ enum CoordinatorCommand:
    * @param pages   The list of pages to check.
    * @param replyTo The actor to send the result to.
    */
-  case CheckPages(pages: List[String], replyTo: ActorRef[PagesChecked])
+  case CheckPages(pages: List[String], replyTo: ActorRef[CrawlerCoordinatorResponse])
 
   /**
    * A message that instructs the Coordinator actor to set a list of pages as crawled.

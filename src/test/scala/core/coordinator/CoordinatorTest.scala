@@ -1,12 +1,14 @@
 package org.unibo.scooby
-package coordinator
+package core.coordinator
 
 import core.coordinator.Coordinator
-import core.coordinator.CoordinatorCommand._
+import core.coordinator.CoordinatorCommand.*
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
+import core.crawler.CrawlerCommand
+import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 
 class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
 

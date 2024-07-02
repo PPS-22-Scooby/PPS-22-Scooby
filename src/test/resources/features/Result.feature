@@ -3,7 +3,7 @@ Feature: Result update and aggregation
   Rule: Result should support adding data
 
     Scenario Outline: Update result with a new entry
-      Given I have a <type> <partial_result>
+      Given I have a <partial_result> result of type <type>
       When I batch a new entry <add_data>
       Then The result should be <result>
       Examples:
@@ -13,7 +13,7 @@ Feature: Result update and aggregation
         |         String            |     <a>match</a><div>match</div>      |           <div>match2</div>               |           ["<a>match</a><div>match</div>", "<div>match2</div>"]              |
 
     Scenario Outline: Update result with a multiple entry
-      Given I have a <type> <partial_result>
+      Given I have a <partial_result> result of type <type>
       When I batch new entries <add_data>
       Then The result should be <result>
       Examples:
