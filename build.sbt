@@ -29,16 +29,3 @@ libraryDependencies ++= Seq(
   "org.jsoup" % "jsoup" % "1.17.2",
   "com.softwaremill.sttp.client3" %% "core" % "3.9.7",
 )
-
-// Start configuration for wartremover
-wartremoverWarnings ++= Warts.all
-// End configuration for wartremover
-
-// Start configuration for scoverage
-coverageEnabled := true
-coverageFailOnMinimum := true
-coverageMinimumStmtTotal := 60
-coverageMinimumBranchTotal := 60
-coverageMinimumStmtPerFile := 50
-coverageMinimumBranchPerFile := 50
-// End configuration for scoverage

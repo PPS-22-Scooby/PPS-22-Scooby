@@ -52,7 +52,7 @@ Feature: Crawler exploration strategy
       Given a crawler set up for start exploring the seed url http://www.adomain.com/
       And the crawler is allowed to explore external domains
       And the user provided a whitelist
-      When it starts crawling the website
+      When it starts crawling
       Then it will visit only the pages listed on the whitelist
 
     Example: Blacklisting a website
