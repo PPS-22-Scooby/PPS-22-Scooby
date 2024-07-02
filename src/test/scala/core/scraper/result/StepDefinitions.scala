@@ -26,7 +26,7 @@ class StepDefinitions extends ScalaDsl with EN:
     def scrape(doc: String): T
   }
 
-  Given("""^I have a (.*) (.*)$""") : (run_type: String, part_res: String) =>
+  Given("""^I have a (.*) result of type (.*)$""") : (part_res: String, run_type: String) =>
     typeToUse = run_type
 
     print(typeToUse)
