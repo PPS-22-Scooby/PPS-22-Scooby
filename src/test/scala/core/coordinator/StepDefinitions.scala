@@ -1,12 +1,13 @@
 package org.unibo.scooby
-package coordinator
+package core.coordinator
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import core.coordinator.Coordinator
-import core.coordinator.CoordinatorCommand._
+import core.coordinator.CoordinatorCommand.*
 
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.junit.Assert.*
+import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 
 class StepDefinitions extends ScalaDsl with EN :
 
@@ -28,7 +29,7 @@ class StepDefinitions extends ScalaDsl with EN :
 
   When("""I check if (.*) is already crawled$""") :
     (page: String) =>
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
       coordinator ! CheckPages(List(page), probe.ref)
       this.checkResult = probe.receiveMessage().result.values.headOption
 
