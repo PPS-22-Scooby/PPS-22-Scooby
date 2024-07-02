@@ -40,12 +40,13 @@ class StepDefinitions extends ScalaDsl with EN :
 
   And("""the url will return the Content-Type header video\/webm"""):
     () =>
-      import Deserializer.default
-      given httpClient: SimpleHttpClient = SimpleHttpClient()
-      Request.builder.get().at(url).send match
-        case Right(response) =>
-          response.headers.get("content-type") shouldBe Some("video/webm")
-        case _ => fail("Invalid response")
+      val httpClient: SimpleHttpClient = SimpleHttpClient()
+      Request.builder.get().at(url).build match
+        case Right(request: Request) => request.send(httpClient) match
+          case Right(response) =>
+            response.headers.get("content-type") shouldBe Some("video/webm")
+          case _ => fail("Invalid response")
+        case _ => fail("Invalid URL")
 
   When("""it will start crawling"""):
     () =>
