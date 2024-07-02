@@ -52,7 +52,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
 
-    val linksMap = Map("https://www.facebook.it" -> false, "https://www.google.com" -> false)
+    val linksMap = Iterator("https://www.facebook.it", "https://www.google.com")
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler]]
@@ -82,15 +82,14 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val link = url.toString
 
     behaviorTestKit.run(CrawlerCommand.Crawl(url))
-    behaviorTestKit.run(CrawlerCommand.Crawl(url))
 
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Map(link -> false)))
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(link)))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler]]
     val childInbox = behaviorTestKit.childInbox[CrawlerCommand](s"crawler-${url.domain}")
     childInbox.expectMessage(CrawlerCommand.Crawl(url))
 
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Map(link -> true)))
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
   }
   
   
