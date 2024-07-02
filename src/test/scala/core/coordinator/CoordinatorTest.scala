@@ -18,21 +18,21 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
 
   "A Coordinator" must :
     "return an iterator of pages and their crawled status" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
       assert(probe.receiveMessage().result.toSet == Set("http://www.google.com", "http://www.github.com"))
 
 
     "return an empty iterator when no pages are provided" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List.empty, probe.ref)
       assert(probe.receiveMessage().result.toSet == Set.empty)
 
 
     "return an iterator without pages that have been crawled" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! SetCrawledPages(List("http://www.google.com"))
       coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
@@ -40,7 +40,7 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
 
 
     "return an iterator with true values for pages that have been checked" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
+      val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com"), probe.ref)
       assert(probe.receiveMessage().result.toSet == Set("http://www.google.com"))

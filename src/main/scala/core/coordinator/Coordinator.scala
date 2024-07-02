@@ -35,7 +35,7 @@ enum CoordinatorCommand:
   /**
    * A message that contains the result of a CheckPages message.
    *
-   * @param result A map of pages and their crawled status.
+   * @param result A iterator of pages and their crawled status.
    */
   case PagesChecked(result: Iterator[String])
 
@@ -104,7 +104,7 @@ class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: Conditio
       case CheckPages(pages, replyTo) =>
         val resultIterator = pages
           .filter(page => urlPolicy executeOn (page, crawledPages))
-        replyTo ! PagesChecked(resultIterator.iterator)
+        replyTo ! CrawlerCoordinatorResponse(resultIterator.iterator)
         idle(crawledPages ++ resultIterator.map(normalizeURL).toSet)
 
       case SetCrawledPages(pages) =>

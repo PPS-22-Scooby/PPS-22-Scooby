@@ -24,7 +24,7 @@ enum CrawlerCommand:
    *
    * @param result a map of URLs to their corresponding statuses
    */
-  case CrawlerCoordinatorResponse(result: Map[String, Boolean])
+  case CrawlerCoordinatorResponse(result: Iterator[String])
 
 object Crawler:
   /**
@@ -70,13 +70,11 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
 
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")
-      links.foreach :
-          case (returnedUrl, false) => URL(returnedUrl) match
-            case Right(url) =>
-              val childName = s"crawler-${url.domain}"
-              val children = context.spawn(Crawler(coordinator), childName)
-              children ! Crawl(url)
-            case _ => ()
-          case _ => ()
+      for (returnedUrl <- links) URL(returnedUrl) match
+        case Right(url) =>
+          val childName = s"crawler-${url.domain}"
+          val children = context.spawn(Crawler(coordinator), childName)
+          children ! Crawl(url)
+        case _ => ()
       Behaviors.same
 

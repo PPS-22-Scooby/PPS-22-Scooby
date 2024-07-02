@@ -27,7 +27,7 @@ class StepDefinitions extends ScalaDsl with EN :
     () => coordinator ! SetCrawledPages(List.empty)
 
 
-  When("""I check if (.*) is already crawled$""") :
+  When("""I check if (.*) is crawable$""") :
     (page: String) =>
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
       coordinator ! CheckPages(List(page), probe.ref)
@@ -40,7 +40,7 @@ class StepDefinitions extends ScalaDsl with EN :
       coordinator ! SetCrawledPages(pages)
 
 
-  Then("""The result should be (true|false)$""") :
+  Then("""The result of check should be (true|false)$""") :
     (expectedResult: Boolean) =>
       assertEquals(expectedResult, this.checkResult.getOrElse(true))
 
