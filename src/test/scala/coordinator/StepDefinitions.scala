@@ -30,7 +30,7 @@ class StepDefinitions extends ScalaDsl with EN :
     (page: String) =>
       val probe = testKit.createTestProbe[PagesChecked]()
       coordinator ! CheckPages(List(page), probe.ref)
-      this.checkResult = probe.receiveMessage().result.values.headOption
+      this.checkResult = Some(probe.receiveMessage().result.hasNext)
 
 
   When("""I add (.*) to the crawled list$""") :

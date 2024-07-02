@@ -15,43 +15,35 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
   "A Coordinator" must :
-
-    "return a map of pages and their crawled status" in :
+    "return an iterator of pages and their crawled status" in :
       val probe = testKit.createTestProbe[PagesChecked]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
+      assert(probe.receiveMessage().result.toSet == Set("http://www.google.com", "http://www.github.com"))
 
 
-    "return an empty map when no pages are provided" in :
+    "return an empty iterator when no pages are provided" in :
       val probe = testKit.createTestProbe[PagesChecked]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List.empty, probe.ref)
-      probe.expectMessage(PagesChecked(Map.empty))
+      assert(probe.receiveMessage().result.toSet == Set.empty)
 
 
-    "return a map with false values for pages that have not been crawled" in :
-      val probe = testKit.createTestProbe[PagesChecked]()
-      val coordinator = testKit.spawn(Coordinator())
-      coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false, "http://www.github.com" -> false)))
-
-
-    "return a map with true values for pages that have been crawled" in :
+    "return an iterator without pages that have been crawled" in :
       val probe = testKit.createTestProbe[PagesChecked]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! SetCrawledPages(List("http://www.google.com"))
       coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
+      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com"))
 
 
-    "return a map with true values for pages that have been checked" in :
+    "return an iterator with true values for pages that have been checked" in :
       val probe = testKit.createTestProbe[PagesChecked]()
       val coordinator = testKit.spawn(Coordinator())
       coordinator ! CheckPages(List("http://www.google.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("http://www.google.com" -> false)))
+      assert(probe.receiveMessage().result.toSet == Set("http://www.google.com"))
       coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      probe.expectMessage(PagesChecked(Map("https://www.google.com" -> true, "http://www.github.com" -> false)))
+      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com"))
 
 
     "update the list of crawled pages" in :

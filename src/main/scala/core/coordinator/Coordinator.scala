@@ -34,7 +34,7 @@ enum CoordinatorCommand:
    *
    * @param result A map of pages and their crawled status.
    */
-  case PagesChecked(result: Map[String, Boolean])
+  case PagesChecked(result: Iterator[String])
 
 /**
  * The Coordinator object contains the definitions of the messages that the Coordinator actor can receive.
@@ -68,8 +68,8 @@ object Coordinator:
         val defaultUrlPolicy: ConditionalRule[(String, Set[String])] = policy(
           (url: String, crawledPages: Set[String]) =>
             val normalizedPage = normalizeURL(url)
-            val isCrawled = crawledPages.contains(normalizedPage)
-            isValidURL(url) && !isCrawled
+            val isAlreadyCrawled = crawledPages.contains(normalizedPage)
+            isValidURL(url) && !isAlreadyCrawled
         )
         new Coordinator(context, defaultUrlPolicy).idle(Set.empty)
 
@@ -99,17 +99,10 @@ class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: Conditio
   def idle(crawledPages: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage :
       case CheckPages(pages, replyTo) =>
-        val (updatedPages, result) = pages.foldLeft((crawledPages, Map.empty[String, Boolean])) :
-          case ((updatedPages, result), page) =>
-            val normalizedPage = normalizeURL(page)
-            val isCrawled = crawledPages.contains(normalizedPage)
-            if (urlPolicy executeOn (page, updatedPages))
-              (updatedPages + normalizedPage, result + (page -> false))
-            else
-              (updatedPages, result + (page -> isCrawled))
-
-        replyTo ! PagesChecked(result)
-        idle(updatedPages)
+        val resultIterator = pages
+          .filter(page => urlPolicy executeOn (page, crawledPages))
+        replyTo ! PagesChecked(resultIterator.iterator)
+        idle(crawledPages ++ resultIterator.map(normalizeURL).toSet)
 
       case SetCrawledPages(pages) =>
         val validPages = pages.filter(isValidURL).map(normalizeURL).toSet
