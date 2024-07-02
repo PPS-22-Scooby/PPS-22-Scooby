@@ -1,17 +1,44 @@
 package org.unibo.scooby
 package utility
 
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
+import akka.util.Timeout
+import io.cucumber.scala.{EN, ScalaDsl}
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
+import scala.concurrent.duration.DurationInt
+import org.scalatest.matchers.should.Matchers.should
+import akka.actor.typed.scaladsl.AskPattern.*
+import org.scalatest.matchers.should.Matchers.be
 
-object MockServer {
+trait CucumberTestWithMockServer extends ScalaDsl with EN:
+  implicit val timeout: Timeout = 30.seconds
+
+  val testKit: ActorTestKit = ActorTestKit()
+
+  implicit val system: ActorSystem[Nothing] = testKit.system
+  val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
+
+
+  BeforeAll {
+    val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
+    val result = Await.result(startFuture, timeout.duration)
+    result should be(MockServer.ServerStarted)
+  }
+
+  AfterAll {
+    webServerSystem ! MockServer.Stop
+    testKit.shutdownTestKit()
+  }
+
+object MockServer:
 
   sealed trait Command
   sealed case class Start(replyTo: ActorRef[Command]) extends Command
@@ -106,4 +133,3 @@ object MockServer {
         Behaviors.same
     }
   }
-}

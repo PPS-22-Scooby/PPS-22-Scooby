@@ -1,47 +1,19 @@
 package org.unibo.scooby
 package utility.http
 
-import org.scalatest.{BeforeAndAfterAll, stats}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import utility.CucumberTestWithMockServer
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Request.RequestBuilder
 
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.actor.typed.ActorSystem
-import akka.util.Timeout
-import io.cucumber.scala.{EN, ScalaDsl}
 import org.scalatest.Assertions.*
-import org.unibo.scooby.utility.MockServer
-import akka.actor.typed.scaladsl.AskPattern.*
-
-import scala.concurrent.duration.*
-import scala.concurrent.Await
 
 
-object BasicUsageStepDefinitions extends ScalaDsl with EN:
-
-  implicit val timeout: Timeout = 30.seconds
+object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   var request: RequestBuilder = Request.builder
   var response: Either[String, Response] = Left("Empty response")
   val httpClient: SimpleHttpClient = SimpleHttpClient()
-  val testKit: ActorTestKit = ActorTestKit()
-
-  implicit val system: ActorSystem[Nothing] = testKit.system
-  val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
-
-
-  BeforeAll {
-    val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
-    val result = Await.result(startFuture, timeout.duration)
-    assert(result === MockServer.ServerStarted)
-  }
-
-  AfterAll {
-    webServerSystem ! MockServer.Stop
-    testKit.shutdownTestKit()
-  }
+  
 
   Given("""a simple {string} request"""): (requestType: String) =>
     request = request.method(HttpMethod.valueOf(requestType))
