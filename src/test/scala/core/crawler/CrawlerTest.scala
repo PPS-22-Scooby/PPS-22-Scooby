@@ -32,16 +32,14 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
 
   val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
 
-  override def beforeAll(): Unit = {
+  override def beforeAll(): Unit =
     val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
     val result = Await.result(startFuture, timeout.duration)
     result shouldBe MockServer.ServerStarted
-  }
 
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     webServerSystem ! MockServer.Stop
     testKit.shutdownTestKit()
-  }
 
   "Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
@@ -54,7 +52,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
 
-    val linksMap = Map("https://www.facebook.it" -> true, "https://www.google.com" -> true)
+    val linksMap = Map("https://www.facebook.it" -> false, "https://www.google.com" -> false)
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler]]
@@ -75,3 +73,24 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     behaviorTestKit.logEntries() shouldBe Seq(
       CapturedLogEvent(Level.ERROR, f"Error while crawling $url: Exception when sending request: GET $url")
     )
+
+  it should "handle CrawlerCoordinatorResponse correctly when the same link is sent twice" in {
+    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
+    val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
+
+    val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
+    val link = url.toString
+
+    behaviorTestKit.run(CrawlerCommand.Crawl(url))
+    behaviorTestKit.run(CrawlerCommand.Crawl(url))
+
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Map(link -> false)))
+
+    behaviorTestKit.expectEffectType[Spawned[Crawler]]
+    val childInbox = behaviorTestKit.childInbox[CrawlerCommand](s"crawler-${url.domain}")
+    childInbox.expectMessage(CrawlerCommand.Crawl(url))
+
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Map(link -> true)))
+  }
+  
+  
