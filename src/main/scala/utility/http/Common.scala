@@ -59,11 +59,9 @@ sealed case class Request private(
   /**
    * Sends the built HTTP request.
    *
-   * @param deserializer Used to deserialize the [[R]] response into [[T]] class
    * @param client       client through which this request is sent. The provided client must mix-in a [[Backend]] that works
    *                     with responses of type [[R]]
    * @tparam R type of responses that the client's backend works with
-   * @tparam T The type to which we want the response provided by the client to be deserialized
    * @return a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing
    *         an error otherwise.
    */
