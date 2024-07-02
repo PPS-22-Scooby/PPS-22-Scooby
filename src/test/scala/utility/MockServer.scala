@@ -4,6 +4,7 @@ package utility
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 
@@ -13,7 +14,7 @@ import scala.util.{Failure, Success}
 object MockServer {
 
   sealed trait Command
-  case class Start(replyTo: ActorRef[Command]) extends Command
+  sealed case class Start(replyTo: ActorRef[Command]) extends Command
   case object Stop extends Command
   case object ServerStarted extends Command
 
@@ -23,13 +24,49 @@ object MockServer {
 
     val route: Route =
       pathEndOrSingleSlash {
+        get {
+          complete(
+            HttpResponse(
+              entity = HttpEntity(
+                ContentTypes.`text/html(UTF-8)`,
+                """<html>
+                  |<head><title>Simple Akka HTTP Server</title></head>
+                  |<body><a href="https://www.fortest.it">Test Link</a></body>
+                  |</html>""".stripMargin
+              ),
+              status = StatusCodes.OK
+            )
+          )
+        }
+      }
+
+    val json: Route =
+      path("json") {
+        post {
+          complete(
+            HttpResponse(
+              entity = HttpEntity(
+                ContentTypes.`application/json`,
+                "{}"
+              ),
+              status = StatusCodes.OK
+            )
+          )
+        }
+      }
+
+    val notFound: Route =  extractRequest { request =>
         complete(
-          """<html>
-            |<head><title>Simple Akka HTTP Server</title></head>
-            |<body><a href="https://www.fortest.it">Test Link</a></body>
-            |</html>""".stripMargin
+          HttpResponse(
+            entity = HttpEntity(
+              ContentTypes.`text/html(UTF-8)`,
+              "<html><h1>Not Found</h1></html>"
+            ),
+            status = StatusCodes.NotFound
+          )
         )
       }
+
 
     def running(bindingFuture: Future[Http.ServerBinding]): Behavior[Command] =
       Behaviors.receiveMessage {
@@ -52,7 +89,7 @@ object MockServer {
 
     Behaviors.receiveMessage {
       case Start(replyTo) =>
-        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
+        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ json ~ notFound)
         val log = context.log
         bindingFuture.onComplete {
           case Success(_) =>
