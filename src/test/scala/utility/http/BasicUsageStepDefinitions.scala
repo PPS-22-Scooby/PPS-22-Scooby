@@ -1,18 +1,19 @@
 package org.unibo.scooby
 package utility.http
 
-import io.cucumber.scala.{EN, ScalaDsl}
-import org.scalatest.Assertions._
-
+import utility.CucumberTestWithMockServer
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Request.RequestBuilder
 
+import org.scalatest.Assertions.*
 
-class BasicUsageStepDefinitions extends ScalaDsl with EN:
+
+object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   var request: RequestBuilder = Request.builder
   var response: Either[String, Response] = Left("Empty response")
-  given httpClient: SimpleHttpClient = SimpleHttpClient()
+  val httpClient: SimpleHttpClient = SimpleHttpClient()
+  
 
   Given("""a simple {string} request"""): (requestType: String) =>
     request = request.method(HttpMethod.valueOf(requestType))
@@ -22,12 +23,14 @@ class BasicUsageStepDefinitions extends ScalaDsl with EN:
 
 
   When("""i make the HTTP call"""): () =>
-    response = request.send
+    response = request.build match
+      case Left(message: String) => fail("Invalid URL")
+      case Right(request: Request) => request.send(httpClient)
 
 
   Then("""the returned content should be not empty"""): () =>
     assert(response.isRight)
-    assert(response.fold(_ => false, _.body.nonEmpty))
+    assert(response.fold(fail(_), _.body.nonEmpty))
 
   Then("""it should return an error"""): () =>
     assert(response.isLeft)
@@ -35,6 +38,6 @@ class BasicUsageStepDefinitions extends ScalaDsl with EN:
 
   Then("""the status code should be {int} and the header content-type {string}"""):
     (statusCode: Int, contentType: String) =>
-    assert(response.fold(_ => false, _.status.code === statusCode))
-    assert(response.fold(_ => false, _.headers("content-type") === contentType))
+    assert(response.fold(message => fail(message), _.status.code) == statusCode)
+    assert(response.fold(message => fail(message), _.headers("content-type")) === contentType)
 

@@ -4,7 +4,7 @@ package core.crawler
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
 import io.cucumber.scala.{EN, ScalaDsl}
 import core.coordinator.CoordinatorCommand
-import utility.http.{Deserializer, Request, URL}
+import utility.http.{Request, URL}
 
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.testkit.typed.scaladsl.FishingOutcomes.fail
@@ -117,12 +117,13 @@ class StepDefinitions extends ScalaDsl with EN :
 
   And("""the url will return the Content-Type header video\/webm"""):
     () =>
-      import Deserializer.default
-      given httpClient: SimpleHttpClient = SimpleHttpClient()
-      Request.builder.get().at(url).send match
-        case Right(response) =>
-          response.headers.get("content-type") shouldBe Some("video/webm")
-        case _ => fail("Invalid response")
+      val httpClient: SimpleHttpClient = SimpleHttpClient()
+      Request.builder.get().at(url).build match
+        case Right(request: Request) => request.send(httpClient) match
+          case Right(response) =>
+            response.headers.get("content-type") shouldBe Some("video/webm")
+          case _ => fail("Invalid response")
+        case _ => fail("Invalid URL")
 
   And("""the crawler is not allowed to explore external domains"""):
     () => throw new io.cucumber.scala.PendingException()

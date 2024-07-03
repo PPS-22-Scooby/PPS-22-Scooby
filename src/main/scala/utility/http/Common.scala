@@ -61,7 +61,23 @@ sealed case class Request private (
   url: URL,
   headers: Headers,
   body: Option[Body]
-)
+):
+  /**
+   * Sends the built HTTP request.
+   *
+   * @param client
+   *   client through which this request is sent. The provided client must mix-in a [[Backend]] that works with
+   *   responses of type [[R]]
+   * @tparam R
+   *   type of responses that the client's backend works with
+   * @return
+   *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing an error
+   *   otherwise.
+   */
+  def send[R](client: Client[R]): Either[String, R] =
+    try Right(client.send(this))
+    catch
+      case ex: Exception => Left(ex.getMessage)
 
 /**
  * Class used to wrap an HTTP response
@@ -170,32 +186,6 @@ object Request:
      *   a new [[RequestBuilder]] with this body set
      */
     def body(body: Body): RequestBuilder = copy(body = Some(body))
-
-    /**
-     * Sends the built HTTP request.
-     * @param deserializer
-     *   Used to deserialize the [[R]] response into [[T]] class
-     * @param client
-     *   client through which this request is sent. The provided client must mix-in a [[Backend]] that works with
-     *   responses of type [[R]]
-     * @tparam R
-     *   type of responses that the client's backend works with
-     * @tparam T
-     *   The type to which we want the response provided by the client to be deserialized
-     * @return
-     *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing an error
-     *   otherwise.
-     */
-    def send[R, T](using deserializer: Deserializer[R, T])(using
-      client: HttpClient with Backend[R]
-    ): Either[String, T] =
-      build.fold(
-        _ => Left("Empty or illegal URL provided"),
-        request =>
-          try Right(deserializer.deserialize(client.send(request)))
-          catch
-            case ex: Exception => Left(ex.getMessage)
-      )
 
     /**
      * Builds the [[Request]]

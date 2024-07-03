@@ -41,3 +41,4 @@ libraryDependencies ++= Seq(
 )
 
 scalafixOnCompile := true
+Test / parallelExecution := false

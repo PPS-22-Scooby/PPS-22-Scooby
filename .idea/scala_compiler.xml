@@ -4,7 +4,6 @@
     <profile name="sbt 1" modules="PPS-22-Scooby">
       <parameters>
         <parameter value="-Wunused:all" />
-        <parameter value="-rewrite -source 3.4-migration" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="$PROJECT_DIR$/target/scala-3.4.2/meta" />
