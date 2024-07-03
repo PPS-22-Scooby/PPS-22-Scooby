@@ -11,6 +11,7 @@ target/
 .idea/libraries/
 .idea/scala_settings.xml
 .idea/sbt.xml
+.idea/misc.xml
 *.iws
 *.iml
 *.ipr
