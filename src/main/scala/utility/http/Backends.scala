@@ -3,6 +3,8 @@ package utility.http
 
 import utility.http.HttpStatus.INVALID
 
+import sttp.model.RequestMetadata
+
 /**
  * Core of the HTTP logic. A [[HttpClient]] can mix-in a Backend to gain the corresponding, underlying implementation of
  * HTTP calls. Each Backend must specify the type of the generated HTTP responses: it can also (and in fact should) be a
@@ -52,6 +54,14 @@ object Backends:
           case DELETE => basicRequest.delete(originalRequest.url.asSttpURI)
         request.headers(originalRequest.headers).body(originalRequest.body.getOrElse("")).response(asString)
 
+    extension (sttpRequest: RequestMetadata)
+      private def asRequest: Request =
+        Request.builder
+          .at(sttpRequest.uri.toString)
+          .method(HttpMethod.of(sttpRequest.method.toString))
+          .headers(sttpRequest.headers.map(header => (header.name, header.value))*)
+          .build.getOrElse(Request.empty)
+
     extension (response: SttpResponse)
       private def asResponse: Response =
         Response(
@@ -61,6 +71,8 @@ object Backends:
             case Right(x: String) => Some(x)
             case Left(x: String) => Some(x)
             case _ => None
+          ,
+          response.request.asRequest
         )
 
     private lazy val actualBackend = HttpClientSyncBackend(options = SttpBackendOptions.connectionTimeout(5.seconds))
