@@ -35,10 +35,23 @@ class ApiTest extends ScalaTestWithMockServer:
         .body(body)
         .build.flatMap(_.send(client))
 
-    //val apiResponseBody: Either[String, String] = POST(echoUrl)
+    val apiResponseBody: Either[String, Option[String]] =
+      POST(echoUrl) sending:
+        Body:
+          body
+        Headers:
+          headers.toSeq
+
     verboseResponse.fold(message => fail(message), response =>
       response.status should be(HttpStatus.OK)
       response.headers("content-type") should be("application/json")
       response.body should be(Some(body))
-      //response.body should be(apiResponseBody.getOrElse(fail("apiResponseBody was a Left")))
+      response.body should be(apiResponseBody.getOrElse(fail("apiResponseBody was a Left")))
     )
+
+  "A GET request to an invalid URL" should "return a Left indicating the error" in:
+    given client: SimpleHttpClient = new SimpleHttpClient
+    val response: Either[String, Response] =
+      GET("http") sending:
+        Body {"examplebody"}
+    response should be(Left("You must provide a valid URL"))
