@@ -30,8 +30,8 @@ object Backends:
   trait SttpBackend extends Backend[Response]:
     import HttpMethod.*
     import sttp.client3
-    import sttp.client3.{HttpClientSyncBackend, RequestT, UriContext, basicRequest, SimpleHttpClient as SttpClient}
-    import sttp.client3.SttpBackendOptions
+    import sttp.client3.{HttpClientSyncBackend, SttpBackendOptions, UriContext, asString, basicRequest}
+
     import scala.concurrent.duration.DurationInt
 
     private type SttpRequest = client3.Request[_, Any]
@@ -48,14 +48,17 @@ object Backends:
           case POST => basicRequest.post(originalRequest.url.asSttpURI)
           case PUT => basicRequest.put(originalRequest.url.asSttpURI)
           case DELETE => basicRequest.delete(originalRequest.url.asSttpURI)
-        originalRequest.headers.foreach(header => request.header(header._1, header._2))
-        request.body(originalRequest.body.getOrElse(""))
+        request.headers(originalRequest.headers).body(originalRequest.body.getOrElse("")).response(asString)
 
     extension (response: SttpResponse)
-      private def asResponse: Response = Response(
-        HttpStatus.of(response.code.code).getOrElse(INVALID),
-        response.headers.map(header => (header.name, header.value)).toMap,
-        if response.body.toString.nonEmpty then Some(response.body.toString) else Option.empty[Body])
+      private def asResponse: Response =
+        Response(
+          HttpStatus.of(response.code.code).getOrElse(INVALID),
+          response.headers.map(header => (header.name, header.value)).toMap,
+          response.body match
+            case Right(x: String) => Some(x)
+            case _ => None
+        )
 
     private lazy val actualBackend = HttpClientSyncBackend(options = SttpBackendOptions.connectionTimeout(5.seconds))
 
