@@ -93,7 +93,7 @@ object MockServer:
           headerValueByName("check-header") { headerVal =>
             if (headerVal == "ok")
               extractRequest { request =>
-                val headers = request.headers
+                request.headers
                 complete {
                   HttpResponse(
                     status = StatusCodes.OK,
@@ -127,7 +127,7 @@ object MockServer:
       }
 
     val notFound: Route =  extractRequest { request =>
-        complete(
+        complete {
           HttpResponse(
             entity = HttpEntity(
               ContentTypes.`text/html(UTF-8)`,
@@ -135,7 +135,7 @@ object MockServer:
             ),
             status = StatusCodes.NotFound
           )
-        )
+        }
       }
 
 
