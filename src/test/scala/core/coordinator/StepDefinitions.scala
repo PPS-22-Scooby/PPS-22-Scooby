@@ -2,7 +2,6 @@ package org.unibo.scooby
 package core.coordinator
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import core.coordinator.Coordinator
 import core.coordinator.CoordinatorCommand.*
 
 import io.cucumber.scala.{EN, ScalaDsl}
@@ -13,8 +12,8 @@ class StepDefinitions extends ScalaDsl with EN :
 
   private val testKit = ActorTestKit()
   private val coordinator = testKit.spawn(Coordinator())
-  private var pages: List[String] = List.empty
-  private var crawablePages: Map[String, Boolean] = Map.empty
+  List.empty
+  Map.empty
   private var checkResult: Option[Boolean] = None
 
   Given("""I have a list of already crawled pages (.*)$""") :

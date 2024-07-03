@@ -2,9 +2,8 @@ package org.unibo.scooby
 package utility.http
 
 import io.cucumber.scala.{EN, ScalaDsl}
-import org.scalatest.Assertions.*
+import org.scalatest.Assertions._
 
-import scala.util.Try
 
 class UrlManagementStepDefinitions extends ScalaDsl with EN:
 

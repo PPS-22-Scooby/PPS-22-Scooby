@@ -1,11 +1,11 @@
 package org.unibo.scooby
 package utility.http
 
+import io.cucumber.scala.{EN, ScalaDsl}
+import org.scalatest.Assertions._
+
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Request.RequestBuilder
-
-import io.cucumber.scala.{EN, ScalaDsl}
-import org.scalatest.Assertions.*
 
 
 class BasicUsageStepDefinitions extends ScalaDsl with EN:

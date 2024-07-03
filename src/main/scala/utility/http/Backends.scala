@@ -33,7 +33,7 @@ object Backends:
   trait SttpBackend extends Backend[Response]:
     import HttpMethod.*
     import sttp.client3
-    import sttp.client3.{HttpClientSyncBackend, RequestT, UriContext, basicRequest, SimpleHttpClient as SttpClient}
+    import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
     import sttp.client3.SttpBackendOptions
     import scala.concurrent.duration.DurationInt
 
