@@ -3,80 +3,11 @@
   <component name="ScalaCompilerConfiguration">
     <profile name="sbt 1" modules="PPS-22-Scooby">
       <parameters>
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Any" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.AnyVal" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ArrayEquals" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.AsInstanceOf" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.AutoUnboxing" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.CaseClassPrivateApply" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.CollectHeadOption" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.DefaultArguments" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.DropTakeToSlice" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.EitherProjectionPartial" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Enumeration" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Equals" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ExplicitImplicitTypes" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.FilterEmpty" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.FilterHeadOption" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.FilterSize" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.FinalCaseClass" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.FinalVal" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ForeachEntry" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.GetGetOrElse" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.GetOrElseNull" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.GlobalExecutionContext" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ImplicitConversion" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ImplicitParameter" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.IsInstanceOf" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.IterableOps" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.JavaConversions" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.JavaNetURLConstructors" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.JavaSerializable" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.LeakingSealed" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ListAppend" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ListUnapply" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ListUnapplySeq" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.MapUnit" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.MutableDataStructures" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.NoNeedImport" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.NonUnitStatements" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Nothing" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Null" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Option2Iterable" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.OptionPartial" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Overloading" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.PlatformDefault" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Product" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.PublicInference" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Recursion" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.RedundantAsInstanceOf" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.RedundantConversions" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.RedundantIsInstanceOf" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Return" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ReverseFind" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ReverseIterator" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ReverseTakeReverse" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ScalaApp" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SeqApply" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SeqUpdated" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Serializable" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SizeIs" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SizeToLength" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SortFilter" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SortedMaxMin" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.SortedMaxMinOption" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.StringPlusAny" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ThreadSleep" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Throw" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.ToString" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.TripleQuestionMark" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.TryPartial" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.Var" />
-        <parameter value="-P:wartremover:only-warn-traverser:org.wartremover.warts.While" />
+        <parameter value="-Wunused:all" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="$PROJECT_DIR$/target/scala-3.4.2/meta" />
       </parameters>
-      <plugins>
-        <plugin path="$PROJECT_DIR$/target/scala-3.3.3/compiler_plugins/wartremover_3.3.3-3.1.6.jar" />
-      </plugins>
     </profile>
     <profile name="sbt 2" modules="pps-22-scooby_2461" />
   </component>

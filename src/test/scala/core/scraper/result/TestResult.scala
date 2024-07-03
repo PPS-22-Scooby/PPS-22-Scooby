@@ -1,12 +1,13 @@
 package org.unibo.scooby
 package core.scraper.result
 
-import core.scraper.ResultImpl
-import core.scraper.Aggregator.given
-
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+
+import core.scraper.ResultImpl
+import core.scraper.Aggregator.given
 import core.scraper.Aggregator.SingleElemAggregator
+
 
 class TestResult extends AnyFunSuite with Matchers:
 

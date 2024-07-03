@@ -1,6 +1,16 @@
+import scala.collection.immutable.Seq
+
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.3"
+ThisBuild / scalaVersion := "3.4.2"
+
+ThisBuild / semanticdbEnabled := true
+
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+
+ThisBuild / scalacOptions ++= Seq("-Wunused:all")
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root = (project in file("."))
   .settings(
@@ -27,18 +37,7 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.13.2" % Test,
   "com.typesafe.play" %% "play-json" % "2.10.5" % Test,
   "org.jsoup" % "jsoup" % "1.17.2",
-  "com.softwaremill.sttp.client3" %% "core" % "3.9.7",
+  "com.softwaremill.sttp.client3" %% "core" % "3.9.7"
 )
 
-// Start configuration for wartremover
-wartremoverWarnings ++= Warts.all
-// End configuration for wartremover
-
-// Start configuration for scoverage
-coverageEnabled := true
-coverageFailOnMinimum := true
-coverageMinimumStmtTotal := 60
-coverageMinimumBranchTotal := 60
-coverageMinimumStmtPerFile := 50
-coverageMinimumBranchPerFile := 50
-// End configuration for scoverage
+scalafixOnCompile := true

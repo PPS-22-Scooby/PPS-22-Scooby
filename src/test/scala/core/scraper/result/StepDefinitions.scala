@@ -1,25 +1,26 @@
 package org.unibo.scooby
 package core.scraper.result
 
-import core.scraper.{Result, ResultImpl, Aggregator}
-
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
-import play.api.libs.json.*
+import play.api.libs.json._
 
-import scala.jdk.CollectionConverters.*
+import scala.compiletime.uninitialized
+import scala.jdk.CollectionConverters._
+
+import core.scraper.{Result, ResultImpl, Aggregator}
 
 class StepDefinitions extends ScalaDsl with EN:
 
-  private var typeToUse: String = _
-  private var document: String = _
-  private var resultMap: Result[(String, String)] = _
-  private var resultString: Result[String] = _
-  private var resultMap1: Result[(String, String)] = _
-  private var resultMap2: Result[(String, String)] = _
-  private var resultString1: Result[String] = _
-  private var resultString2: Result[String] = _
+  private var typeToUse: String = uninitialized
+  private var document: String = uninitialized
+  private var resultMap: Result[(String, String)] = uninitialized
+  private var resultString: Result[String] = uninitialized
+  private var resultMap1: Result[(String, String)] = uninitialized
+  private var resultMap2: Result[(String, String)] = uninitialized
+  private var resultString1: Result[String] = uninitialized
+  private var resultString2: Result[String] = uninitialized
   private val nonMatchPattern: String = "non_match"
 
   trait Scraper[T] {

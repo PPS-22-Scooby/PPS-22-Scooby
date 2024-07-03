@@ -2,7 +2,6 @@ package org.unibo.scooby
 package core.coordinator
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import core.coordinator.Coordinator
 import core.coordinator.CoordinatorCommand.*
 
 import io.cucumber.scala.{EN, ScalaDsl}
@@ -13,8 +12,8 @@ class StepDefinitions extends ScalaDsl with EN :
 
   private val testKit = ActorTestKit()
   private val coordinator = testKit.spawn(Coordinator())
-  private var pages: List[String] = List.empty
-  private var crawablePages: Map[String, Boolean] = Map.empty
+  List.empty
+  Map.empty
   private var checkResult: Option[Boolean] = None
 
   Given("""I have a list of already crawled pages (.*)$""") :
@@ -27,11 +26,14 @@ class StepDefinitions extends ScalaDsl with EN :
     () => coordinator ! SetCrawledPages(List.empty)
 
 
-  When("""I check if (.*) is crawable$""") :
+  When("""I check if (.*) is already crawled$""") :
     (page: String) =>
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
       coordinator ! CheckPages(List(page), probe.ref)
-      this.checkResult = Some(probe.receiveMessage().result.hasNext)
+      val retrievedPage = probe.receiveMessage().result
+      this.checkResult = Some(retrievedPage.contains(page))
+      println(this.checkResult)
+
 
 
   When("""I add (.*) to the crawled list$""") :
@@ -40,10 +42,11 @@ class StepDefinitions extends ScalaDsl with EN :
       coordinator ! SetCrawledPages(pages)
 
 
-  Then("""The result of check should be (true|false)$""") :
-    (expectedResult: Boolean) =>
-      assertEquals(expectedResult, this.checkResult.getOrElse(true))
+  Then("""The coordinator response result should be true$""") :
+    () => assertTrue(this.checkResult.getOrElse(false))
 
+  Then("""The coordinator response result should be false$"""):
+    () => assertFalse(this.checkResult.getOrElse(true))
 
   Then("""The updated crawled list should be (.*)$""") :
     (updatedList: String) =>

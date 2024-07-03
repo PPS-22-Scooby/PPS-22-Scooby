@@ -1,10 +1,10 @@
 package org.unibo.scooby
 package utility.document
 
-import utility.http.URL
-
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import utility.http.URL
 
 
 class DocumentTest extends AnyFlatSpec with should.Matchers:

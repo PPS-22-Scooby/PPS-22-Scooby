@@ -7,40 +7,49 @@ import scala.util.matching.Regex
 
 /**
  * Class that represents a URL used for HTTP calls.
- * @param protocol protocol used (e.g. "https")
- * @param host host of the URL (e.g. "www.google.com")
- * @param port port of the URL. [[Some]] containing the port or [[Empty]] if the URL doesn't contain a port.
- * @param path path of the URL (e.g. "/example/path")
- * @param queryParams [[Map]] that contains the query params of the URL (e.g. "service=mail&passive=true")
- * @param fragment fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no
- *                 fragment
+ * @param protocol
+ *   protocol used (e.g. "https")
+ * @param host
+ *   host of the URL (e.g. "www.google.com")
+ * @param port
+ *   port of the URL. [[Some]] containing the port or [[Empty]] if the URL doesn't contain a port.
+ * @param path
+ *   path of the URL (e.g. "/example/path")
+ * @param queryParams
+ *   [[Map]] that contains the query params of the URL (e.g. "service=mail&passive=true")
+ * @param fragment
+ *   fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no fragment
  */
-final case class URL private(private val protocol: String,
-                             private val host: String,
-                             private val port: Option[Int],
-                             private val path: String,
-                             private val queryParams: Map[String, String],
-                             private val fragment: Option[String]) extends Ordered[URL]:
+final case class URL private (
+  private val protocol: String,
+  private val host: String,
+  private val port: Option[Int],
+  private val path: String,
+  private val queryParams: Map[String, String],
+  private val fragment: Option[String]
+) extends Ordered[URL]:
 
   /**
    * Gets the domain from the URL
-   * @return a [[String]] containing the domain
+   * @return
+   *   a [[String]] containing the domain
    */
   def domain: String = host + port.getOrElse("")
 
   /**
    * Gets the "parent" of this URL, that is the preceding path (e.g. the parent of "/example/path" is "/example/")
-   * @return the parent [[URL]] of this URL.
+   * @return
+   *   the parent [[URL]] of this URL.
    */
-  def parent: URL = URL(protocol, host, port,
-    path.split("/").dropRight(1).mkString("/") + "/",
-    Map.empty, Option.empty)
+  def parent: URL = URL(protocol, host, port, path.split("/").dropRight(1).mkString("/") + "/", Map.empty, Option.empty)
 
   /**
    * Compares the depth of two URLs. Returns a value greater that 0 if this URL is has greater depth, equal to 0 if they
    * have the same depth, less than 0 otherwise
-   * @param that [[URL]] to compare with this URL
-   * @return a [[Int]] value representing the result of the comparison
+   * @param that
+   *   [[URL]] to compare with this URL
+   * @return
+   *   a [[Int]] value representing the result of the comparison
    */
   override def compare(that: URL): Int =
     val thisPathLength = path.split("/").length
@@ -49,18 +58,22 @@ final case class URL private(private val protocol: String,
 
   /**
    * Utility method that appends to this URL a [[String]], placing the trailing backslashes correctly
-   * @param other the path (e.g. "/example") to be appended to this URL
-   * @return a new [[URL]] with the new path appended
+   * @param other
+   *   the path (e.g. "/example") to be appended to this URL
+   * @return
+   *   a new [[URL]] with the new path appended
    */
   @targetName("append")
   infix def /(other: String): URL =
     this / URL(protocol, host, port, path + other, Map.empty, Option.empty)
 
   /**
-   * Utility method that appends an another [[URL]] to this URL, with the same protocol, host and post,
-   * placing the trailing backslashes correctly
-   * @param other URL to be appended
-   * @return a new [[URL]] with the new path appended
+   * Utility method that appends an another [[URL]] to this URL, with the same protocol, host and post, placing the
+   * trailing backslashes correctly
+   * @param other
+   *   URL to be appended
+   * @return
+   *   a new [[URL]] with the new path appended
    */
   @targetName("append")
   infix def /(other: URL): URL =
@@ -68,10 +81,15 @@ final case class URL private(private val protocol: String,
       input.replaceAll("^/+", "").replaceAll("/+$", "")
 
     if other.protocol == protocol && other.host == host && other.port == port then
-    // warning: not giving info about malformed URLs -> just returning itself if fails
-      URL.apply(URL(protocol, host, port,
+      // warning: not giving info about malformed URLs -> just returning itself if fails
+      URL.apply(URL(
+        protocol,
+        host,
+        port,
         removeLeadingTrailingSlashes(path) + "/" + removeLeadingTrailingSlashes(other.path),
-        Map.empty, Option.empty).toString).getOrElse(this)
+        Map.empty,
+        Option.empty
+      ).toString).getOrElse(this)
     else
       this
 
@@ -86,8 +104,10 @@ final case class URL private(private val protocol: String,
 object URL:
   /**
    * Entry point for instantiating a URL. It parses the provided [[String]].
-   * @param url String parsed as URL
-   * @return a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
+   * @param url
+   *   String parsed as URL
+   * @return
+   *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
    */
   def apply(url: String): Either[String, URL] =
     def parseQueryParams(queryString: String): Map[String, String] =
@@ -104,10 +124,10 @@ object URL:
           }
           .toMap
       }
-      
+
     """^(https?)://([^:/?#]+)(:\d+)?([^?#]*)(\?[^#]*)?(#.*)?$""".r
       .findFirstMatchIn(url)
-      .fold(Left("Invalid URL"))((matches: Regex.Match) => 
+      .fold(Left("Invalid URL"))((matches: Regex.Match) =>
         val protocol = matches.group(1)
         val host = matches.group(2)
         val port = Option(matches.group(3)).map(_.drop(1).toInt)
@@ -117,12 +137,10 @@ object URL:
 
         Right(new URL(protocol, host, port, path, parseQueryParams(queryString), fragment))
       )
-    
-    
-        
 
   /**
    * Used to generate an empty URL, mainly as placeholder or for testing purposes.
-   * @return an empty URL
+   * @return
+   *   an empty URL
    */
   def empty: URL = new URL("", "", Option.empty, "", Map.empty, Option.empty)

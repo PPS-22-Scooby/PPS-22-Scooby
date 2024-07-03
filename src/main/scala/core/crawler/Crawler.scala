@@ -10,19 +10,20 @@ import utility.document.CrawlDocument
 
 import core.coordinator.CoordinatorCommand
 
-
 enum CrawlerCommand:
   /**
    * Command to initiate crawling of the given URL.
    *
-   * @param url the URL to be crawled
+   * @param url
+   *   the URL to be crawled
    */
   case Crawl(url: URL)
 
   /**
    * Command to handle the response from the coordinator with the result of checked pages.
    *
-   * @param result a map of URLs to their corresponding statuses
+   * @param result
+   *   a map of URLs to their corresponding statuses
    */
   case CrawlerCoordinatorResponse(result: Iterator[String])
 
@@ -30,17 +31,23 @@ object Crawler:
   /**
    * Creates a new Crawler actor.
    *
-   * @param coordinator the ActorRef of the coordinator to communicate with
-   * @return the behavior of the Crawler actor
+   * @param coordinator
+   *   the ActorRef of the coordinator to communicate with
+   * @return
+   *   the behavior of the Crawler actor
    */
-  def apply(coordinator: ActorRef[CoordinatorCommand] ): Behavior[CrawlerCommand] = Behaviors.setup :
-    context => new Crawler(context, coordinator).idle()
+  def apply(coordinator: ActorRef[CoordinatorCommand]): Behavior[CrawlerCommand] =
+    Behaviors.setup {
+      context => new Crawler(context, coordinator).idle()
+    }
 
 /**
  * Class representing a Crawler actor.
  *
- * @param context     the ActorContext of the Crawler actor
- * @param coordinator the ActorRef of the coordinator to communicate with
+ * @param context
+ *   the ActorContext of the Crawler actor
+ * @param coordinator
+ *   the ActorRef of the coordinator to communicate with
  */
 class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[CoordinatorCommand]):
   import CrawlerCommand._
@@ -50,9 +57,10 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
   /**
    * The behavior of the Crawler actor.
    *
-   * @return the behavior of the Crawler actor
+   * @return
+   *   the behavior of the Crawler actor
    */
-  def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage:
+  def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage {
     case Crawl(url) =>
       Request.builder.get().at(url).build match
         case Left(s: String) =>
@@ -73,13 +81,13 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
 
     case CrawlerCoordinatorResponse(links) =>
       context.log.info(s"Received links: $links")
-      for 
+      for
         returnedUrl <- links
         url <- URL(returnedUrl).toOption
       do
         val childName = s"crawler-${url.domain}"
         val children = context.spawn(Crawler(coordinator), childName)
         children ! Crawl(url)
-      
-      Behaviors.same
 
+      Behaviors.same
+  }

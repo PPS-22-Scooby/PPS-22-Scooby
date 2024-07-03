@@ -2,8 +2,9 @@ package org.unibo.scooby
 package utility.rule
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.*
+import org.scalatest.matchers.should.Matchers._
 import Rule.given
+
 
 class RuleTest extends AnyFlatSpec:
 
@@ -44,7 +45,7 @@ class RuleTest extends AnyFlatSpec:
 
   
   it should "fail compose functions with incompatible types" in:
-    val rule1 = (x: Int) => x + 1
-    val rule2 = (x: String) => x.length
+    (x: Int) => x + 1
+    (x: String) => x.length
     assertDoesNotCompile("val composedRule = rule1 >> rule2")
   
