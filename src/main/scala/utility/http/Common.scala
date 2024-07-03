@@ -11,6 +11,11 @@ enum HttpMethod:
   case DELETE
 
 object HttpMethod:
+  /**
+   * Utility method to get the HTTP method from its name (not case sensitive)
+   * @param name name of the method
+   * @return a [[HttpMethod]] corresponding to the provided name
+   */
   def of(name: String): HttpMethod = HttpMethod.valueOf(name.toUpperCase())
 
 /**
@@ -44,8 +49,17 @@ object HttpStatus:
    */
   def of(code: Int): Option[HttpStatus] = HttpStatus.values.find(_.code == code)
 
+/**
+ * Type representing a group of headers of a Request or Response
+ */
 type Headers = Map[String, String]
+/**
+ * Type representing a single header of a Request or Response
+ */
 type Header = (String, String)
+/**
+ * Body of a Request/Response
+ */
 type Body = String
 
 /**
@@ -90,6 +104,8 @@ sealed case class Request private (
  *   headers provided by the HTTP response
  * @param body
  *   body of the response, can be [[None]]
+ * @param request
+ *   request to which this Response is answering to
  */
 sealed case class Response(
   status: HttpStatus,
@@ -195,7 +211,7 @@ object Request:
      * Builds the [[Request]]
      * @return
      *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a String
-     *   representing an error messsage otherwise
+     *   representing an error message otherwise (es. "You must provide a valid URL")
      */
     def build: Either[String, Request] =
       if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a valid URL")
