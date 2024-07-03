@@ -57,6 +57,7 @@ object Backends:
           response.headers.map(header => (header.name, header.value)).toMap,
           response.body match
             case Right(x: String) => Some(x)
+            case Left(x: String) => Some(x)
             case _ => None
         )
 
