@@ -3,7 +3,7 @@ package core.crawler
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, ScalaTestWithActorTestKit}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
 import akka.actor.typed.{ActorRef, ActorSystem}
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.CoordinatorCommand
@@ -11,7 +11,7 @@ import utility.http.URL
 import utility.MockServer
 
 import akka.actor.testkit.typed.CapturedLogEvent
-import akka.actor.testkit.typed.Effect.*
+import akka.actor.testkit.typed.Effect._
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await

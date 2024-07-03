@@ -1,8 +1,8 @@
 package org.unibo.scooby
 package utility.http
 
-import org.scalatest.matchers.should
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
 class CommonTests extends AnyFlatSpec with should.Matchers:
 
