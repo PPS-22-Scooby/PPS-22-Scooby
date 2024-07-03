@@ -29,9 +29,8 @@ object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
 
   Then("""the returned content should be not empty"""): () =>
-    response.fold(message => fail(message), _ => null)
     assert(response.isRight)
-    assert(response.fold(_ => false, _.body.nonEmpty))
+    assert(response.fold(fail(_), _.body.nonEmpty))
 
   Then("""it should return an error"""): () =>
     assert(response.isLeft)
