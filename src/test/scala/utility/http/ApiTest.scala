@@ -35,7 +35,7 @@ class ApiTest extends ScalaTestWithMockServer:
         .body(body)
         .build.flatMap(_.send(client))
 
-    val apiResponseBody: Either[String, String] = POST(echoUrl)
+    //val apiResponseBody: Either[String, String] = POST(echoUrl)
     verboseResponse.fold(message => fail(message), response =>
       response.status should be(HttpStatus.OK)
       response.headers("content-type") should be("application/json")
