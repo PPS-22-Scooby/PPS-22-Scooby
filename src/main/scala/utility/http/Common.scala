@@ -68,7 +68,7 @@ sealed case class Request private(
   def send[R](client: Client[R]): Either[String, R] =
       try Right(client.send(this))
       catch
-        case ex: Exception => Left(ex.toString)
+        case ex: Exception => Left(ex.getMessage)
 
 
 /**

@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.crawler
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import utility.http.{Deserializer, Request, Response, URL}
+import utility.http.{Request, Response, URL}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient

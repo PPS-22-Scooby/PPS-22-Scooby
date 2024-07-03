@@ -4,7 +4,7 @@ package core.crawler
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
 import io.cucumber.scala.{EN, ScalaDsl}
 import core.coordinator.CoordinatorCommand
-import utility.http.{Deserializer, Request, URL}
+import utility.http.{Request, URL}
 
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.testkit.typed.scaladsl.FishingOutcomes.fail
