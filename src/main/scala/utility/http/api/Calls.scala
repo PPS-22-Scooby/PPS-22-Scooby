@@ -9,17 +9,29 @@ import utility.http.Request.RequestBuilder
  */
 object Calls:
   import utility.http.{Client, Deserializer, HttpMethod, Request}
-
   import Context.*
 
-  private def fetch[T, R: Client](using deserializer: Deserializer[R, T])
-                                  (method: HttpMethod)
-                                  (init: RequestContext ?=> RequestBuilder): Either[String, T] =
-    val builder = Request.builder
+  private def fetch[T, R: Client](url: String)(using deserializer: Deserializer[R, T])
+                                 (method: HttpMethod)
+                                 (init: RequestContext ?=> RequestBuilder): Either[String, T] =
+    val builder = Request.builder.at(url).method(method)
     given context: RequestContext = new RequestContext(builder)
     init
-    val client: Client[R] = summon[Client[R]]
-    builder.build.flatMap { _.send[R](client).map(deserializer.deserialize)}.left.map(identity)
+    builder.build.flatMap {
+      _.send[R](summon[Client[R]]).map(deserializer.deserialize)
+    }.left.map(identity)
+
+  private def directBuild(using context: RequestContext): RequestBuilder = context.builder
+
+  def GET[T, R: Client](url: String, init: RequestContext ?=> RequestBuilder = directBuild)
+                       (using deserializer: Deserializer[R, T]): Either[String, T] =
+    fetch(url)(HttpMethod.GET)(init)
+
+
+  def POST[T, R: Client](url: String, init: RequestContext ?=> RequestBuilder = directBuild)
+                        (using deserializer: Deserializer[R, T]): Either[String, T] =
+    fetch(url)(HttpMethod.POST)(init)
+
 
 
   private object Context:

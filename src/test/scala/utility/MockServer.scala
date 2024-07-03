@@ -36,7 +36,7 @@ trait ScalaTestWithMockServer extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
   override def afterAll(): Unit =
     webServerSystem ! MockServer.Stop
     testKit.shutdownTestKit()
-    
+
 
 trait CucumberTestWithMockServer extends ScalaDsl with EN:
   implicit val timeout: Timeout = 30.seconds
@@ -84,6 +84,30 @@ object MockServer:
               status = StatusCodes.OK
             )
           )
+        }
+      }
+
+    val echo: Route =
+      path("echo") {
+        post {
+          headerValueByName("check-header") { headerVal =>
+            if (headerVal == "ok")
+              extractRequest { request =>
+                val headers = request.headers
+                complete {
+                  HttpResponse(
+                    status = StatusCodes.OK,
+                    entity = HttpEntity(
+                      ContentTypes.`application/json`,
+                      request.entity.dataBytes
+                    ),
+
+                  )
+                }
+              }
+            else
+              complete((StatusCodes.BadRequest, "The MyHeader value is invalid."))
+          }
         }
       }
 
@@ -136,7 +160,7 @@ object MockServer:
 
     Behaviors.receiveMessage {
       case Start(replyTo) =>
-        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ json ~ notFound)
+        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ json ~ echo ~ notFound)
         val log = context.log
         bindingFuture.onComplete {
           case Success(_) =>
