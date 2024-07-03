@@ -518,6 +518,71 @@ node6 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="send-e4a">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Request$$RequestBuilder.html#send-e4a" t="n" class="documentableName ">send</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">deserializer</span>: <a href="Deserializer.html" t="t">Deserializer</a>[<span t="t">R</span>, <span t="t">T</span>])(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">client</span>: <a href="HttpClient.html" t="t">HttpClient</a><span t="k"> &amp; </span><a href="Backend.html" t="t">Backend</a>[<span t="t">R</span>]): <span data-unresolved-link="" t="t">Either</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">T</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Sends the built HTTP request.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Sends the built HTTP request.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>type of responses that the client's backend works with</p>
+              </dd>
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>The type to which we want the response provided by the client to be deserialized</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               client
+              </dt>
+              <dd class="body-medium">
+               <p>client through which this request is sent. The provided client must mix-in a <a href="Backend.html">Backend</a> that works with responses of type <span data-unresolved-link="" title="Problem linking R: No DRI found for query">R</span></p>
+              </dd>
+              <dt class="body-small">
+               deserializer
+              </dt>
+              <dd class="body-medium">
+               <p>Used to deserialize the <span data-unresolved-link="" title="Problem linking R: No DRI found for query">R</span> response into <span data-unresolved-link="" title="Problem linking T: No DRI found for query">T</span> class</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a <span data-unresolved-link="">Right</span> of <span data-unresolved-link="" title="Problem linking T: No DRI found for query">T</span> if the request went good (no network exceptions), <span data-unresolved-link="">Left</span> of String representing an error otherwise.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
        </div>
       </section>
       <section id="Inherited-methods">
