@@ -10,6 +10,9 @@ enum HttpMethod:
   case PUT
   case DELETE
 
+object HttpMethod:
+  def of(name: String): HttpMethod = HttpMethod.valueOf(name.toUpperCase())
+
 /**
  * Status reported inside the HTTP response. A special value "INVALID" is provided to mark a response as invalid (a.k.a.
  * something failed)
@@ -91,7 +94,8 @@ sealed case class Request private (
 sealed case class Response(
   status: HttpStatus,
   headers: Headers,
-  body: Option[Body]
+  body: Option[Body],
+  request: Request
 )
 
 object Request:
@@ -194,7 +198,7 @@ object Request:
      *   representing an error messsage otherwise
      */
     def build: Either[String, Request] =
-      if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a URL")
+      if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a valid URL")
 
   /**
    * Used to instantiate a builder that builds [[Request]] s
@@ -203,9 +207,16 @@ object Request:
    */
   def builder: RequestBuilder = RequestBuilder(GET, URL.empty, Map.empty, Option.empty)
 
+  /**
+   * Used to instantiate an empty [[Request]], only for debugging/testing purposes
+   * @return
+   *   an empty [[Request]]
+   */
+  def empty: Request = Request(HttpMethod.GET, URL.empty, Map.empty, Option.empty)
+
 object Response:
   /**
    * Utility instantiation method to generate an empty [[Response]]: used mainly as placeholder or for testing purposes
    * @return
    */
-  def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty)
+  def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty, Request.empty)
