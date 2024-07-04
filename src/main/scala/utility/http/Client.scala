@@ -14,4 +14,4 @@ object Clients:
    */
   class SimpleHttpClient extends HttpClient with SttpBackend
 
-type Client[R] = HttpClient with Backend[R]
+type Client[R] = HttpClient & Backend[R]
