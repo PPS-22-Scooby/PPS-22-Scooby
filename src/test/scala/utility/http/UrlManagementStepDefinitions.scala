@@ -53,8 +53,9 @@ class UrlManagementStepDefinitions extends ScalaDsl with EN:
     compareResult = inputUrl1.getOrElse{ fail("Illegal URL") } < inputUrl2.getOrElse{ fail("Illegal URL") }
 
 
-  Then("""it should return a valid URL"""): () =>
+  Then("""it should return a valid URL with depth {int}"""): (depth: Int) =>
     assert(inputUrl1.isRight)
+    assert(inputUrl1.getOrElse(fail("Expecting a Right")).depth == depth)
 
   Then("""it should result in a Malformed URL error"""): () =>
     // Write code here that turns the phrase above into concrete actions
