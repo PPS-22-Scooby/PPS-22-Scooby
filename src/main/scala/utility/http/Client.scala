@@ -32,11 +32,15 @@ object Configuration:
   object ClientConfiguration:
     def apply(configs: ConfigurationEntry*): Either[HttpError, ClientConfiguration] =
       configs.find {
-        case (entryType: ConfigurationEntryType, value: Any) => value.getClass != entryType
+        case (entryType: ConfigurationEntryType, value: Any) => value.getClass.isAssignableFrom(entryType.valueType)
       } match
         case Some((entryType: ConfigurationEntryType, entryValue: Any)) =>
           Left((s"$entryValue doesn't satisfy the type of configuration entry: $entryType which " +
             s"is ${entryType.valueType}").asHttpError)
         case None => Right(new ClientConfiguration(configs*))
 
-  def default: ClientConfiguration = new ClientConfiguration()
+  import ConfigurationEntryType.*
+  import scala.concurrent.duration.DurationInt
+
+  def default: ClientConfiguration = ClientConfiguration(NETWORK_TIMEOUT -> 5.seconds)
+    .getOrElse(new ClientConfiguration())
