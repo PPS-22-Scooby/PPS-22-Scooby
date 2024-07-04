@@ -15,5 +15,6 @@ object HttpError:
     case s: String => new HttpError(new Exception(s))
     case e: Exception => new HttpError(e)
     case error: HttpError => new HttpError(error.ex)
+    case _ => HttpError("")
 
 
