@@ -91,10 +91,10 @@ sealed case class Request private (
    *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing an error
    *   otherwise.
    */
-  def send[R](client: Client[R]): Either[String, R] =
+  def send[R](client: Client[R]): Either[HttpError, R] =
     try Right(client.send(this))
     catch
-      case ex: Exception => Left(ex.getMessage)
+      case ex: Exception => Left(ex.asHttpError)
 
 /**
  * Class used to wrap an HTTP response
@@ -213,8 +213,10 @@ object Request:
      *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a String
      *   representing an error message otherwise (es. "You must provide a valid URL")
      */
-    def build: Either[String, Request] =
-      if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a valid URL")
+    def build: Either[HttpError, Request] =
+      if url != URL.empty then Right(Request(method, url, headers, body))
+      else
+        Left("You must provide a valid URL".asHttpError)
 
   /**
    * Used to instantiate a builder that builds [[Request]] s

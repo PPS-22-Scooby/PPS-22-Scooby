@@ -11,7 +11,7 @@ import org.scalatest.Assertions.*
 object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   var request: RequestBuilder = Request.builder
-  var response: Either[String, Response] = Left("Empty response")
+  var response: Either[HttpError, Response] = Left("Empty response".asHttpError)
   val httpClient: SimpleHttpClient = SimpleHttpClient()
   
 
@@ -24,13 +24,13 @@ object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   When("""i make the HTTP call"""): () =>
     response = request.build match
-      case Left(message: String) => fail("Invalid URL")
+      case Left(error: HttpError) => fail("Invalid URL")
       case Right(request: Request) => request.send(httpClient)
 
 
   Then("""the returned content should be not empty"""): () =>
     assert(response.isRight)
-    assert(response.fold(fail(_), _.body.nonEmpty))
+    assert(response.fold(error => fail(error.message), _.body.nonEmpty))
 
   Then("""it should return an error"""): () =>
     assert(response.isLeft)
@@ -38,6 +38,6 @@ object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   Then("""the status code should be {int} and the header content-type {string}"""):
     (statusCode: Int, contentType: String) =>
-    assert(response.fold(message => fail(message), _.status.code) == statusCode)
-    assert(response.fold(message => fail(message), _.headers("content-type")) === contentType)
+    assert(response.fold(error => fail(error.message), _.status.code) == statusCode)
+    assert(response.fold(error => fail(error.message), _.headers("content-type")) === contentType)
 

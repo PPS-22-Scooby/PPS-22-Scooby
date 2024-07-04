@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package utility.http.api
 
-import utility.http.Header
+import utility.http.{Header, HttpError}
 import utility.http.HttpMethod.{GET, POST}
 import utility.http.Request.RequestBuilder
 
@@ -31,15 +31,15 @@ object Calls:
   class PartialCall[T, R: Client](val url: String, val method: HttpMethod):
     infix def sending(init: RequestContext)(using
       deserializer: Deserializer[R, T]
-    ): Either[String, T] =
+    ): Either[HttpError, T] =
       given mutableBuilder: RequestBuilderMutable = RequestBuilderMutable(Request.builder.at(url).method(method))
       init
       mutableBuilder.builder.build.flatMap {
         _.send[R](summon[Client[R]]).map(deserializer.deserialize)
-      }.left.map(identity)
+      }.left.map(HttpError(_))
 
-  given call2send[T, R: Client](using Deserializer[R, T]): Conversion[PartialCall[T, R], Either[String, T]] with
-    override def apply(partialCall: PartialCall[T, R]): Either[String, T] =
+  given call2send[T, R: Client](using Deserializer[R, T]): Conversion[PartialCall[T, R], Either[HttpError, T]] with
+    override def apply(partialCall: PartialCall[T, R]): Either[HttpError, T] =
       partialCall sending buildUntouched
 
   sealed case class RequestBuilderMutable(var builder: RequestBuilder)
