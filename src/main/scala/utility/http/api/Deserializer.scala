@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package utility.http
 
-import utility.document.CrawlDocument
+import utility.document.{CrawlDocument, ScrapeDocument}
 
 /**
  * The deserializer is a trait that transforms HTTP responses of class [[R]] in objects of class [[T]]. It can be seen
@@ -53,3 +53,6 @@ object Deserializer:
 
   given crawlDocument: Deserializer[Response, CrawlDocument] =
     (response: Response) => CrawlDocument(response.body.getOrElse(""), response.request.url)
+
+  given scrapeDocument: Deserializer[Response, ScrapeDocument] =
+    (response: Response) => ScrapeDocument(response.body.getOrElse(""), response.request.url)
