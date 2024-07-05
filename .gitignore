@@ -9,6 +9,8 @@ target/
 .idea/compiler.xml
 .idea/workspace.xml
 .idea/libraries/
+.idea/codeStyles/Project.xml
+.idea/scala_compiler.xml
 .idea/scala_settings.xml
 .idea/sbt.xml
 .idea/misc.xml
