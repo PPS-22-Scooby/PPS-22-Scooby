@@ -4,7 +4,7 @@ package core.scraper
 import Aggregator.ItAggregator
 
 /**
- * Class representing {@link Scraper}'s results.
+ * Class representing {@link ScraperActor}'s results.
  * @tparam T
  *   representing result's type.
  */
@@ -54,13 +54,13 @@ trait Result[T]:
   def aggregate(result: Result[T])(using aggregator: ItAggregator[T]): Result[T]
 
 /**
- * Class representing {@link Scraper}'s results implementation.
+ * Class representing {@link ScraperActor}'s results implementation.
  * @param data
  *   representing actual result.
  * @tparam T
  *   representing result's type.
  */
-class ResultImpl[T](val data: Iterable[T]) extends Result[T]:
+final case class ResultImpl[T](data: Iterable[T]) extends Result[T]:
 
   override def updateStream(data: T)(using aggregator: ItAggregator[T]): Result[T] =
     ResultImpl(aggregator.aggregateStream(this.data, data))
@@ -71,10 +71,7 @@ class ResultImpl[T](val data: Iterable[T]) extends Result[T]:
   override def aggregate(result: Result[T])(using aggregator: ItAggregator[T]): Result[T] =
     updateBatch(result.data)
 
-/**
- * Companion object for Result class.
- */
-object ResultImpl:
+object Result:
 
   /**
    * A builder with a starting data.
@@ -86,4 +83,23 @@ object ResultImpl:
    * @return
    *   a new Result instance with given data.
    */
-  def apply[T](data: Iterable[T]): ResultImpl[T] = new ResultImpl(data)
+  def apply[T](data: Iterable[T]): Result[T] = ResultImpl(data)
+
+  /**
+   * A builder with a starting data.
+   *
+   * @param data the starting singular data.
+   * @tparam T the data type.
+   * @return a new Result instance with given data.
+   */
+  def apply[T](data: T): Result[T] = Result(Iterable(data))
+
+  private def apply[T](): Result[T] = Result(Iterable.empty)
+
+  /**
+   * A builder for an empty {@link Result}.
+   *
+   * @tparam T the data type.
+   * @return a new Result instance with given data.
+   */
+  def empty[T]: Result[T] = Result()
