@@ -7,6 +7,7 @@ import utility.http.Request.RequestBuilder
 
 /**
  * Facade utility object to make HTTP calls faster and in a more readable way (DSL-like)
+ * [[ApiTest]] inside [[org.unibo.scooby.utility.http]] contains an example usage of this API.
  */
 object Calls:
   import utility.http.{Client, Deserializer, HttpMethod, Request}
