@@ -21,12 +21,12 @@ import scala.util.matching.Regex
  *   fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no fragment
  */
 final case class URL private (
-  private val protocol: String,
+  protocol: String,
   private val host: String,
   private val port: Option[Int],
-  private val path: String,
-  private val queryParams: Map[String, String],
-  private val fragment: Option[String]
+  path: String,
+  queryParams: Map[String, String],
+  fragment: Option[String]
 ) extends Ordered[URL]:
 
   /**
@@ -44,6 +44,14 @@ final case class URL private (
   def parent: URL = URL(protocol, host, port, path.split("/").dropRight(1).mkString("/") + "/", Map.empty, Option.empty)
 
   /**
+   * Gets the "depth" of this URL's path. For example a URL `https://www.example.com` has depth 0 and
+   * `https://www.example.com/example/1` has depth 2
+   * @return
+   *   the depth of this URL
+   */
+  def depth: Int = if path.length > 1 then path.split("/").length else 0
+
+  /**
    * Compares the depth of two URLs. Returns a value greater that 0 if this URL is has greater depth, equal to 0 if they
    * have the same depth, less than 0 otherwise
    * @param that
@@ -52,9 +60,7 @@ final case class URL private (
    *   a [[Int]] value representing the result of the comparison
    */
   override def compare(that: URL): Int =
-    val thisPathLength = path.split("/").length
-    val thatPathLength = that.path.split("/").length
-    thisPathLength compare thatPathLength
+    depth compare that.depth
 
   /**
    * Utility method that appends to this URL a [[String]], placing the trailing backslashes correctly

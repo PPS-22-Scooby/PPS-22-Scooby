@@ -2,12 +2,11 @@ package org.unibo.scooby
 package core.crawler
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import utility.http.{Request, Response, URL}
+import utility.http.{HttpError, Request, Response, URL}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
 import utility.document.CrawlDocument
-
 import core.coordinator.CoordinatorCommand
 
 enum CrawlerCommand:
@@ -63,13 +62,13 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
   def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage {
     case Crawl(url) =>
       Request.builder.get().at(url).build match
-        case Left(s: String) =>
-          context.log.error(s"Error while crawling $url: $s")
+        case Left(e: HttpError) =>
+          context.log.error(s"Error while crawling $url: ${e.message}")
 
         case Right(request: Request) =>
           request.send(httpClient) match
-            case Left(s: String) =>
-              context.log.error(s"Error while crawling $url: $s")
+            case Left(s: HttpError) =>
+              context.log.error(s"Error while crawling $url: ${s.message}")
             case Right(response: Response) =>
               response.headers.get("content-type") match
                 case Some(contentType) if contentType.startsWith("text/") =>

@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.coordinator
 
 import utility.http.Clients.SimpleHttpClient
-import utility.http.{Request, Response, URL}
+import utility.http.{HttpError, Request, Response, URL}
 
 /**
  * The `Robots` object provides functionalities to fetch and parse the robots.txt file from a given website. It also
@@ -25,12 +25,12 @@ object Robots {
     // TODO: change 'https' to a method within URLs that allows the protocol
     val robotsUrl = s"${parsedUrl.toString}/robots.txt"
     Request.builder.get().at(robotsUrl).build match
-      case Left(err: String) =>
-        s"Error fetching robots.txt: $err"
+      case Left(err: HttpError) =>
+        s"Error fetching robots.txt: ${err.message}"
       case Right(request: Request) =>
         request.send(httpClient) match
-          case Left(s: String) =>
-            s"Error while get $robotsUrl: $s"
+          case Left(s: HttpError) =>
+            s"Error while get $robotsUrl: ${s.message}"
           case Right(response: Response) =>
             response.body match {
               case None => "No content found in robots.txt"

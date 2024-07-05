@@ -5,7 +5,7 @@ Feature: simple URL creation and management
   Scenario: creating a URL from string
     Given the string "https://www.example.com/"
     When i convert it to URL
-    Then it should return a valid URL
+    Then it should return a valid URL with depth 0
 
   Scenario: invalid URL
     Given the string "//www.example.com/"
