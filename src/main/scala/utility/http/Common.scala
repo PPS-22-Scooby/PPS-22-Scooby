@@ -13,8 +13,10 @@ enum HttpMethod:
 object HttpMethod:
   /**
    * Utility method to get the HTTP method from its name (not case sensitive)
-   * @param name name of the method
-   * @return a [[HttpMethod]] corresponding to the provided name
+   * @param name
+   *   name of the method
+   * @return
+   *   a [[HttpMethod]] corresponding to the provided name
    */
   def of(name: String): HttpMethod = HttpMethod.valueOf(name.toUpperCase())
 
@@ -53,10 +55,12 @@ object HttpStatus:
  * Type representing a group of headers of a Request or Response
  */
 type Headers = Map[String, String]
+
 /**
  * Type representing a single header of a Request or Response
  */
 type Header = (String, String)
+
 /**
  * Body of a Request/Response
  */
@@ -88,8 +92,8 @@ sealed case class Request private (
    * @tparam R
    *   type of responses that the client's backend works with
    * @return
-   *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing an error
-   *   otherwise.
+   *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of [[HttpError]] representing an
+   *   error otherwise.
    */
   def send[R](client: Client[R]): Either[HttpError, R] =
     try Right(client.send(this))
@@ -210,8 +214,8 @@ object Request:
     /**
      * Builds the [[Request]]
      * @return
-     *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a String
-     *   representing an error message otherwise (es. "You must provide a valid URL")
+     *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a [[HttpError]]
+     *   representing an error otherwise (es. "You must provide a valid URL")
      */
     def build: Either[HttpError, Request] =
       if url != URL.empty then Right(Request(method, url, headers, body))
