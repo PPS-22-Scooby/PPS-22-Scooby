@@ -21,12 +21,12 @@ import scala.util.matching.Regex
  *   fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no fragment
  */
 final case class URL private (
-  private val protocol: String,
+  protocol: String,
   private val host: String,
   private val port: Option[Int],
-  private val path: String,
-  private val queryParams: Map[String, String],
-  private val fragment: Option[String]
+  path: String,
+  queryParams: Map[String, String],
+  fragment: Option[String]
 ) extends Ordered[URL]:
 
   /**
