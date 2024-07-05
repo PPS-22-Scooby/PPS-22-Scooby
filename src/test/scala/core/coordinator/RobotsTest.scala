@@ -50,14 +50,14 @@ class RobotsTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   "canVisit" should "return false for disallowed URLs" in {
-    val disallowRules = List("/private/", "/tmp/")
+    val disallowRules = Set("/private/", "/tmp/")
 
     Robots.canVisit("https://www.example.com/private/data", disallowRules) should be(false)
     Robots.canVisit("https://www.example.com/tmp/data", disallowRules) should be(false)
   }
 
   it should "return true for allowed URLs" in {
-    val disallowRules = List("/private/", "/tmp/")
+    val disallowRules = Set("/private/", "/tmp/")
 
     Robots.canVisit("https://www.example.com/public/data", disallowRules) should be(true)
     Robots.canVisit("https://www.example.com/index.html", disallowRules) should be(true)
