@@ -37,7 +37,6 @@ trait ScalaTestWithMockServer extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     webServerSystem ! MockServer.Stop
     testKit.shutdownTestKit()
 
-
 trait CucumberTestWithMockServer extends ScalaDsl with EN:
   implicit val timeout: Timeout = 30.seconds
 
@@ -45,7 +44,6 @@ trait CucumberTestWithMockServer extends ScalaDsl with EN:
 
   implicit val system: ActorSystem[Nothing] = testKit.system
   val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
-
 
   BeforeAll {
     val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
@@ -100,8 +98,7 @@ object MockServer:
                     entity = HttpEntity(
                       ContentTypes.`application/json`,
                       request.entity.dataBytes
-                    ),
-
+                    )
                   )
                 }
               }
@@ -126,18 +123,34 @@ object MockServer:
         }
       }
 
-    val notFound: Route =  extractRequest { request =>
-        complete {
-          HttpResponse(
-            entity = HttpEntity(
-              ContentTypes.`text/html(UTF-8)`,
-              "<html><h1>Not Found</h1></html>"
-            ),
-            status = StatusCodes.NotFound
+    val robotsTxt: Route =
+      path("robots.txt") {
+        get {
+          complete(
+            HttpResponse(
+              entity = HttpEntity(
+                ContentTypes.`text/plain(UTF-8)`,
+                """User-agent: *
+                |Disallow: /private/
+                |Allow: /""".stripMargin
+              ),
+              status = StatusCodes.OK
+            )
           )
         }
       }
 
+    val notFound: Route = extractRequest { request =>
+      complete {
+        HttpResponse(
+          entity = HttpEntity(
+            ContentTypes.`text/html(UTF-8)`,
+            "<html><h1>Not Found</h1></html>"
+          ),
+          status = StatusCodes.NotFound
+        )
+      }
+    }
 
     def running(bindingFuture: Future[Http.ServerBinding]): Behavior[Command] =
       Behaviors.receiveMessage {
@@ -160,12 +173,12 @@ object MockServer:
 
     Behaviors.receiveMessage {
       case Start(replyTo) =>
-        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ json ~ echo ~ notFound)
+        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ robotsTxt ~ json ~ echo ~ notFound)
         val log = context.log
         bindingFuture.onComplete {
           case Success(_) =>
             log.info("Server started at http://localhost:8080/")
-            replyTo ! ServerStarted  // Invia direttamente il ServerStarted
+            replyTo ! ServerStarted // Invia direttamente il ServerStarted
           case Failure(ex) =>
             log.error("Failed to bind HTTP endpoint, terminating system", ex)
             system.terminate()
