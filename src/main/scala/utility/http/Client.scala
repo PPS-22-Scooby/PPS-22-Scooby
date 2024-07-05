@@ -3,7 +3,10 @@ package utility.http
 
 import utility.http.Configuration.ClientConfiguration
 
-import scala.concurrent.duration.Duration
+import org.unibo.scooby.utility.http.Configuration.Property.NetworkTimeout
+
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.reflect.ClassTag
 
 /**
  * Core of the HTTP logic. A [[HttpClient]] can mix-in a Backend to gain the corresponding, underlying implementation of
@@ -30,7 +33,7 @@ trait Backend[R] extends HttpClient:
 /**
  * Empty trait that represents an HTTP client. To be useful, you need to mix-in [[Backend]] Traits
  */
-trait HttpClient(configuration: ClientConfiguration)
+trait HttpClient(val configuration: ClientConfiguration)
 
 object Clients:
   import utility.http.backends.SttpSyncBackend
@@ -44,25 +47,19 @@ object Clients:
 type Client[R] = HttpClient & Backend[R]
 
 object Configuration:
-  private type ConfigurationEntry = (ConfigurationEntryType, Any)
-
-  enum ConfigurationEntryType(val valueType: Class[?]):
-    case NETWORK_TIMEOUT extends ConfigurationEntryType(classOf[Duration])
-
-  case class ClientConfiguration(configs: ConfigurationEntry*)
-
-  object ClientConfiguration:
-    def apply(configs: ConfigurationEntry*): Either[HttpError, ClientConfiguration] =
-      configs.find {
-        case (entryType: ConfigurationEntryType, value: Any) => value.getClass.isAssignableFrom(entryType.valueType)
-      } match
-        case Some((entryType: ConfigurationEntryType, entryValue: Any)) =>
-          Left((s"$entryValue doesn't satisfy the type of configuration entry: $entryType which " +
-            s"is ${entryType.valueType}").asHttpError)
-        case None => Right(new ClientConfiguration(configs*))
-
-  import ConfigurationEntryType.*
   import scala.concurrent.duration.DurationInt
 
-  def default: ClientConfiguration = ClientConfiguration(NETWORK_TIMEOUT -> 5.seconds)
-    .getOrElse(new ClientConfiguration())
+  enum Property[T](val value: T):
+    case NetworkTimeout(override val value: FiniteDuration) extends Property[FiniteDuration](value)
+    case MaxRequests(override val value: Int) extends Property[Int](value)
+
+  class ClientConfiguration(properties: Seq[Property[?]]):
+    def property[T <: Property[R], R](implicit tag: ClassTag[T]): Option[R] =
+      properties.collectFirst { case p if tag.runtimeClass.isInstance(p) =>
+          p.asInstanceOf[T].value
+        }
+
+  object ClientConfiguration:
+    def apply(properties: Property[?]*): ClientConfiguration = new ClientConfiguration(properties.toSeq)
+
+  def default: ClientConfiguration = ClientConfiguration(NetworkTimeout(5.seconds))
