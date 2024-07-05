@@ -10,6 +10,8 @@ import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 
 enum CoordinatorCommand:
 
+  case SetupRobots(page: String)
+
   /**
    * A message that instructs the Coordinator actor to check a list of pages.
    *
@@ -82,7 +84,7 @@ object Coordinator:
           val isAlreadyCrawled = crawledPages.contains(normalizedPage)
           isValidURL(url) && !isAlreadyCrawled
       }
-      new Coordinator(context, defaultUrlPolicy).idle(Set.empty)
+      new Coordinator(context, defaultUrlPolicy).idle(Set.empty, Set.empty)
     }
 
 /**
@@ -108,16 +110,21 @@ class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: Conditio
    * @return
    *   A Behavior[Command] that describes how the actor should process the next message it receives.
    */
-  def idle(crawledPages: Set[String]): Behavior[CoordinatorCommand] =
+  def idle(crawledPages: Set[String], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
+      case SetupRobots(page) =>
+        val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(page))
+        idle(crawledPages, disallowed)
+
       case CheckPages(pages, replyTo) =>
-        val resultIterator = pages.filter(page => urlPolicy.executeOn(page, crawledPages))
-        replyTo ! CrawlerCoordinatorResponse(resultIterator.iterator)
-        idle(crawledPages ++ resultIterator.map(normalizeURL).toSet)
+        val checkResult = pages.filter(page => urlPolicy.executeOn(page, crawledPages))
+        val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url, blackList))
+        replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
+        idle(crawledPages ++ checkResult.map(normalizeURL).toSet, blackList)
 
       case SetCrawledPages(pages) =>
         val validPages = pages.filter(isValidURL).map(normalizeURL).toSet
-        idle(crawledPages ++ validPages)
+        idle(crawledPages ++ validPages, blackList)
 
       case GetCrawledPages(replyTo) =>
         replyTo ! crawledPages.toList
