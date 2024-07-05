@@ -33,12 +33,12 @@ class StepDefinitions extends ScalaDsl with EN:
     print(typeToUse)
     typeToUse match
       case "String" =>
-        resultString = ResultImpl(Iterable(part_res))
+        resultString = Result(Iterable(part_res))
       case "Map[String, String]" =>
         val res = Json.parse(part_res).validate[Map[String, String]]
         res match {
           case JsSuccess(resMap, _) =>
-            resultMap = ResultImpl(resMap)
+            resultMap = Result(resMap)
           case JsError(errors) =>
             println(errors)
         }
@@ -108,7 +108,7 @@ class StepDefinitions extends ScalaDsl with EN:
             ).values.mkString("")
           }
         }
-        resultString = ResultImpl(Iterable(scraper.scrape(this.document)))
+        resultString = Result(Iterable(scraper.scrape(this.document)))
 
       case "Map[String, String]" =>
         val scraper = new Scraper[Map[String, String]] {
