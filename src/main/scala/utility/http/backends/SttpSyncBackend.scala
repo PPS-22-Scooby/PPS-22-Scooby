@@ -23,10 +23,12 @@ trait SttpSyncBackend extends Backend[Response]:
    * Type alias for Request of the sttp library
    */
   private type SttpRequest = client3.Request[?, Any]
+
   /**
    * Type alias for Response of the sttp library
    */
   private type SttpResponse = client3.Response[?]
+
   /**
    * Type alias for Uri of the sttp library
    */
@@ -43,7 +45,8 @@ trait SttpSyncBackend extends Backend[Response]:
   extension (originalRequest: Request)
     /**
      * Conversion utility from [[Request]] to [[SttpRequest]]
-     * @return a [[SttpRequest]]
+     * @return
+     *   a [[SttpRequest]]
      */
     private def asSttpRequest: SttpRequest =
       val request = originalRequest.method match
@@ -59,8 +62,9 @@ trait SttpSyncBackend extends Backend[Response]:
   extension (sttpRequest: RequestMetadata)
     /**
      * Conversion utility from [[RequestMetadata]] (obtained from inside the sttp Response) to a [[Request]].
-     * @return a [[Request]]. <b>Note</b>: the body is empty because sttp [[RequestMetadata]] contained inside the
-     *         Response doesn't maintain the original [[Request]]'s body
+     * @return
+     *   a [[Request]]. <b>Note</b>: the body is empty because sttp [[RequestMetadata]] contained inside the Response
+     *   doesn't maintain the original [[Request]] 's body
      */
     private def asRequest: Request =
       Request.builder
@@ -75,7 +79,8 @@ trait SttpSyncBackend extends Backend[Response]:
   extension (response: SttpResponse)
     /**
      * Conversion utility from [[SttpResponse]] to a [[Response]]
-     * @return a [[Response]]
+     * @return
+     *   a [[Response]]
      */
     private def asResponse: Response =
       Response(
@@ -93,6 +98,7 @@ trait SttpSyncBackend extends Backend[Response]:
    * Timeout to use in case the [[ClientConfiguration]] provided doesn't set the [[NetworkTimeout]] configuration
    */
   private lazy val defaultTimeout = 5.seconds
+
   /**
    * STTP backend used internally to make HTTP calls.
    */
