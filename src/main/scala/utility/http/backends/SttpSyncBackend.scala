@@ -1,13 +1,13 @@
 package org.unibo.scooby
 package utility.http.backends
 
-import utility.http.HttpStatus.INVALID
 import utility.http.*
+import utility.http.Configuration.Property.NetworkTimeout
+import utility.http.HttpStatus.INVALID
 
-import org.unibo.scooby.utility.http.Configuration.Property.NetworkTimeout
 import sttp.model.RequestMetadata
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Simple, synchronous HTTP client backend that utilizes the sttp library under the hood

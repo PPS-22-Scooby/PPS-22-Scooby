@@ -2,10 +2,9 @@ package org.unibo.scooby
 package utility.http
 
 import utility.http.Configuration.ClientConfiguration
+import utility.http.Configuration.Property.NetworkTimeout
 
-import org.unibo.scooby.utility.http.Configuration.Property.NetworkTimeout
-
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 
 /**
@@ -55,9 +54,10 @@ object Configuration:
 
   class ClientConfiguration(properties: Seq[Property[?]]):
     def property[T <: Property[R], R](implicit tag: ClassTag[T]): Option[R] =
-      properties.collectFirst { case p if tag.runtimeClass.isInstance(p) =>
+      properties.collectFirst {
+        case p if tag.runtimeClass.isInstance(p) =>
           p.asInstanceOf[T].value
-        }
+      }
 
   object ClientConfiguration:
     def apply(properties: Property[?]*): ClientConfiguration = new ClientConfiguration(properties.toSeq)

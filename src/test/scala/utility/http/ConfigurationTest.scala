@@ -2,12 +2,13 @@ package org.unibo.scooby
 package utility.http
 
 
+import utility.http.Configuration.Property
+import utility.http.Configuration.Property.{MaxRequests, NetworkTimeout}
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.unibo.scooby.utility.http.Configuration.Property
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import org.unibo.scooby.utility.http.Configuration.Property.{MaxRequests, NetworkTimeout}
 
 class ConfigurationTest extends AnyFlatSpec with should.Matchers:
 
