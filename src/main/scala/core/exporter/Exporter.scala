@@ -19,8 +19,8 @@ case class ExporterOptions(exportingFunction: ExportingBehavior, outputFilePath:
 object Exporter:
   import ExporterCommands._
   def apply[A, B](options: ExporterOptions): Behavior[ExporterCommands] =
-    Behaviors.setup { context =>
-      Behaviors.receiveMessage {
+    Behaviors.setup : context =>
+      Behaviors.receiveMessage :
         case Export(result) =>
           Try {
             val writer = Files.newBufferedWriter(Paths.get(options.outputFilePath), StandardCharsets.UTF_8,
@@ -34,8 +34,6 @@ object Exporter:
               writer.write(content)
               writer.close()
           Behaviors.same
-      }
-    }
 
 
 
