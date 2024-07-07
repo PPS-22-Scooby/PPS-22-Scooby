@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package utility.http.api
 
-import utility.http.{Header, HttpError}
+import utility.http.{Header, HttpError, URL}
 import utility.http.HttpMethod.{GET, POST}
 import utility.http.Request.RequestBuilder
 
@@ -29,7 +29,7 @@ object Calls:
   /**
    * Builds a HTTP GET request using a DSL-like fashion
    * @param url
-   *   URL of the request
+   *   String version of the URL of the request
    * @tparam T
    *   type of the deserialized response (default is Response)
    * @tparam R
@@ -38,12 +38,26 @@ object Calls:
    *   a [[PartialCall]] representing the request to be sent.
    */
   def GET[T, R: Client](url: String): PartialCall[T, R] =
+    new PartialCall[T, R](URL(url).getOrElse(URL.empty), HttpMethod.GET)
+
+  /**
+   * Builds a HTTP GET request using a DSL-like fashion
+   * @param url
+   * [[URL]] of the request
+   * @tparam T
+   * type of the deserialized response (default is Response)
+   * @tparam R
+   * type of the used Client. Must be a given Client in the scope.
+   * @return
+   * a [[PartialCall]] representing the request to be sent.
+   */
+  def GET[T, R: Client](url: URL): PartialCall[T, R] =
     new PartialCall[T, R](url, HttpMethod.GET)
 
   /**
    * Builds a HTTP POST request using a DSL-like fashion
    * @param url
-   *   URL of the request
+   *   [[URL]] of the request
    * @tparam T
    *   type of the deserialized response (default is Response)
    * @tparam R
@@ -51,9 +65,24 @@ object Calls:
    * @return
    *   a [[PartialCall]] representing the request to be sent.
    */
-  def POST[T, R: Client](url: String): PartialCall[T, R] =
+  def POST[T, R: Client](url: URL): PartialCall[T, R] =
     new PartialCall[T, R](url, HttpMethod.POST)
 
+  /**
+   * Builds a HTTP POST request using a DSL-like fashion
+   * @param url
+   * String version of the URL of the request
+   * @tparam T
+   * type of the deserialized response (default is Response)
+   * @tparam R
+   * type of the used Client. Must be a given Client in the scope.
+   * @return
+   * a [[PartialCall]] representing the request to be sent.
+   */
+  def POST[T, R: Client](url: String): PartialCall[T, R] =
+    new PartialCall[T, R](URL(url).getOrElse(URL.empty), HttpMethod.POST)
+
+  
   /**
    * Sets the body setting for the [[RequestBuilderMutable]] in the scope.
    * @param init
@@ -79,7 +108,7 @@ object Calls:
    * Class representing a call to be sent. The [[Conversion]] [[call2send]] provides a seamlessly way to send a partial
    * call in a hidden way.
    * @param url
-   *   URL of the request
+   *   [[URL]] of the request
    * @param method
    *   method of the request
    * @tparam T
@@ -87,7 +116,7 @@ object Calls:
    * @tparam R
    *   type of the response used by the [[Client]] in the Scope
    */
-  class PartialCall[T, R: Client](val url: String, val method: HttpMethod):
+  class PartialCall[T, R: Client](val url: URL, val method: HttpMethod):
     infix def sending(init: RequestContext)(using
       deserializer: Deserializer[R, T]
     ): Either[HttpError, T] =
