@@ -1,11 +1,19 @@
 package org.unibo.scooby
 package utility.http
 
+import utility.http.HttpErrorType.GENERIC
+
+enum HttpErrorType:
+  case GENERIC
+  case DESERIALIZING
+  case NETWORK
+  
+
 /**
  * Utility class that represents a HTTP error.
  * @param ex exception representing the error
  */
-sealed case class HttpError(ex: Exception):
+sealed case class HttpError(ex: Exception, errorType: HttpErrorType = GENERIC):
   /**
    * Returns a string representation of this error
    * @return a [[String]] representing an error message
