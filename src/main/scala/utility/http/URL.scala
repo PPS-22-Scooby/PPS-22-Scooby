@@ -30,11 +30,17 @@ final case class URL private (
 ) extends Ordered[URL]:
 
   /**
+   * Gets the URL without the protocol (e.g. "http://www.example.com/example" => "www.example.com/example")
+   * @return the URL string without the protocol
+   */
+  def withoutProtocol: String = domain + path + queryString + fragmentString
+
+  /**
    * Gets the domain from the URL
    * @return
    *   a [[String]] containing the domain
    */
-  def domain: String = host + port.getOrElse("")
+  def domain: String = host + portString
 
   /**
    * Gets the "parent" of this URL, that is the preceding path (e.g. the parent of "/example/path" is "/example/")
@@ -99,12 +105,26 @@ final case class URL private (
     else
       this
 
+  /**
+   * Gets the port string (e.g. if a URL has port 4000, it returns ":4000"). 
+   * @return the port string <b>or</b> empty string if the URL has no port
+   */
+  def portString: String = port.map(":" + _).getOrElse("")
+
+  /**
+   * Gets the query string (e.g. "https://www.example.com?fo=1&ol=2" => "?fo=1&ol=2")
+   * @return the query string <b>or</b> empty string if the URL has no query parameter
+   */
+  def queryString: String = if (queryParams.isEmpty) ""
+    else "?" + queryParams.map { case (k, v) => s"$k=$v" }.mkString("&")
+
+  /**
+   * Gets the fragment string (e.g. "https://www.example.com#fragment" => "#fragment")
+   * @return the fragment string <b>or</b> empty string if the URL has no fragment
+   */
+  def fragmentString: String = fragment.map("#" + _).getOrElse("")
+
   override def toString: String =
-    val portString = port.map(":" + _).getOrElse("")
-    val queryString =
-      if (queryParams.isEmpty) ""
-      else "?" + queryParams.map { case (k, v) => s"$k=$v" }.mkString("&")
-    val fragmentString = fragment.map("#" + _).getOrElse("")
     s"$protocol://$host$portString$path$queryString$fragmentString"
 
 object URL:
