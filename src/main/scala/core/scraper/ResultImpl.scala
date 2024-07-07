@@ -60,8 +60,8 @@ trait Result[T]:
  * @tparam T
  *   representing result's type.
  */
-class ResultImpl[T](val data: Iterable[T]) extends Result[T]:
-
+case class ResultImpl[T](data: Iterable[T]) extends Result[T]:
+  
   override def updateStream(data: T)(using aggregator: ItAggregator[T]): Result[T] =
     ResultImpl(aggregator.aggregateStream(this.data, data))
 
@@ -70,20 +70,3 @@ class ResultImpl[T](val data: Iterable[T]) extends Result[T]:
 
   override def aggregate(result: Result[T])(using aggregator: ItAggregator[T]): Result[T] =
     updateBatch(result.data)
-
-/**
- * Companion object for Result class.
- */
-object ResultImpl:
-
-  /**
-   * A builder with a starting data.
-   *
-   * @param data
-   *   the starting data iterable.
-   * @tparam T
-   *   the data type.
-   * @return
-   *   a new Result instance with given data.
-   */
-  def apply[T](data: Iterable[T]): ResultImpl[T] = new ResultImpl(data)
