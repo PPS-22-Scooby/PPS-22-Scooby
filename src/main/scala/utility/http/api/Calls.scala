@@ -82,7 +82,7 @@ object Calls:
   def POST[T, R: Client](url: String): PartialCall[T, R] =
     new PartialCall[T, R](URL(url).getOrElse(URL.empty), HttpMethod.POST)
 
-  
+
   /**
    * Sets the body setting for the [[RequestBuilderMutable]] in the scope.
    * @param init
@@ -123,8 +123,8 @@ object Calls:
       given mutableBuilder: RequestBuilderMutable = RequestBuilderMutable(Request.builder.at(url).method(method))
       init
       mutableBuilder.builder.build.flatMap {
-        _.send[R](summon[Client[R]]).map(deserializer.deserialize)
-      }.left.map(HttpError(_))
+        _.send[R](summon[Client[R]]).flatMap(deserializer.deserialize)
+      }
 
   /**
    * Conversion that sends a [[PartialCall]] in a hidden way, maintaining the DSL look of the other utility methods.
