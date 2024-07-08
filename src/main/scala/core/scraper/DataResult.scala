@@ -8,7 +8,7 @@ import Aggregator.ItAggregator
  * @tparam T
  *   representing result's type.
  */
-trait Result[T]:
+trait DataResult[T]:
 
   /**
    * Data structure used to store data.
@@ -27,7 +27,7 @@ trait Result[T]:
    * @return
    *   a new Result instance with data updated.
    */
-  def updateStream(data: T)(using aggregator: ItAggregator[T]): Result[T]
+  def updateStream(data: T)(using aggregator: ItAggregator[T]): DataResult[T]
 
   /**
    * Batch a sequence of data to result.
@@ -39,7 +39,7 @@ trait Result[T]:
    * @return
    *   a new Result instance with data updated.
    */
-  def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): Result[T]
+  def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): DataResult[T]
 
   /**
    * Aggregate actual Result with a given one.
@@ -51,7 +51,7 @@ trait Result[T]:
    * @return
    *   a new Result instance with data aggregated.
    */
-  def aggregate(result: Result[T])(using aggregator: ItAggregator[T]): Result[T]
+  def aggregate(result: DataResult[T])(using aggregator: ItAggregator[T]): DataResult[T]
 
 /**
  * Class representing [[ScraperActor]]'s results implementation.
@@ -60,30 +60,21 @@ trait Result[T]:
  * @tparam T
  *   representing result's type.
  */
-final case class ResultImpl[T](data: Iterable[T]) extends Result[T]:
+final case class Result[T](data: Iterable[T]) extends DataResult[T]:
 
-  override def updateStream(data: T)(using aggregator: ItAggregator[T]): Result[T] =
-    ResultImpl(aggregator.aggregateStream(this.data, data))
+  override def updateStream(data: T)(using aggregator: ItAggregator[T]): DataResult[T] =
+    Result(aggregator.aggregateStream(this.data, data))
 
-  override def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): Result[T] =
-    ResultImpl(aggregator.aggregateBatch(this.data, data))
+  override def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): DataResult[T] =
+    Result(aggregator.aggregateBatch(this.data, data))
 
-  override def aggregate(result: Result[T])(using aggregator: ItAggregator[T]): Result[T] =
+  override def aggregate(result: DataResult[T])(using aggregator: ItAggregator[T]): DataResult[T] =
     updateBatch(result.data)
 
+/**
+ * A companion object for [[Result]]
+ */
 object Result:
-
-  /**
-   * A builder with a starting data.
-   *
-   * @param data
-   *   the starting data iterable.
-   * @tparam T
-   *   the data type.
-   * @return
-   *   a new Result instance with given data.
-   */
-  def apply[T](data: Iterable[T]): Result[T] = ResultImpl(data)
 
   /**
    * A builder with a starting data.
@@ -92,14 +83,12 @@ object Result:
    * @tparam T the data type.
    * @return a new Result instance with given data.
    */
-  def apply[T](data: T): Result[T] = Result(Iterable(data))
-
-  private def apply[T](): Result[T] = Result(Iterable.empty)
+  def fromData[T](data: T): DataResult[T] = Result(Iterable(data))
 
   /**
-   * A builder for an empty [[Result]].
+   * A builder for an empty [[DataResult]].
    *
    * @tparam T the data type.
-   * @return a new Result instance with given data.
+   * @return a new empty Result instance.
    */
-  def empty[T]: Result[T] = Result()
+  def empty[T]: DataResult[T] = Result(Iterable.empty[T])

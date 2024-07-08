@@ -7,17 +7,19 @@ import utility.message.CommonMessages.{CommonMessages, onPaused}
 import akka.actor.{Actor, ActorSystem, Props, Stash}
 
 /**
- * A type representing a function that extract an [[Iterable]] used to build [[Result]] from a [[Document]]
+ * A type representing a function that extract an [[Iterable]] used to build [[DataResult]] from a [[Document]]
+ *
  * @tparam D a type which is a subtype of [[Document]] type.
- * @tparam T a generic type which represents the expected [[Result]] type.
+ * @tparam T a generic type which represents the expected [[DataResult]] type.
  */
 type IterableFromDoc[D <: Document, T] = D => Iterable[T]
 
 /**
  * Class representing Scraper actor.
+ *
  * @param scrapeRule the scraping rule the actor uses.
  * @tparam D the type representing the [[Document]] to which apply the rule.
- * @tparam T type representing the [[Result]] type.
+ * @tparam T type representing the [[DataResult]] type.
  */
 class ScraperActor[D <: Document, T](val scrapeRule: D => Iterable[T]) extends Actor with Stash:
 
@@ -38,7 +40,7 @@ class ScraperActor[D <: Document, T](val scrapeRule: D => Iterable[T]) extends A
       onPause()
     case CommonMessages.Resume =>
     case Messages.Scrape(doc: D) =>
-      val result: Result[T] = Result(applyRule(doc))
+      val result: DataResult[T] = Result(applyRule(doc))
       sender() ! Messages.SendPartialResult(result) // TODO: send to explorer when ready
 
 /**
@@ -53,7 +55,7 @@ object ScraperActor:
    */
   enum Messages:
     case Scrape[D <: Document](doc: D)
-    case SendPartialResult[T](result: Result[T])
+    case SendPartialResult[T](result: DataResult[T])
 
   /**
    * Utility for scraper's rules based on selectBy attribute, given selectors specified.
@@ -128,7 +130,7 @@ object ScraperActor:
    */
   def scrapeSelectThenRegex(selectors: Seq[String], selectBy: String)(regex: Seq[String]): IterableFromDoc[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
     val doc = new Document(
-      scraperRule(selectors, selectBy)(scraper).reduceOption(_ concat _).getOrElse(""),
+      scraperRule(selectors, selectBy)(scraper).reduceOption(_.concat(_)).getOrElse(""),
       scraper.url)
       with RegExpExplorer
     regexSelectorsRule(regex)(doc)
