@@ -1,6 +1,6 @@
 package org.unibo.scooby
 package core.exporter
-import core.scraper.ResultImpl
+import core.scraper.Result
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -9,10 +9,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import scala.util.Try
 
-type ExportingBehavior = ResultImpl[?] => String
+type ExportingBehavior = Result[?] => String
 
 enum ExporterCommands:
-  case Export(result: ResultImpl[?])
+  case Export(result: Result[?])
 
 case class ExporterOptions(exportingFunction: ExportingBehavior, outputFilePath: String)
 

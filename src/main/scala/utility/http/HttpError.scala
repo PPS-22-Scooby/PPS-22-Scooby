@@ -1,11 +1,20 @@
 package org.unibo.scooby
 package utility.http
 
+import utility.http.HttpErrorType.GENERIC
+
+enum HttpErrorType:
+  case GENERIC
+  case DESERIALIZING
+  case NETWORK
+
+
 /**
  * Utility class that represents a HTTP error.
  * @param ex exception representing the error
+ * @param errorType type of the error
  */
-sealed case class HttpError(ex: Exception):
+sealed case class HttpError(ex: Exception, errorType: HttpErrorType):
   /**
    * Returns a string representation of this error
    * @return a [[String]] representing an error message
@@ -39,13 +48,12 @@ object HttpError:
   /**
    * Instantiation method for [[HttpError]]s
    * @param x object to be converted to a [[HttpError]]
+   * @param errorType error type
    * @tparam T type of the object: can be [[String]] or [[Exception]]
    * @return a [[HttpError]] built from the input parameter
    */
-  def apply[T >: String | Exception](x: T): HttpError = x match
-    case s: String => new HttpError(new Exception(s))
-    case e: Exception => new HttpError(e)
-    case error: HttpError => new HttpError(error.ex)
-    case _ => HttpError("")
-
-
+  def apply[T >: String | Exception](x: T, errorType: HttpErrorType = GENERIC): HttpError = x match
+    case s: String => new HttpError(new Exception(s), errorType)
+    case e: Exception => new HttpError(e, errorType)
+    case error: HttpError => new HttpError(error.ex, errorType)
+    case _ => new HttpError(new Exception("Something failed instantiating error"), errorType)

@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.scraper
 
 /**
- * Object used to provide aggregators to {@link ResultImpl}.
+ * Object used to provide aggregators to [[DataResult]].
  */
 object Aggregator:
 
@@ -32,30 +32,30 @@ object Aggregator:
   trait ItAggregator[T]:
 
     /**
-     * Aggregate elements provided both as {@link Iterable}.
+     * Aggregate elements provided both as [[Iterable]].
      * @param x
-     *   first {@link Iterable} to aggregate.
+     *   first [[Iterable]] to aggregate.
      * @param y
-     *   second {@link Iterable} to aggregate.
+     *   second [[Iterable]] to aggregate.
      * @return
-     *   the {@link Iterable} obtained aggregating given ones.
+     *   the [[Iterable]] obtained aggregating given ones.
      */
     def aggregateBatch(x: Iterable[T], y: Iterable[T]): Iterable[T]
 
     /**
-     * Aggregate elements provided as {@link Iterable} and single element.
+     * Aggregate elements provided as [[Iterable]] and single element.
      *
      * @param x
-     *   the {@link Iterable} to aggregate.
+     *   the [[Iterable]] to aggregate.
      * @param y
      *   the element to aggregate.
      * @return
-     *   the {@link Iterable} obtained aggregating given ones.
+     *   the [[Iterable]] obtained aggregating given ones.
      */
     def aggregateStream(x: Iterable[T], y: T): Iterable[T]
 
   /**
-   * Provided {@link Map}'s aggregator.
+   * Provided [[Map]]'s aggregator.
    */
   given mapAggregator[K, V: SingleElemAggregator]: ItAggregator[(K, V)] with
 
@@ -68,14 +68,13 @@ object Aggregator:
     private def aggregateBatch(map1: Map[K, V], map2: Map[K, V]): Map[K, V] =
       (map1.keySet ++ map2.keySet).map {
         key =>
-          val value = (map1.get(key), map2.get(key)) match {
+          val value = (map1.get(key), map2.get(key)) match
             case (Some(val1), Some(val2)) =>
               summon[SingleElemAggregator[V]].aggregate(val1, val2)
             case (Some(val1), _) =>
               val1
             case (_, Some(val2)) =>
               val2
-          }
           key -> value
       }.toMap
 
@@ -95,7 +94,7 @@ object Aggregator:
 //      tuples ++ Iterable[(K, V)](elem)
 
   /**
-   * Provided {@link Seq}'s aggregator.
+   * Provided [[Seq]]'s aggregator.
    */
   given seqAggregator[T]: ItAggregator[T] with
 
@@ -119,7 +118,7 @@ object Aggregator:
       (str1, str2) match
         case ("", s2) => s2
         case (s1, "") => s1
-        case (s1, s2) => s1 concat ", " concat s2
+        case (s1, s2) => s1.concat(", ").concat(s2)
 
   /**
    * An Int aggregator.
