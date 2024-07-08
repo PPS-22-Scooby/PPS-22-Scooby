@@ -123,14 +123,13 @@ class TestResult extends AnyWordSpecLike with Matchers:
       val notExpectedMap = startMap1 ++ startMap2
       val expectedMap = (startMap1.keySet ++ startMap2.keySet).map {
         key =>
-          val value = (startMap1.get(key), startMap2.get(key)) match {
+          val value = (startMap1.get(key), startMap2.get(key)) match
             case (Some(val1), Some(val2)) =>
               summon[SingleElemAggregator[Int]].aggregate(val1, val2)
             case (Some(val1), _) =>
               val1
             case (_, Some(val2)) =>
               val2
-          }
           key -> value
       }.toMap
 

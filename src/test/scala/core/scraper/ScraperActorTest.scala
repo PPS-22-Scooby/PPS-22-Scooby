@@ -17,7 +17,7 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
 
   val classSelector: Seq[String] = Seq("testClass1", "testClass2")
   val idSelector: Seq[String] = Seq("testId1", "testId2")
-  val cssSelector: Seq[String] = classSelector.map(".".concat(_))
+  val cssSelector: Seq[String] = classSelector.map(".".concat)
   val tagSelector: Seq[String] = Seq("li", "p")
   val regEx: String = "testRegex"
   
