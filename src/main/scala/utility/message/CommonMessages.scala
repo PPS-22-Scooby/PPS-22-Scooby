@@ -17,9 +17,9 @@ object CommonMessages:
     case Resume
 
   /**
-   * Regulates pause {@link Behavior} of the system actors.
-   * @tparam T the {@link Actor} to which apply the paused behavior.
-   * @return a new {@link Receive} function.
+   * Regulates pause [[Behavior]] of the system actors.
+   * @tparam T the [[Actor]] to which apply the paused behavior.
+   * @return a new [[Receive]] function.
    */
   def onPaused[T <: Actor with Stash]: (T, Receive) => Receive = (actor, activeReceive) =>
     case CommonMessages.Resume =>

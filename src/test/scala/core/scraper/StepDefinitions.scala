@@ -6,6 +6,7 @@ import utility.document.Document
 
 import org.junit.Assert.*
 import utility.http.URL
+import play.api.libs.json._
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
@@ -17,11 +18,11 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   with ImplicitSender with AnyWordSpecLike with Matchers with BeforeAndAfterAll
   with ScalaDsl with EN:
 
-  private var scraperActor: ScraperActor[Document, String] = system.actorOf(Props.empty)
+  private var scraperActor: ActorRef = _// ScraperActor[Document, String] = _
   private var docContent: String = _
-  private var docUrl: String = _
+  private var docUrl: URL = _
   private var document: Document = _
-  private var result: String = _
+  private var result: Result[String] = _
   private var probe: TestProbe = _
   
 
@@ -38,14 +39,14 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match {
-      case JsSuccess(selectors, _) =>
+      case JsSuccess(selectors: Seq[String], _) =>
         scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, by)), "scraperActor")
       case JsError(errors) =>
         println(errors)
     }
   
   And("""I have a document to apply rule to""") : () =>
-    docContent: String =
+    docContent =
     s"""
        |<html lang="en">
        |<head>
@@ -75,7 +76,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
     result = Result(Seq("<li>About</li>", "<p>This is the contact section.</p>"))
 
   And("""I have a document with no matching""") : () =>
-    docContent: String =
+    docContent =
     s"""
        |<html lang="en">
        |<head>
@@ -85,7 +86,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
        |""".stripMargin
     docUrl = URL.empty
     document = Document(docContent, docUrl)
-    result = Result.empty
+    result = Result[String].empty
   
   And("""^I have the following document as string (.*)$"""): (doc: String) =>
     docContent = doc
@@ -105,9 +106,10 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
     probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
   
   Then("""^The scraper should obtain (.*) as result$""") : (res: String) =>
+    val res = Json.parse(sel).validate[Seq[String]]
     res match {
-      case JsSuccess(expectedResult, _) =>
-        probe.expectMsg(ScraperActor.Messages.SendPartialResult(expectedResult))
+      case JsSuccess(expectedResult: Seq[String], _) =>
+        probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)
     }
