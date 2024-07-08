@@ -13,17 +13,18 @@ import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
+import scala.compiletime.uninitialized
 
 class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   with ImplicitSender with AnyWordSpecLike with Matchers with BeforeAndAfterAll
   with ScalaDsl with EN:
 
-  private var scraperActor: ActorRef = _// ScraperActor[Document, String] = _
-  private var docContent: String = _
-  private var docUrl: URL = _
-  private var document: Document = _
-  private var result: Result[String] = _
-  private var probe: TestProbe = _
+  private var scraperActor: ActorRef = uninitialized
+  private var docContent: String = uninitialized
+  private var docUrl: URL = uninitialized
+  private var document: Document = uninitialized
+  private var result: DataResult[String] = uninitialized
+  private var probe: TestProbe = uninitialized
   
 
   override def afterAll(): Unit =
@@ -85,7 +86,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
        |""".stripMargin
     docUrl = URL.empty
     document = Document(docContent, docUrl)
-    result = Result[String].empty
+    result = Result.empty[String]
   
   And("""^I have the following document as string (.*)$"""): (doc: String) =>
     docContent = doc
@@ -104,11 +105,10 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   Then("""It should send an empty result""") : () =>
     probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
   
-  Then("""^The scraper should obtain (.*) as result$""") : (res: String) =>
+  Then("""^The scraper should obtain (.*) as result$""") : (sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
       case JsSuccess(expectedResult: Seq[String], _) =>
         probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)
-    

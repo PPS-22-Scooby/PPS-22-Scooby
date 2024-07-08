@@ -4,23 +4,21 @@ package core.scraper.result
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
-import play.api.libs.json._
 
 import scala.compiletime.uninitialized
-import scala.jdk.CollectionConverters._
-
-import core.scraper.{Result, ResultImpl, Aggregator}
+import scala.jdk.CollectionConverters.*
+import core.scraper.{Aggregator, DataResult, Result}
 
 class StepDefinitions extends ScalaDsl with EN:
 
   private var typeToUse: String = uninitialized
   private var document: String = uninitialized
-  private var resultMap: Result[(String, String)] = uninitialized
-  private var resultString: Result[String] = uninitialized
-  private var resultMap1: Result[(String, String)] = uninitialized
-  private var resultMap2: Result[(String, String)] = uninitialized
-  private var resultString1: Result[String] = uninitialized
-  private var resultString2: Result[String] = uninitialized
+  private var resultMap: DataResult[(String, String)] = uninitialized
+  private var resultString: DataResult[String] = uninitialized
+  private var resultMap1: DataResult[(String, String)] = uninitialized
+  private var resultMap2: DataResult[(String, String)] = uninitialized
+  private var resultString1: DataResult[String] = uninitialized
+  private var resultString2: DataResult[String] = uninitialized
   private val nonMatchPattern: String = "non_match"
 
   trait Scraper[T]:
@@ -91,14 +89,14 @@ class StepDefinitions extends ScalaDsl with EN:
                 .eachText()
                 .asScala.toList
                 .filterNot(_.contains(nonMatchPattern))
-                .map("<a>" concat _ concat "</a>")
+                .map("<a>".concat(_).concat("</a>"))
                 .mkString(""),
               "div" -> document
                 .getElementsByTag("div")
                 .eachText()
                 .asScala.toList
                 .filterNot(_.contains(nonMatchPattern))
-                .map("<div>" concat _ concat "</div>")
+                .map("<div>".concat(_).concat("</div>"))
                 .mkString(""),
             ).values.mkString("")
         resultString = Result(Iterable(scraper.scrape(this.document)))
@@ -113,17 +111,17 @@ class StepDefinitions extends ScalaDsl with EN:
                 .eachText()
                 .asScala.toList
                 .filterNot(_.contains(nonMatchPattern))
-                .map("<a>" concat _ concat "</a>")
+                .map("<a>".concat(_).concat("</a>"))
                 .mkString(""),
               "div" -> document
                 .getElementsByTag("div")
                 .eachText()
                 .asScala.toList
                 .filterNot(_.contains(nonMatchPattern))
-                .map("<div>" concat _ concat "</div>")
+                .map("<div>".concat(_).concat("</div>"))
                 .mkString(""),
             )
-        resultMap = ResultImpl(scraper.scrape(this.document))
+        resultMap = Result(scraper.scrape(this.document))
 
   When("""^The scrapers finished, generated different (.*)$"""): (result: String) =>
     typeToUse match
@@ -131,16 +129,16 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[List[String]]
         res match
           case JsSuccess(resList, _) =>
-            resultString1 = ResultImpl(Iterable(resList(0)))
-            resultString2 = ResultImpl(Iterable(resList(1)))
+            resultString1 = Result(Iterable(resList(0)))
+            resultString2 = Result(Iterable(resList(1)))
           case JsError(errors) =>
             println(errors)
       case "Map[String, String]" =>
         val res = Json.parse(result).validate[List[Map[String, String]]]
         res match
           case JsSuccess(resMap, _) =>
-            resultMap1 = ResultImpl(resMap(0))
-            resultMap2 = ResultImpl(resMap(1))
+            resultMap1 = Result(resMap(0))
+            resultMap2 = Result(resMap(1))
           case JsError(errors) =>
             println(errors)
 

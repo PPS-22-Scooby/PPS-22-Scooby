@@ -33,4 +33,4 @@ Feature: Scraper data filtering.
       |   "tag"   |           ["li", "p"]          | ["<li class=testClass1>cl1</li>", "<li class=testClass2>cl2</li>", "<li id=testId1>cl3 testRegex</li>", "<li id=testId2>About</li>"] |
       |  "class"  |  ["testClass1", "testClass2"]  |                                    ["<li class=testClass1>cl1</li>", "<li class=testClass2>cl2</li>"]                                |
       |   "css"   | [".testClass1", ".testClass2"] |                                    ["<li class=testClass1>cl1</li>", "<li class=testClass2>cl2</li>"]                                |
-      |   "regex" |         "testRegex"            |                                                   ["<li id=testId1>cl3 testRegex</li>"]                                              |
+      |  "regex"  |         "testRegex"            |                                                   ["<li id=testId1>cl3 testRegex</li>"]                                              |

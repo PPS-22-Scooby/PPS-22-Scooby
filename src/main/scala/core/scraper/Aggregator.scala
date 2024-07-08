@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.scraper
 
 /**
- * Object used to provide aggregators to [[ResultImpl]].
+ * Object used to provide aggregators to [[DataResult]].
  */
 object Aggregator:
 
@@ -118,7 +118,7 @@ object Aggregator:
       (str1, str2) match
         case ("", s2) => s2
         case (s1, "") => s1
-        case (s1, s2) => s1 concat ", " concat s2
+        case (s1, s2) => s1.concat(", ").concat(s2)
 
   /**
    * An Int aggregator.
