@@ -37,4 +37,4 @@ jobs:
           sbt sbtVersion
 
       - name: Run Tests
-        run: sbt clean scalafixAll test
+        run: sbt clean test

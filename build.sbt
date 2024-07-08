@@ -4,10 +4,6 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.4.2"
 
-ThisBuild / semanticdbEnabled := true
-
-ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-
 ThisBuild / scalacOptions ++= Seq("-Wunused:all")
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -40,5 +36,4 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % "3.9.7"
 )
 
-scalafixOnCompile := true
 Test / parallelExecution := false
