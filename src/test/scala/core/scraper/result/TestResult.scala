@@ -1,10 +1,9 @@
 package org.unibo.scooby
 package core.scraper.result
 
-import core.scraper.{DataResult, Result}
+import core.scraper.Result
 
 import org.scalatest.matchers.should.Matchers
-import core.scraper.DataResult
 import core.scraper.Aggregator.given
 import core.scraper.Aggregator.SingleElemAggregator
 

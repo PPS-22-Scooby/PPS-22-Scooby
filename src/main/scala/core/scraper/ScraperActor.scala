@@ -4,7 +4,7 @@ package core.scraper
 import utility.document.{Document, RegExpExplorer, ScrapeDocument}
 import utility.message.CommonMessages.{CommonMessages, onPaused}
 
-import akka.actor.{Actor, ActorSystem, Props, Stash}
+import akka.actor.{Actor, Props, Stash}
 
 /**
  * A type representing a function that extract an [[Iterable]] used to build [[DataResult]] from a [[Document]]
@@ -68,13 +68,15 @@ object ScraperActor:
   def scraperRule(selectors: Seq[String], selectBy: String): IterableFromDoc[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
     selectBy match
       case "id" =>
-        selectors.map(scraper.getElementById).map(_.text)
+        selectors.map(scraper.getElementById).map(_.outerHtml)
       case "tag" =>
-        selectors.flatMap(scraper.getElementByTag).map(_.text)
+        selectors.flatMap(scraper.getElementByTag).map(_.outerHtml)
       case "class" =>
-        selectors.flatMap(scraper.getElementByClass).map(_.text)
+        selectors.flatMap(scraper.getElementByClass).map(_.outerHtml)
       case "css" =>
-        selectors.flatMap(scraper.select(_)).map(_.text)
+        selectors.flatMap(scraper.select(_)).map(_.outerHtml)
+      case _ =>
+        throw Error(s"Not yet implemented rule by $selectBy")
 
   /**
    * A scraper rule based on elements' ids given.

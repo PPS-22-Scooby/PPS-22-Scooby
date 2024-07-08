@@ -51,7 +51,7 @@ trait DataResult[T]:
    * @return
    *   a new Result instance with data aggregated.
    */
-  def aggregate(result: DataResult[T])(using aggregator: ItAggregator[T]): DataResult[T]
+  def aggregate[D <: DataResult[T]](result: D)(using aggregator: ItAggregator[T]): DataResult[T]
 
 /**
  * Class representing [[ScraperActor]]'s results implementation.
@@ -60,7 +60,7 @@ trait DataResult[T]:
  * @tparam T
  *   representing result's type.
  */
-final case class Result[T](data: Iterable[T]) extends DataResult[T]:
+final case class Result[T] (data: Iterable[T]) extends DataResult[T]:
 
   override def updateStream(data: T)(using aggregator: ItAggregator[T]): DataResult[T] =
     Result(aggregator.aggregateStream(this.data, data))
@@ -68,14 +68,14 @@ final case class Result[T](data: Iterable[T]) extends DataResult[T]:
   override def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): DataResult[T] =
     Result(aggregator.aggregateBatch(this.data, data))
 
-  override def aggregate(result: DataResult[T])(using aggregator: ItAggregator[T]): DataResult[T] =
+  override def aggregate[A <: DataResult[T]](result: A)(using aggregator: ItAggregator[T]): DataResult[T] =
     updateBatch(result.data)
 
 /**
  * A companion object for [[Result]]
  */
 object Result:
-
+  
   /**
    * A builder with a starting data.
    *
