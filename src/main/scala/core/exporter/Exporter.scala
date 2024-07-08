@@ -18,7 +18,7 @@ case class ExporterOptions(exportingFunction: ExportingBehavior, outputFilePath:
 
 object Exporter:
   import ExporterCommands._
-  def apply[A, B](options: ExporterOptions): Behavior[ExporterCommands] =
+  def apply(options: ExporterOptions): Behavior[ExporterCommands] =
     Behaviors.setup : context =>
       Behaviors.receiveMessage :
         case Export(result) =>
