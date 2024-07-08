@@ -38,12 +38,11 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
-    res match {
+    res match
       case JsSuccess(selectors: Seq[String], _) =>
         scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, by)), "scraperActor")
       case JsError(errors) =>
         println(errors)
-    }
   
   And("""I have a document to apply rule to""") : () =>
     docContent =
@@ -107,9 +106,9 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   
   Then("""^The scraper should obtain (.*) as result$""") : (res: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
-    res match {
+    res match
       case JsSuccess(expectedResult: Seq[String], _) =>
         probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)
-    }
+    

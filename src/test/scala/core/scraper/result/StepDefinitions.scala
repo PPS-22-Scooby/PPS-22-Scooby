@@ -23,9 +23,8 @@ class StepDefinitions extends ScalaDsl with EN:
   private var resultString2: Result[String] = uninitialized
   private val nonMatchPattern: String = "non_match"
 
-  trait Scraper[T] {
+  trait Scraper[T]:
     def scrape(doc: String): T
-  }
 
   Given("""^I have a (.*) result of type (.*)$""") : (part_res: String, run_type: String) =>
     typeToUse = run_type
@@ -36,12 +35,11 @@ class StepDefinitions extends ScalaDsl with EN:
         resultString = Result(Iterable(part_res))
       case "Map[String, String]" =>
         val res = Json.parse(part_res).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             resultMap = Result(resMap)
           case JsError(errors) =>
             println(errors)
-        }
 
   Given("""^I have Scrapers that elaborate documents with different filtering policies which generates different data (.*)$""") : (run_type: String) =>
     typeToUse = run_type
@@ -58,37 +56,34 @@ class StepDefinitions extends ScalaDsl with EN:
         resultString = resultString.updateStream(add_data)
       case "Map[String, String]" =>
         val res = Json.parse(add_data).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             resultMap = resultMap.updateStream(resMap.toSeq.head)
           case JsError(errors) =>
             println(errors)
-        }
 
   When("""^I batch new entries (.*)$""") : (add_data: String) =>
     typeToUse match
       case "String" =>
         val res = Json.parse(add_data).validate[List[String]]
-        res match {
+        res match
           case JsSuccess(resList, _) =>
             resultString = resultString.updateBatch(resList)
           case JsError(errors) =>
             println(errors)
-        }
       case "Map[String, String]" =>
         val res = Json.parse(add_data).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             resultMap = resultMap.updateBatch(resMap)
           case JsError(errors) =>
             println(errors)
-        }
 
   When("""^The scraper starts filtering the document, obtaining data to aggregate$""") : () =>
     typeToUse match
       case "String" =>
-        val scraper = new Scraper[String] {
-          override def scrape(doc: String): String = {
+        val scraper = new Scraper[String]:
+          override def scrape(doc: String): String =
             val document = Jsoup.parse(doc)
             Map(
               "a" -> document
@@ -106,13 +101,11 @@ class StepDefinitions extends ScalaDsl with EN:
                 .map("<div>" concat _ concat "</div>")
                 .mkString(""),
             ).values.mkString("")
-          }
-        }
         resultString = Result(Iterable(scraper.scrape(this.document)))
 
       case "Map[String, String]" =>
-        val scraper = new Scraper[Map[String, String]] {
-          override def scrape(doc: String): Map[String, String] = {
+        val scraper = new Scraper[Map[String, String]]:
+          override def scrape(doc: String): Map[String, String] =
             val document = Jsoup.parse(doc)
             Map(
               "a" -> document
@@ -130,84 +123,75 @@ class StepDefinitions extends ScalaDsl with EN:
                 .map("<div>" concat _ concat "</div>")
                 .mkString(""),
             )
-          }
-        }
         resultMap = ResultImpl(scraper.scrape(this.document))
 
   When("""^The scrapers finished, generated different (.*)$"""): (result: String) =>
     typeToUse match
       case "String" =>
         val res = Json.parse(result).validate[List[String]]
-        res match {
+        res match
           case JsSuccess(resList, _) =>
             resultString1 = ResultImpl(Iterable(resList(0)))
             resultString2 = ResultImpl(Iterable(resList(1)))
           case JsError(errors) =>
             println(errors)
-        }
       case "Map[String, String]" =>
         val res = Json.parse(result).validate[List[Map[String, String]]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             resultMap1 = ResultImpl(resMap(0))
             resultMap2 = ResultImpl(resMap(1))
           case JsError(errors) =>
             println(errors)
-        }
 
   Then("""^The result should be (.*)$""") : (result: String) =>
     typeToUse match
       case "String" =>
         val res = Json.parse(result).validate[List[String]]
-        res match {
+        res match
           case JsSuccess(resList, _) =>
             assertEquals(resList, resultString.data)
           case JsError(errors) =>
             println(errors)
-        }
       case "Map[String, String]" =>
         val res = Json.parse(result).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             assertEquals(resMap, resultMap.data)
           case JsError(errors) =>
             println(errors)
-        }
 
   Then("""^It will obtain (.*)$""") : (result: String) =>
     typeToUse match
       case "String" =>
         val res = Json.parse(result).validate[List[String]]
-        res match {
+        res match
           case JsSuccess(resList, _) =>
             assertEquals(resList, this.resultString.data)
           case JsError(errors) =>
             println(errors)
-        }
       case "Map[String, String]" =>
         val res = Json.parse(result).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             assertEquals(resMap, this.resultMap.data)
           case JsError(errors) =>
             println(errors)
-        }
 
   Then("""^They will aggregate partial results obtaining (.*)$""") : (aggregate: String) =>
     typeToUse match
       case "String" =>
         val res = Json.parse(aggregate).validate[List[String]]
-        res match {
+        res match
           case JsSuccess(resList, _) =>
             assertEquals(resList, this.resultString1.aggregate(this.resultString2).data)
           case JsError(errors) =>
             println(errors)
-        }
       case "Map[String, String]" =>
         val res = Json.parse(aggregate).validate[Map[String, String]]
-        res match {
+        res match
           case JsSuccess(resMap, _) =>
             assertEquals(resMap, this.resultMap1.aggregate(this.resultMap2).data)
           case JsError(errors) =>
             println(errors)
-        }
+            
