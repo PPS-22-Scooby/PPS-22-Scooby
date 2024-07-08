@@ -55,7 +55,7 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
       |</html>
       |""".stripMargin
   val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
-  val regExpDocument: ScrapeDocument with RegExpExplorer = new ScrapeDocument(content, URL.empty) with RegExpExplorer
+  val regExpDocument: ScrapeDocument & RegExpExplorer = new ScrapeDocument(content, URL.empty) with RegExpExplorer
 
   val scraperId: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(idSelector, "id")))
   val scraperTag: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(tagSelector, "tag")))
@@ -64,7 +64,7 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
   val scraperRegEx: ActorRef = TestActorRef(new ScraperActor(ScraperActor.regexSelectorsRule(Seq(regEx))))
 
   override def beforeAll(): Unit =
-    val system = ActorSystem("ScraperTestSystem")
+    // system = ActorSystem("ScraperTestSystem")
 
   "Scraper actor" should:
     "process Messages.Scrape message correctly" in:
@@ -94,15 +94,15 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
       scraperCss.tell(ScraperActor.Messages.Scrape(document), probeCss.ref)
       scraperRegEx.tell(ScraperActor.Messages.Scrape(regExpDocument), probeRegEx.ref)
 
-      val expectedById = idSelector.map(document.getElementById).map(_.text).map(elem => Result(elem))
+      val expectedById: DataResult[String] = idSelector.map(document.getElementById).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByTag = tagSelector.flatMap(document.getElementByTag).map(_.text).map(elem => Result(elem))
+      val expectedByTag: DataResult[String] = tagSelector.flatMap(document.getElementByTag).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByClass = classSelector.flatMap(document.getElementByClass).map(_.text).map(elem => Result(elem))
+      val expectedByClass: DataResult[String] = classSelector.flatMap(document.getElementByClass).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByCss = cssSelector.flatMap(sel => document.select(sel)).map(_.text).map(elem => Result(elem))
+      val expectedByCss: DataResult[String] = cssSelector.flatMap(sel => document.select(sel)).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByRegEx = Result(regExpDocument.find(regEx))
+      val expectedByRegEx: DataResult[String] = Result(regExpDocument.find(regEx))
 
       probeId.expectMsg(ScraperActor.Messages.SendPartialResult(expectedById))
       probeTag.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByTag))

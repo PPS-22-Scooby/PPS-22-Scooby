@@ -2,7 +2,7 @@ package org.unibo.scooby
 package utility.message
 
 import akka.actor.Actor.Receive
-import akka.actor.{Actor, Props, Stash}
+import akka.actor.{Actor, Stash}
 
 /**
  * Common messages between actors.

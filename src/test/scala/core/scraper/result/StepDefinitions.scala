@@ -4,6 +4,7 @@ package core.scraper.result
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
+import play.api.libs.json._
 
 import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
@@ -27,14 +28,13 @@ class StepDefinitions extends ScalaDsl with EN:
   Given("""^I have a (.*) result of type (.*)$""") : (part_res: String, run_type: String) =>
     typeToUse = run_type
 
-    print(typeToUse)
     typeToUse match
       case "String" =>
-        resultString = Result(Iterable(part_res))
+        resultString = Result.fromData(part_res)
       case "Map[String, String]" =>
         val res = Json.parse(part_res).validate[Map[String, String]]
         res match
-          case JsSuccess(resMap, _) =>
+          case JsSuccess(resMap: Map[String, String], _) =>
             resultMap = Result(resMap)
           case JsError(errors) =>
             println(errors)
@@ -55,7 +55,7 @@ class StepDefinitions extends ScalaDsl with EN:
       case "Map[String, String]" =>
         val res = Json.parse(add_data).validate[Map[String, String]]
         res match
-          case JsSuccess(resMap, _) =>
+          case JsSuccess(resMap: Map[String, String], _) =>
             resultMap = resultMap.updateStream(resMap.toSeq.head)
           case JsError(errors) =>
             println(errors)
@@ -63,16 +63,16 @@ class StepDefinitions extends ScalaDsl with EN:
   When("""^I batch new entries (.*)$""") : (add_data: String) =>
     typeToUse match
       case "String" =>
-        val res = Json.parse(add_data).validate[List[String]]
+        val res = Json.parse(add_data).validate[Seq[String]]
         res match
-          case JsSuccess(resList, _) =>
+          case JsSuccess(resList: Seq[String], _) =>
             resultString = resultString.updateBatch(resList)
           case JsError(errors) =>
             println(errors)
       case "Map[String, String]" =>
         val res = Json.parse(add_data).validate[Map[String, String]]
         res match
-          case JsSuccess(resMap, _) =>
+          case JsSuccess(resMap: Map[String, String], _) =>
             resultMap = resultMap.updateBatch(resMap)
           case JsError(errors) =>
             println(errors)
@@ -99,7 +99,7 @@ class StepDefinitions extends ScalaDsl with EN:
                 .map("<div>".concat(_).concat("</div>"))
                 .mkString(""),
             ).values.mkString("")
-        resultString = Result(Iterable(scraper.scrape(this.document)))
+        resultString = Result.fromData(scraper.scrape(this.document))
 
       case "Map[String, String]" =>
         val scraper = new Scraper[Map[String, String]]:
@@ -126,17 +126,17 @@ class StepDefinitions extends ScalaDsl with EN:
   When("""^The scrapers finished, generated different (.*)$"""): (result: String) =>
     typeToUse match
       case "String" =>
-        val res = Json.parse(result).validate[List[String]]
+        val res = Json.parse(result).validate[Seq[String]]
         res match
-          case JsSuccess(resList, _) =>
-            resultString1 = Result(Iterable(resList(0)))
-            resultString2 = Result(Iterable(resList(1)))
+          case JsSuccess(resList: Seq[String], _) =>
+            resultString1 = Result.fromData(resList(0))
+            resultString2 = Result.fromData(resList(1))
           case JsError(errors) =>
             println(errors)
       case "Map[String, String]" =>
-        val res = Json.parse(result).validate[List[Map[String, String]]]
+        val res = Json.parse(result).validate[Seq[Map[String, String]]]
         res match
-          case JsSuccess(resMap, _) =>
+          case JsSuccess(resMap: Seq[Map[String, String]], _) =>
             resultMap1 = Result(resMap(0))
             resultMap2 = Result(resMap(1))
           case JsError(errors) =>
