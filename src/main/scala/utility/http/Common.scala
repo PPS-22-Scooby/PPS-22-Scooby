@@ -10,6 +10,16 @@ enum HttpMethod:
   case PUT
   case DELETE
 
+object HttpMethod:
+  /**
+   * Utility method to get the HTTP method from its name (not case sensitive)
+   * @param name
+   *   name of the method
+   * @return
+   *   a [[HttpMethod]] corresponding to the provided name
+   */
+  def of(name: String): HttpMethod = HttpMethod.valueOf(name.toUpperCase())
+
 /**
  * Status reported inside the HTTP response. A special value "INVALID" is provided to mark a response as invalid (a.k.a.
  * something failed)
@@ -41,8 +51,19 @@ object HttpStatus:
    */
   def of(code: Int): Option[HttpStatus] = HttpStatus.values.find(_.code == code)
 
+/**
+ * Type representing a group of headers of a Request or Response
+ */
 type Headers = Map[String, String]
+
+/**
+ * Type representing a single header of a Request or Response
+ */
 type Header = (String, String)
+
+/**
+ * Body of a Request/Response
+ */
 type Body = String
 
 /**
@@ -71,13 +92,13 @@ sealed case class Request private (
    * @tparam R
    *   type of responses that the client's backend works with
    * @return
-   *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of String representing an error
-   *   otherwise.
+   *   a [[Right]] of [[T]] if the request went good (no network exceptions), [[Left]] of [[HttpError]] representing an
+   *   error otherwise.
    */
-  def send[R](client: Client[R]): Either[String, R] =
+  def send[R](client: Client[R]): Either[HttpError, R] =
     try Right(client.send(this))
     catch
-      case ex: Exception => Left(ex.getMessage)
+      case ex: Exception => Left(ex.asHttpError)
 
 /**
  * Class used to wrap an HTTP response
@@ -87,11 +108,14 @@ sealed case class Request private (
  *   headers provided by the HTTP response
  * @param body
  *   body of the response, can be [[None]]
+ * @param request
+ *   request to which this Response is answering to
  */
 sealed case class Response(
   status: HttpStatus,
   headers: Headers,
-  body: Option[Body]
+  body: Option[Body],
+  request: Request
 )
 
 object Request:
@@ -190,11 +214,13 @@ object Request:
     /**
      * Builds the [[Request]]
      * @return
-     *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a String
-     *   representing an error messsage otherwise
+     *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a [[HttpError]]
+     *   representing an error otherwise (es. "You must provide a valid URL")
      */
-    def build: Either[String, Request] =
-      if url != URL.empty then Right(Request(method, url, headers, body)) else Left("You must provide a URL")
+    def build: Either[HttpError, Request] =
+      if url != URL.empty then Right(Request(method, url, headers, body))
+      else
+        Left("You must provide a valid URL".asHttpError)
 
   /**
    * Used to instantiate a builder that builds [[Request]] s
@@ -203,9 +229,16 @@ object Request:
    */
   def builder: RequestBuilder = RequestBuilder(GET, URL.empty, Map.empty, Option.empty)
 
+  /**
+   * Used to instantiate an empty [[Request]], only for debugging/testing purposes
+   * @return
+   *   an empty [[Request]]
+   */
+  def empty: Request = Request(HttpMethod.GET, URL.empty, Map.empty, Option.empty)
+
 object Response:
   /**
    * Utility instantiation method to generate an empty [[Response]]: used mainly as placeholder or for testing purposes
    * @return
    */
-  def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty)
+  def empty: Response = Response(HttpStatus.INVALID, Map.empty, Option.empty, Request.empty)

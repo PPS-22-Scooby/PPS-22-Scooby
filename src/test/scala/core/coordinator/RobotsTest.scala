@@ -24,13 +24,11 @@ class RobotsTest extends ScalaTestWithMockServer:
     val disallowRules = Robots.parseRobotsTxt(robotsTxt)
     disallowRules should contain allOf ("/private/", "/tmp/")
 
-
   "canVisit" should "return false for disallowed URLs" in:
     val disallowRules = Set("/private/", "/tmp/")
 
     Robots.canVisit("https://www.example.com/private/data", disallowRules) should be(false)
     Robots.canVisit("https://www.example.com/tmp/data", disallowRules) should be(false)
-
 
   it should "return true for allowed URLs" in:
     val disallowRules = Set("/private/", "/tmp/")
@@ -48,5 +46,4 @@ class RobotsTest extends ScalaTestWithMockServer:
 
     Robots.canVisit(allowedUrl, disallowRules) should be(true)
     Robots.canVisit(disallowedUrl, disallowRules) should be(false)
-
 
