@@ -2,7 +2,8 @@ package org.unibo.scooby
 package core.crawler
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import utility.http.{HttpError, Request, Response, URL}
+import utility.http.{HttpError, HttpErrorType, URL}
+import utility.http.api.Calls.GET
 
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
@@ -51,7 +52,7 @@ object Crawler:
 class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[CoordinatorCommand]):
   import CrawlerCommand._
 
-  val httpClient: SimpleHttpClient = SimpleHttpClient()
+  given httpClient: SimpleHttpClient = SimpleHttpClient()
 
   /**
    * The behavior of the Crawler actor.
@@ -61,21 +62,14 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
    */
   def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage {
     case Crawl(url) =>
-      Request.builder.get().at(url).build match
-        case Left(e: HttpError) =>
-          context.log.error(s"Error while crawling $url: ${e.message}")
-
-        case Right(request: Request) =>
-          request.send(httpClient) match
-            case Left(s: HttpError) =>
-              context.log.error(s"Error while crawling $url: ${s.message}")
-            case Right(response: Response) =>
-              response.headers.get("content-type") match
-                case Some(contentType) if contentType.startsWith("text/") =>
-                  val links: Seq[String] = new CrawlDocument(response.body.get, url).frontier
-                  this.coordinator ! CoordinatorCommand.CheckPages(links.toList, context.self)
-                case _ =>
-                  context.log.error(s"$url does not have a text content type")
+      val documentEither: Either[HttpError, CrawlDocument] = GET(url)
+      documentEither match
+        case Left(e) => e match
+          case HttpError(_, HttpErrorType.NETWORK) | HttpError(_, HttpErrorType.GENERIC) =>
+            context.log.error(s"Error while crawling $url: ${e.message}")
+          case HttpError(_, HttpErrorType.DESERIALIZING) =>
+            context.log.error(s"$url does not have a text content type")
+        case Right(document) => this.coordinator ! CoordinatorCommand.CheckPages(document.frontier.toList, context.self)
       Behaviors.same
 
     case CrawlerCoordinatorResponse(links) =>
