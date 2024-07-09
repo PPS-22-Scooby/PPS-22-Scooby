@@ -35,7 +35,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
 
     val selectors: Seq[String] = Seq("li", "p")
 
-    scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, "tag")), "scraperActor")
+    scraperActor = system.actorOf(Scraper.props(Scraper.scraperRule(selectors, "tag")), "scraperActor")
   
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
@@ -43,9 +43,9 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
       case JsSuccess(selectors: Seq[String], _) =>
         by match
           case "regex" =>
-            scraperActor = system.actorOf(ScraperActor.props(ScraperActor.regexSelectorsRule(selectors)), "scraperActor")
+            scraperActor = system.actorOf(Scraper.props(Scraper.regexSelectorsRule(selectors)), "scraperActor")
           case _ =>
-            scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, by)), "scraperActor")
+            scraperActor = system.actorOf(Scraper.props(Scraper.scraperRule(selectors, by)), "scraperActor")
       case JsError(errors) =>
         println(errors)
   
@@ -101,18 +101,18 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   When("""The scraper applies the rule""") : () =>
     probe = TestProbe()
 
-    scraperActor.tell(ScraperActor.Messages.Scrape(scrapeDocument), probe.ref)
+    scraperActor.tell(Scraper.ScraperCommands.Scrape(scrapeDocument), probe.ref)
 
   Then("""It should send the result""") : () =>
-    probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
+    probe.expectMsg(Scraper.ScraperCommands.SendPartialResult(result))
   
   Then("""It should send an empty result""") : () =>
-    probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
+    probe.expectMsg(Scraper.ScraperCommands.SendPartialResult(result))
   
   Then("""^The scraper should obtain (.*) as result$""") : (sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
       case JsSuccess(expectedResult: Seq[String], _) =>
-        probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
+        probe.expectMsg(Scraper.ScraperCommands.SendPartialResult(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)

@@ -9,7 +9,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import utility.document.{RegExpExplorer, ScrapeDocument}
 import utility.http.URL
 
-class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
+class ScraperTest extends TestKit(ActorSystem("ScraperSpec"))
   with AnyWordSpecLike
   with Matchers
   with BeforeAndAfterAll
@@ -57,11 +57,11 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
   val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
   val regExpDocument: ScrapeDocument & RegExpExplorer = new ScrapeDocument(content, URL.empty) with RegExpExplorer
 
-  val scraperId: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(idSelector, "id")))
-  val scraperTag: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(tagSelector, "tag")))
-  val scraperClass: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(classSelector, "class")))
-  val scraperCss: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(cssSelector, "css")))
-  val scraperRegEx: ActorRef = TestActorRef(new ScraperActor(ScraperActor.regexSelectorsRule(Seq(regEx))))
+  val scraperId: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(idSelector, "id")))
+  val scraperTag: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(tagSelector, "tag")))
+  val scraperClass: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(classSelector, "class")))
+  val scraperCss: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(cssSelector, "css")))
+  val scraperRegEx: ActorRef = TestActorRef(new Scraper(Scraper.regexSelectorsRule(Seq(regEx))))
 
   override def beforeAll(): Unit =
     // system = ActorSystem("ScraperTestSystem")
@@ -69,15 +69,15 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
   "Scraper actor" should:
     "process Messages.Scrape message correctly" in:
 
-      scraperId ! ScraperActor.Messages.Scrape(document)
-      scraperTag ! ScraperActor.Messages.Scrape(document)
-      scraperClass ! ScraperActor.Messages.Scrape(document)
-      scraperCss ! ScraperActor.Messages.Scrape(document)
+      scraperId ! Scraper.ScraperCommands.Scrape(document)
+      scraperTag ! Scraper.ScraperCommands.Scrape(document)
+      scraperClass ! Scraper.ScraperCommands.Scrape(document)
+      scraperCss ! Scraper.ScraperCommands.Scrape(document)
 
-      scraperId ! ScraperActor.Messages.Scrape(document)
-      scraperTag ! ScraperActor.Messages.Scrape(document)
-      scraperClass ! ScraperActor.Messages.Scrape(document)
-      scraperCss ! ScraperActor.Messages.Scrape(document)
+      scraperId ! Scraper.ScraperCommands.Scrape(document)
+      scraperTag ! Scraper.ScraperCommands.Scrape(document)
+      scraperClass ! Scraper.ScraperCommands.Scrape(document)
+      scraperCss ! Scraper.ScraperCommands.Scrape(document)
 
     "process a document and send the result to sender" in:
 
@@ -88,11 +88,11 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
       val probeCss = TestProbe()
       val probeRegEx = TestProbe()
 
-      scraperId.tell(ScraperActor.Messages.Scrape(document), probeId.ref)
-      scraperTag.tell(ScraperActor.Messages.Scrape(document), probeTag.ref)
-      scraperClass.tell(ScraperActor.Messages.Scrape(document), probeClass.ref)
-      scraperCss.tell(ScraperActor.Messages.Scrape(document), probeCss.ref)
-      scraperRegEx.tell(ScraperActor.Messages.Scrape(regExpDocument), probeRegEx.ref)
+      scraperId.tell(Scraper.ScraperCommands.Scrape(document), probeId.ref)
+      scraperTag.tell(Scraper.ScraperCommands.Scrape(document), probeTag.ref)
+      scraperClass.tell(Scraper.ScraperCommands.Scrape(document), probeClass.ref)
+      scraperCss.tell(Scraper.ScraperCommands.Scrape(document), probeCss.ref)
+      scraperRegEx.tell(Scraper.ScraperCommands.Scrape(regExpDocument), probeRegEx.ref)
 
       val expectedById: DataResult[String] = idSelector.map(document.getElementById).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
@@ -104,11 +104,11 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
       val expectedByRegEx: DataResult[String] = Result(regExpDocument.find(regEx))
 
-      probeId.expectMsg(ScraperActor.Messages.SendPartialResult(expectedById))
-      probeTag.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByTag))
-      probeClass.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByClass))
-      probeCss.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByCss))
-      probeRegEx.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByRegEx))
+      probeId.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedById))
+      probeTag.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByTag))
+      probeClass.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByClass))
+      probeCss.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByCss))
+      probeRegEx.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByRegEx))
 
   // Cleanup resources after all tests
   override def afterAll(): Unit =

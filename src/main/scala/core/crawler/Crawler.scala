@@ -7,8 +7,12 @@ import utility.http.api.Calls.GET
 
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
-import utility.document.CrawlDocument
+import utility.document.{CrawlDocument, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
+import core.scraper.Scraper
+import core.exporter.ExporterCommands
+
+import scala.language.postfixOps
 
 enum CrawlerCommand:
   /**
@@ -33,12 +37,14 @@ object Crawler:
    *
    * @param coordinator
    *   the ActorRef of the coordinator to communicate with
+   * @param exporter
+   *   the ActorRef of the exporter to communicate with
    * @return
    *   the behavior of the Crawler actor
    */
-  def apply(coordinator: ActorRef[CoordinatorCommand]): Behavior[CrawlerCommand] =
+  def apply(coordinator: ActorRef[CoordinatorCommand], exporter: ActorRef[ExporterCommands]): Behavior[CrawlerCommand] =
     Behaviors.setup {
-      context => new Crawler(context, coordinator).idle()
+      context => new Crawler(context, coordinator, exporter).idle()
     }
 
 /**
@@ -48,8 +54,10 @@ object Crawler:
  *   the ActorContext of the Crawler actor
  * @param coordinator
  *   the ActorRef of the coordinator to communicate with
+ * @param exporter
+ * *   the ActorRef of the exporter to communicate with
  */
-class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[CoordinatorCommand]):
+class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[CoordinatorCommand], exporter: ActorRef[ExporterCommands]):
   import CrawlerCommand._
 
   given httpClient: SimpleHttpClient = SimpleHttpClient()
@@ -69,17 +77,19 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
             context.log.error(s"Error while crawling $url: ${e.message}")
           case HttpError(_, HttpErrorType.DESERIALIZING) =>
             context.log.error(s"$url does not have a text content type")
-        case Right(document) => this.coordinator ! CoordinatorCommand.CheckPages(document.frontier.toList, context.self)
+        case Right(document) =>
+          this.coordinator ! CoordinatorCommand.CheckPages(document.frontier.toList, context.self)
+          val scraper = context.spawnAnonymous(Scraper(exporter, Scraper.scraperRule(Seq("body"), "tag")))
+          scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
       Behaviors.same
 
     case CrawlerCoordinatorResponse(links) =>
-      context.log.info(s"Received links: $links")
       for
         returnedUrl <- links
         url <- URL(returnedUrl).toOption
       do
-        val childName = s"crawler-${url.domain}"
-        val children = context.spawn(Crawler(coordinator), childName)
+        val children = context.spawnAnonymous(Crawler(coordinator, exporter))
+        context.log.info(s"Crawl: ${url.toString}")
         children ! Crawl(url)
 
       Behaviors.same

@@ -4,7 +4,8 @@ package core.scraper
 import Aggregator.ItAggregator
 
 /**
- * Class representing [[ScraperActor]]'s results.
+ * Class representing [[Scraper]]'s results.
+ *
  * @tparam T
  *   representing result's type.
  */
@@ -54,7 +55,8 @@ trait DataResult[T]:
   def aggregate[D <: DataResult[T]](result: D)(using aggregator: ItAggregator[T]): DataResult[T]
 
 /**
- * Class representing [[ScraperActor]]'s results implementation.
+ * Class representing [[Scraper]]'s results implementation.
+ *
  * @param data
  *   representing actual result.
  * @tparam T

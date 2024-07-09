@@ -4,7 +4,10 @@ package core.scraper
 import utility.document.{Document, RegExpExplorer, ScrapeDocument}
 import utility.message.CommonMessages.{CommonMessages, onPaused}
 
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.{Actor, Props, Stash}
+import core.exporter.ExporterCommands
 
 /**
  * A type representing a function that extract an [[Iterable]] used to build [[DataResult]] from a [[Document]]
@@ -21,39 +24,38 @@ type IterableFromDoc[D <: Document, T] = D => Iterable[T]
  * @tparam D the type representing the [[Document]] to which apply the rule.
  * @tparam T type representing the [[DataResult]] type.
  */
-class ScraperActor[D <: Document, T](val scrapeRule: D => Iterable[T]) extends Actor with Stash:
+class Scraper[D <: Document, T](val exporter: ActorRef[ExporterCommands], val scrapeRule: IterableFromDoc[D, T]):
 
-  import ScraperActor.*
+  import Scraper.ScraperCommands
+  import core.exporter.ExporterCommands
 
-  private def onPause(): Unit =
-    context.become(onPaused(this, receive))
+  def idle(): Behavior[ScraperCommands] =
+    Behaviors.setup : context =>
+      Behaviors.receiveMessage :
+        case ScraperCommands.Scrape(doc: D) =>
+          val res = resultFromRule(doc)
+          exporter ! ExporterCommands.Export(res)
+          Behaviors.same
+        case _ => Behaviors.same
+          
 
-  private def applyRule(argument: D): Iterable[T] =
-    scrapeRule(argument)
-
-  /**
-   * Function representing actor's behavior.
-   * @return
-   */
-  def receive: Receive =
-    case CommonMessages.Pause =>
-      onPause()
-    case CommonMessages.Resume =>
-    case Messages.Scrape(doc: D) =>
-      val result: DataResult[T] = Result(applyRule(doc))
-      sender() ! Messages.SendPartialResult(result) // TODO: send to explorer when ready
+  private def resultFromRule(argument: D): Result[T] =
+    Result(scrapeRule(argument))
 
 /**
  * Companion object for the Scraper actor.
  */
-object ScraperActor:
+object Scraper:
 
-  def props[D <: Document, T](scrapeRule: D => Iterable[T]): Props = Props(new ScraperActor(scrapeRule))
+  def apply[D <: Document, T](exporter: ActorRef[ExporterCommands], scrapeRule: IterableFromDoc[D, T]): Behavior[ScraperCommands] =
+    Behaviors.setup {
+      context => new Scraper(exporter, scrapeRule).idle()
+    }
 
   /**
-   * Enum representing all [[ScraperActor]] messages.
+   * Enum representing all [[Scraper]] messages.
    */
-  enum Messages:
+  enum ScraperCommands:
     case Scrape[D <: Document](doc: D)
     case SendPartialResult[T](result: DataResult[T])
 
