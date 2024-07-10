@@ -8,6 +8,7 @@ import core.exporter.Exporter.*
 import core.exporter.{Exporter, ExporterOptions}
 
 import org.unibo.scooby.core.crawler.{Crawler, CrawlerCommand}
+import org.unibo.scooby.core.scraper.Scraper
 import org.unibo.scooby.utility.http.URL
 
 import java.nio.file.Files
@@ -18,7 +19,7 @@ enum ScoobyCommand:
 object Scooby:
   import ScoobyCommand.*
 
-  def lesgoski(): Unit =
+  def run(): Unit =
     val scooby: ActorSystem[ScoobyCommand] = ActorSystem(ScoobyActor(), "Scooby")
     scooby ! Start
 
@@ -41,8 +42,13 @@ object ScoobyActor:
           val exporter = context.spawn(Exporter(exporterOptions), "Exporter")
 
           // 3. Spawn a crawler
-          val crawler = context.spawn(Crawler(coordinator, exporter), "Crawler")
-          crawler ! CrawlerCommand.Crawl(URL("https://google.it").getOrElse(URL.empty))
+          val crawler = context.spawn(Crawler(
+            coordinator, 
+            exporter, 
+            Scraper.scraperRule(Seq("body"), "tag"),
+            _.frontier.map(URL(_).getOrElse(URL.empty))
+          ), "Crawler")
+          crawler ! CrawlerCommand.Crawl(URL("https://www.example.com").getOrElse(URL.empty))
           // 4. Send message to crawler containing the seed URL
 
           // (Behind the scenes) -> crawler will analyze urls (--> coordinator), create new crawlers (sub-urls) and new scrapers
@@ -59,5 +65,5 @@ object ScoobyActor:
 
 object Main:
   def main(args: Array[String]): Unit =
-    Scooby.lesgoski()
+    Scooby.run()
 

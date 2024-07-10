@@ -7,9 +7,9 @@ import utility.http.api.Calls.GET
 
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
-import utility.document.{CrawlDocument, ScrapeDocument}
+import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
-import core.scraper.Scraper
+import core.scraper.{ScraperPolicy, Scraper}
 import core.exporter.ExporterCommands
 
 import scala.language.postfixOps
@@ -42,11 +42,18 @@ object Crawler:
    * @return
    *   the behavior of the Crawler actor
    */
-  def apply(coordinator: ActorRef[CoordinatorCommand], exporter: ActorRef[ExporterCommands]): Behavior[CrawlerCommand] =
+  def apply[D <: Document, T](
+                               coordinator: ActorRef[CoordinatorCommand],
+                               exporter: ActorRef[ExporterCommands],
+                               scrapeRule: ScraperPolicy[D, T],
+                               explorationPolicy: ExplorationPolicy
+                             ): Behavior[CrawlerCommand] =
     Behaviors.setup {
-      context => new Crawler(context, coordinator, exporter).idle()
+      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy).idle()
     }
 
+
+type ExplorationPolicy = CrawlDocument => Iterable[URL]
 /**
  * Class representing a Crawler actor.
  *
@@ -57,7 +64,12 @@ object Crawler:
  * @param exporter
  * *   the ActorRef of the exporter to communicate with
  */
-class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[CoordinatorCommand], exporter: ActorRef[ExporterCommands]):
+class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
+                                coordinator: ActorRef[CoordinatorCommand],
+                                exporter: ActorRef[ExporterCommands],
+                                scrapeRule: ScraperPolicy[D, T],
+                                explorationPolicy: ExplorationPolicy
+                               ):
   import CrawlerCommand._
 
   given httpClient: SimpleHttpClient = SimpleHttpClient()
@@ -78,8 +90,8 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
           case HttpError(_, HttpErrorType.DESERIALIZING) =>
             context.log.error(s"$url does not have a text content type")
         case Right(document) =>
-          this.coordinator ! CoordinatorCommand.CheckPages(document.frontier.toList, context.self)
-          val scraper = context.spawnAnonymous(Scraper(exporter, Scraper.scraperRule(Seq("body"), "tag")))
+          this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
+          val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
           scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
       Behaviors.same
 
@@ -88,7 +100,7 @@ class Crawler(context: ActorContext[CrawlerCommand], coordinator: ActorRef[Coord
         returnedUrl <- links
         url <- URL(returnedUrl).toOption
       do
-        val children = context.spawnAnonymous(Crawler(coordinator, exporter))
+        val children = context.spawnAnonymous(Crawler(coordinator, exporter, scrapeRule, explorationPolicy))
         context.log.info(s"Crawl: ${url.toString}")
         children ! Crawl(url)
 
