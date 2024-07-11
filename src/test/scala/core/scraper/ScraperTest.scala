@@ -1,19 +1,18 @@
 package org.unibo.scooby
 package core.scraper
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, TestProbe}
+import akka.actor.typed.{ActorRef, ActorSystem}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import utility.document.{RegExpExplorer, ScrapeDocument}
+import utility.document.ScrapeDocument
 import utility.http.URL
 
-class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
-  with AnyWordSpecLike
-  with Matchers
-  with BeforeAndAfterAll
-  with ImplicitSender:
+import org.scalatest.flatspec.AnyFlatSpec
+import core.exporter.ExporterCommands
+
+class ScraperTest extends AnyWordSpecLike, Matchers, BeforeAndAfterAll:
 
   val classSelector: Seq[String] = Seq("testClass1", "testClass2")
   val idSelector: Seq[String] = Seq("testId1", "testId2")
@@ -55,13 +54,16 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
       |</html>
       |""".stripMargin
   val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
-  val regExpDocument: ScrapeDocument & RegExpExplorer = new ScrapeDocument(content, URL.empty) with RegExpExplorer
 
-  val scraperId: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(idSelector, "id")))
-  val scraperTag: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(tagSelector, "tag")))
-  val scraperClass: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(classSelector, "class")))
-  val scraperCss: ActorRef = TestActorRef(new ScraperActor(ScraperActor.scraperRule(cssSelector, "css")))
-  val scraperRegEx: ActorRef = TestActorRef(new ScraperActor(ScraperActor.regexSelectorsRule(Seq(regEx))))
+  val testKit: ActorTestKit = ActorTestKit()
+  implicit val system: ActorSystem[Nothing] = testKit.system
+  val exporterProbe: TestProbe[ExporterCommands] = testKit.createTestProbe[ExporterCommands]()
+
+  val scraperId: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(idSelector, "id")))
+  val scraperTag: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(tagSelector, "tag")))
+  val scraperClass: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(classSelector, "class")))
+  val scraperCss: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(cssSelector, "css")))
+  val scraperRegEx: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(Seq(regEx), "regex")))
 
   override def beforeAll(): Unit =
     // system = ActorSystem("ScraperTestSystem")
@@ -69,30 +71,25 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
   "Scraper actor" should:
     "process Messages.Scrape message correctly" in:
 
-      scraperId ! ScraperActor.Messages.Scrape(document)
-      scraperTag ! ScraperActor.Messages.Scrape(document)
-      scraperClass ! ScraperActor.Messages.Scrape(document)
-      scraperCss ! ScraperActor.Messages.Scrape(document)
+      scraperId ! ScraperCommands.Scrape(document)
+      scraperTag ! ScraperCommands.Scrape(document)
+      scraperClass ! ScraperCommands.Scrape(document)
+      scraperCss ! ScraperCommands.Scrape(document)
+      scraperRegEx ! ScraperCommands.Scrape(document)
 
-      scraperId ! ScraperActor.Messages.Scrape(document)
-      scraperTag ! ScraperActor.Messages.Scrape(document)
-      scraperClass ! ScraperActor.Messages.Scrape(document)
-      scraperCss ! ScraperActor.Messages.Scrape(document)
+      scraperId ! ScraperCommands.Scrape(document)
+      scraperTag ! ScraperCommands.Scrape(document)
+      scraperClass ! ScraperCommands.Scrape(document)
+      scraperCss ! ScraperCommands.Scrape(document)
+      scraperRegEx ! ScraperCommands.Scrape(document)
 
-    "process a document and send the result to sender" in:
+    "process a document and send the result to exporter" in:
 
-      // TestProbe to intercept messages
-      val probeId = TestProbe()
-      val probeTag = TestProbe()
-      val probeClass = TestProbe()
-      val probeCss = TestProbe()
-      val probeRegEx = TestProbe()
-
-      scraperId.tell(ScraperActor.Messages.Scrape(document), probeId.ref)
-      scraperTag.tell(ScraperActor.Messages.Scrape(document), probeTag.ref)
-      scraperClass.tell(ScraperActor.Messages.Scrape(document), probeClass.ref)
-      scraperCss.tell(ScraperActor.Messages.Scrape(document), probeCss.ref)
-      scraperRegEx.tell(ScraperActor.Messages.Scrape(regExpDocument), probeRegEx.ref)
+      scraperId ! ScraperCommands.Scrape(document)
+      scraperTag ! ScraperCommands.Scrape(document)
+      scraperClass ! ScraperCommands.Scrape(document)
+      scraperCss ! ScraperCommands.Scrape(document)
+      scraperRegEx ! ScraperCommands.Scrape(document)
 
       val expectedById: DataResult[String] = idSelector.map(document.getElementById).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
@@ -102,14 +99,13 @@ class ScraperActorTest extends TestKit(ActorSystem("ScraperSpec"))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
       val expectedByCss: DataResult[String] = cssSelector.flatMap(sel => document.select(sel)).map(_.text).map(elem => Result.fromData(elem))
         .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByRegEx: DataResult[String] = Result(regExpDocument.find(regEx))
+      val expectedByRegEx: DataResult[String] = Result(document.find(regEx))
 
-      probeId.expectMsg(ScraperActor.Messages.SendPartialResult(expectedById))
-      probeTag.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByTag))
-      probeClass.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByClass))
-      probeCss.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByCss))
-      probeRegEx.expectMsg(ScraperActor.Messages.SendPartialResult(expectedByRegEx))
+      exporterProbe.expectMessage(ExporterCommands.Export(expectedById))
+      exporterProbe.expectMessage(ExporterCommands.Export(expectedByTag))
+      exporterProbe.expectMessage(ExporterCommands.Export(expectedByClass))
+      exporterProbe.expectMessage(ExporterCommands.Export(expectedByCss))
+      exporterProbe.expectMessage(ExporterCommands.Export(expectedByRegEx))
 
-  // Cleanup resources after all tests
   override def afterAll(): Unit =
-    TestKit.shutdownActorSystem(system)
+    testKit.shutdownTestKit()

@@ -137,19 +137,20 @@ object URL:
    */
   def apply(url: String): Either[String, URL] =
     def parseQueryParams(queryString: String): Map[String, String] =
-      if (queryString.isEmpty) {
+      if queryString.isEmpty then
         Map.empty[String, String]
-      } else {
+      else
         queryString
           .drop(1)
           .split("&")
-          .collect {
-            case param if param.contains("=") =>
-              val Array(key, value) = param.split("=")
+          .filter(_.contains("="))
+          .map(_.split("="))
+          .filter(_.length == 2)
+          .collect:
+            case Array(key, value) =>
               key -> value
-          }
           .toMap
-      }
+
 
     """^(https?)://([^:/?#]+)(:\d+)?([^?#]*)(\?[^#]*)?(#.*)?$""".r
       .findFirstMatchIn(url)

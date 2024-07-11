@@ -9,7 +9,7 @@ import utility.http.{HttpError, Request, Response, URL}
  * includes a method to check if a given URL is allowed to be visited according to the rules specified in the robots.txt
  * file.
  */
-object Robots {
+object Robots:
 
   /**
    * Fetches the robots.txt file from the specified site URL.
@@ -19,7 +19,7 @@ object Robots {
    * @return
    *   The content of the robots.txt file as a String. Returns an error message if fetching fails.
    */
-  def fetchRobotsTxt(siteUrl: String): String = {
+  def fetchRobotsTxt(siteUrl: String): String =
     val httpClient: SimpleHttpClient = SimpleHttpClient()
     val parsedUrl = URL(siteUrl).getOrElse(URL.empty)
     // TODO: change 'https' to a method within URLs that allows the protocol
@@ -32,11 +32,9 @@ object Robots {
           case Left(s: HttpError) =>
             s"Error while get $robotsUrl: ${s.message}"
           case Right(response: Response) =>
-            response.body match {
+            response.body match
               case None => "No content found in robots.txt"
               case Some(content: String) => content
-            }
-  }
 
   /**
    * Parses the content of a robots.txt file and extracts the disallow rules.
@@ -46,30 +44,26 @@ object Robots {
    * @return
    *   A List of disallowed paths for the user-agent "*".
    */
-  def parseRobotsTxt(robotsTxt: String): Set[String] = {
+  def parseRobotsTxt(robotsTxt: String): Set[String] =
     val lines = robotsTxt.split("\n").toList
     val initialState = (Option.empty[String], List.empty[String])
 
-    val (_, disallowRules) = lines.foldLeft(initialState) {
+    val (_, disallowRules) = lines.foldLeft(initialState):
       case ((userAgent, disallowRules), line) =>
         val trimmedLine = line.trim
-        if (trimmedLine.startsWith("#")) {
+        if (trimmedLine.startsWith("#"))
           // Skip comments
           (userAgent, disallowRules)
-        } else {
-          trimmedLine.split(":", 2) match {
+        else
+          trimmedLine.split(":", 2) match
             case Array("User-agent", ua) =>
               (Some(ua.trim), disallowRules)
             case Array("Disallow", path) if userAgent.contains("*") && path.trim.nonEmpty =>
               (userAgent, path.trim :: disallowRules)
             case _ =>
               (userAgent, disallowRules)
-          }
-        }
-    }
-
     disallowRules.toSet
-  }
+
 
   /**
    * Checks if a given URL is allowed to be visited according to the disallow rules.
@@ -81,8 +75,6 @@ object Robots {
    * @return
    *   `true` if the URL is allowed to be visited, `false` otherwise.
    */
-  def canVisit(url: String, disallowRules: Set[String]): Boolean = {
+  def canVisit(url: String, disallowRules: Set[String]): Boolean =
     val parsedUrl = URL(url).getOrElse(URL.empty).toString
     !disallowRules.exists(rule => parsedUrl.contains(rule))
-  }
-}

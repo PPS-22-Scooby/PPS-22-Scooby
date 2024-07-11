@@ -121,3 +121,4 @@ class CrawlDocument(content: String, url: URL) extends Document(content, url)
 class ScrapeDocument(content: String, url: URL) extends Document(content, url)
       with SelectorExplorer
       with CommonHTMLExplorer
+      with RegExpExplorer

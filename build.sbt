@@ -21,6 +21,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   "org.typelevel" %% "cats-core" % "2.12.0",
   "io.cucumber" %% "cucumber-scala" % "8.23.0" % Test,
