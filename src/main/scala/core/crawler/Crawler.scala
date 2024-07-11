@@ -54,7 +54,7 @@ object Crawler:
       context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy).idle()
 
   def getCrawlerName(url: URL): String =
-    "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.path.filter(_ <= 0x7f), ".")
+    "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.withoutProtocol.filter(_ <= 0x7f), ".")
 
 
 type ExplorationPolicy = CrawlDocument => Iterable[URL]
