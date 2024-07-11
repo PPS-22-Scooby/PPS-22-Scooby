@@ -11,11 +11,13 @@ import core.scraper.Result
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.typed.scaladsl.Behaviors
 import org.slf4j.event.Level
+import core.exporter.Exporter.*
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.compiletime.uninitialized
 import scala.util.Try
+
 
 class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
 
@@ -59,8 +61,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
 
   "BatchExporter" should "receive Export messages and export only on SignalEnd" in:
     val filePath = path.resolve("test.txt")
-    val testKit = BehaviorTestKit(Exporter.batch(Result(Iterable.empty[Any]))(writeResultToFile)(
-      (res1, res2) => res1.aggregate(res2)))
+    val testKit = BehaviorTestKit(batch(ExportingBehaviors.writeOnFile(filePath))(AggregationBehaviors.default))
     testKit.run(Export(Result((1 to 5).toList)))
 
     Files.exists(filePath) shouldBe false

@@ -83,7 +83,7 @@ object Result:
    * @tparam T the data type.
    * @return a new Result instance with given data.
    */
-  def fromData[T](data: T): DataResult[T] = Result(Iterable(data))
+  def fromData[T](data: T): Result[T] = Result(Iterable(data))
 
   /**
    * A builder for an empty [[DataResult]].
@@ -91,4 +91,4 @@ object Result:
    * @tparam T the data type.
    * @return a new empty Result instance.
    */
-  def empty[T]: DataResult[T] = Result(Iterable.empty[T])
+  def empty[T]: Result[T] = Result(Iterable.empty[T])
