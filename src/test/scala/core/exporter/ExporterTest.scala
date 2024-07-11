@@ -30,7 +30,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
-  val writeStreamBehavior: ExportingBehavior[Any] = (result: Result[Any]) =>
+  val writeResultToFile: ExportingBehavior[Any] = (result: Result[Any]) =>
     Try {
       val filePath = path.resolve("test.txt")
       val writer = Files.newBufferedWriter(
@@ -48,15 +48,28 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
         writer.close()
 
 
-  "StreamExporter" should "receve Export message and call exporting function" in:
+  "StreamExporter" should "receive Export message and call exporting function" in:
     val filePath = path.resolve("test.txt")
-    val testKit = BehaviorTestKit(Exporter.stream(ExporterOptions(writeStreamBehavior)))
+    val testKit = BehaviorTestKit(Exporter.stream(writeResultToFile))
     testKit.run(Export(Result((1 to 5).toList)))
 
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5)"
 
 
+  "BatchExporter" should "receive Export messages and export only on SignalEnd" in:
+    val filePath = path.resolve("test.txt")
+    val testKit = BehaviorTestKit(Exporter.batch(Result(Iterable.empty[Any]))(writeResultToFile)(
+      (res1, res2) => res1.aggregate(res2)))
+    testKit.run(Export(Result((1 to 5).toList)))
+
+    Files.exists(filePath) shouldBe false
+    testKit.run(Export(Result((6 to 10).toList)))
+    Files.exists(filePath) shouldBe false
+
+    testKit.run(SignalEnd())
+    Files.exists(filePath) shouldBe true
+    Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"
 
 //  val listCount: ExportingBehavior = (result: Result[?]) =>
 //    result.data.map {

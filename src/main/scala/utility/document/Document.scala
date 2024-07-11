@@ -1,6 +1,6 @@
 package org.unibo.scooby
 package utility.document
-import org.unibo.scooby.utility.http.URL
+import  utility.http.URL
 
 trait Parser[T]:
   def parse(s: String): T
