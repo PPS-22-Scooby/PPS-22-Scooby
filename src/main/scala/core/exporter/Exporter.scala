@@ -46,8 +46,6 @@ object Exporter:
     fold(Result.empty[A])(exportingFunction)(aggregation)
 
 
-
-
   object ExportingBehaviors:
 
     def writeOnFile[A](filePath: Path, format: FormattingBehavior[A] = Formats.string): ExportingBehavior[A] =

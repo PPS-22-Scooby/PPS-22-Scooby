@@ -8,15 +8,9 @@ import org.scalatest.matchers.should.Matchers
 import ExporterCommands.*
 import core.scraper.Result
 
-import akka.actor.testkit.typed.CapturedLogEvent
-import akka.actor.typed.scaladsl.Behaviors
-import org.slf4j.event.Level
 import core.exporter.Exporter.*
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
-import scala.util.Try
 
 
 class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
@@ -32,27 +26,9 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
-  val writeResultToFile: ExportingBehavior[Any] = (result: Result[Any]) =>
-    Try {
-      val filePath = path.resolve("test.txt")
-      val writer = Files.newBufferedWriter(
-        filePath,
-        StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.APPEND
-      )
-        val content = result.data.toString + System.lineSeparator()
-      (writer, content)
-    }.toEither match
-      case Left(exception) => println(f"Error while writing to file: $exception")
-      case Right(writer, content) =>
-        writer.write(content)
-        writer.close()
-
-
   "StreamExporter" should "receive Export message and call exporting function" in:
     val filePath = path.resolve("test.txt")
-    val testKit = BehaviorTestKit(Exporter.stream(writeResultToFile))
+    val testKit = BehaviorTestKit(stream(ExportingBehaviors.writeOnFile(filePath)))
     testKit.run(Export(Result((1 to 5).toList)))
 
     Files.exists(filePath) shouldBe true
@@ -71,6 +47,8 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     testKit.run(SignalEnd())
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"
+
+
 
 //  val listCount: ExportingBehavior = (result: Result[?]) =>
 //    result.data.map {
