@@ -5,12 +5,14 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import utility.http.{HttpError, HttpErrorType, URL}
 import utility.http.api.Calls.GET
 
-import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import utility.http.Clients.SimpleHttpClient
 import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
-import core.scraper.{ScraperPolicy, Scraper}
+import core.scraper.{Scraper, ScraperPolicy}
 import core.exporter.ExporterCommands
+
+import org.unibo.scooby.core.crawler.Crawler.getCrawlerName
 
 import scala.language.postfixOps
 
@@ -51,6 +53,8 @@ object Crawler:
     Behaviors.setup:
       context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy).idle()
 
+  def getCrawlerName(url: URL): String =
+    "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.path.filter(_ <= 0x7f), ".")
 
 
 type ExplorationPolicy = CrawlDocument => Iterable[URL]
@@ -80,7 +84,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
    * @return
    *   the behavior of the Crawler actor
    */
-  def idle(): Behavior[CrawlerCommand] = 
+  def idle(): Behavior[CrawlerCommand] =
 
     def crawl(url: URL): Behavior[CrawlerCommand] =
 
@@ -92,6 +96,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
 
       def scrape(document: CrawlDocument): Unit =
         val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
+        context.watch(scraper)
         scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
       def checkPages(document: CrawlDocument): Unit =
@@ -107,21 +112,32 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
       Behaviors.same
 
     def visitChildren(links: Iterator[String]): Behavior[CrawlerCommand] =
+      val linkList = links.toList
       for
-        returnedUrl <- links
+        returnedUrl <- linkList
         url <- URL(returnedUrl).toOption
       do
-        val children = context.spawnAnonymous(Crawler(coordinator, exporter, scrapeRule, explorationPolicy))
-        context.log.info(s"Crawl: ${url.toString}")
-        children ! Crawl(url)
+        context.log.info(s"Crawling: ${url.toString}")
+        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy), getCrawlerName(url))
+        context.watch(child)
+        child ! Crawl(url)
 
-      Behaviors.same
-        
+      waitingForChildren(linkList.size)
+
     Behaviors.receiveMessage:
       case Crawl(url) => crawl(url)
       case CrawlerCoordinatorResponse(links) => visitChildren(links)
 
-
+  private def waitingForChildren(alive: Int): Behavior[CrawlerCommand] =
+    context.log.info(s"Alive: $alive")
+    if alive == 0 then
+      context.log.info(s"Crawler ${context.self.path.name} has no child -> Terminating")
+      Behaviors.stopped
+    else
+      Behaviors.receiveSignal:
+        case (context, Terminated(child)) =>
+          context.log.info(s"Child Crawler ${child.path.name} terminated")
+          waitingForChildren(alive - 1)
 
 
 
