@@ -48,9 +48,9 @@ object Crawler:
                                scrapeRule: ScraperPolicy[D, T],
                                explorationPolicy: ExplorationPolicy
                              ): Behavior[CrawlerCommand] =
-    Behaviors.setup {
+    Behaviors.setup:
       context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy).idle()
-    }
+
 
 
 type ExplorationPolicy = CrawlDocument => Iterable[URL]
