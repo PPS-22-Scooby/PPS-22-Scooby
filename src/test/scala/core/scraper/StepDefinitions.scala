@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.scraper
 
 import io.cucumber.scala.{EN, ScalaDsl}
-import utility.document.{Document, ScrapeDocument, RegExpExplorer}
+import utility.document.{ScrapeDocument, RegExpExplorer}
 import utility.http.URL
 
 import play.api.libs.json.*
@@ -21,7 +21,6 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   private var scraperActor: ActorRef = uninitialized
   private var docContent: String = uninitialized
   private var docUrl: URL = uninitialized
-  private var document: Document = uninitialized
   private var scrapeDocument: ScrapeDocument = uninitialized
   private var result: DataResult[String] = uninitialized
   private var probe: TestProbe = uninitialized
@@ -40,7 +39,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
-      case JsSuccess(selectors: Seq[String], _) =>
+      case JsSuccess(selectors, _) =>
         by match
           case "regex" =>
             scraperActor = system.actorOf(ScraperActor.props(ScraperActor.regexSelectorsRule(selectors)), "scraperActor")
@@ -112,7 +111,7 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
   Then("""^The scraper should obtain (.*) as result$""") : (sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
-      case JsSuccess(expectedResult: Seq[String], _) =>
+      case JsSuccess(expectedResult, _) =>
         probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)
