@@ -80,29 +80,33 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
    * @return
    *   the behavior of the Crawler actor
    */
-  def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage {
-    case Crawl(url) =>
-      val documentEither: Either[HttpError, CrawlDocument] = GET(url)
-      documentEither match
-        case Left(e) => e match
-          case HttpError(_, HttpErrorType.NETWORK) | HttpError(_, HttpErrorType.GENERIC) =>
-            context.log.error(s"Error while crawling $url: ${e.message}")
-          case HttpError(_, HttpErrorType.DESERIALIZING) =>
-            context.log.error(s"$url does not have a text content type")
-        case Right(document) =>
-          this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
-          val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
-          scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
-      Behaviors.same
+  def idle(): Behavior[CrawlerCommand] = Behaviors.receiveMessage:
+    case Crawl(url) => crawl(url)
+    case CrawlerCoordinatorResponse(links) => recursiveCrawl(links)
 
-    case CrawlerCoordinatorResponse(links) =>
-      for
-        returnedUrl <- links
-        url <- URL(returnedUrl).toOption
-      do
-        val children = context.spawnAnonymous(Crawler(coordinator, exporter, scrapeRule, explorationPolicy))
-        context.log.info(s"Crawl: ${url.toString}")
-        children ! Crawl(url)
 
-      Behaviors.same
-  }
+  private def crawl(url: URL): Behavior[CrawlerCommand] =
+    val documentEither: Either[HttpError, CrawlDocument] = GET(url)
+    documentEither match
+      case Left(e) => e match
+        case HttpError(_, HttpErrorType.NETWORK) | HttpError(_, HttpErrorType.GENERIC) =>
+          context.log.error(s"Error while crawling $url: ${e.message}")
+        case HttpError(_, HttpErrorType.DESERIALIZING) =>
+          context.log.error(s"$url does not have a text content type")
+      case Right(document) =>
+        this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
+        val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
+        scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
+    Behaviors.same
+
+  private def recursiveCrawl(links: Iterator[String]): Behavior[CrawlerCommand] =
+    for
+      returnedUrl <- links
+      url <- URL(returnedUrl).toOption
+    do
+      val children = context.spawnAnonymous(Crawler(coordinator, exporter, scrapeRule, explorationPolicy))
+      context.log.info(s"Crawl: ${url.toString}")
+      children ! Crawl(url)
+
+    Behaviors.same
+
