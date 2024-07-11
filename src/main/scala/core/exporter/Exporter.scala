@@ -5,36 +5,24 @@ import core.scraper.Result
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths, StandardOpenOption}
-import scala.util.Try
-
-type ExportingBehavior = Result[?] => String
+type ExportingBehavior[A] = Result[A] => Unit
 
 enum ExporterCommands:
-  case Export(result: Result[?])
+  case Export[A](result: Result[A])
 
-case class ExporterOptions(exportingFunction: ExportingBehavior, outputFilePath: String)
+case class ExporterOptions[A](exportingFunction: ExportingBehavior[A])
 
 object Exporter:
   import ExporterCommands._
-  def apply(options: ExporterOptions): Behavior[ExporterCommands] =
+
+  def stream[A](options: ExporterOptions[A]): Behavior[ExporterCommands] =
     Behaviors.setup : context =>
       Behaviors.receiveMessage :
-        case Export(result) =>
-          Try {
-            val writer = Files.newBufferedWriter(Paths.get(options.outputFilePath), StandardCharsets.UTF_8,
-              StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-            val content = options.exportingFunction(result) + System.lineSeparator()
-            (writer, content)
-          }.toEither match
-            case Left(exception) =>
-              context.log.error(s"Error while writing to file: ${exception.getMessage}")
-            case Right(writer, content) =>
-              writer.write(content)
-              writer.close()
+        case Export(result: Result[A]) =>
+          options.exportingFunction(result)
           Behaviors.same
 
+  
 
 
 
