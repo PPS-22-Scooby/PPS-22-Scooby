@@ -46,7 +46,8 @@ object ScoobyActor:
             coordinator, 
             exporter, 
             Scraper.scraperRule(Seq("body"), "tag"),
-            _.frontier.map(URL(_).getOrElse(URL.empty))
+            _.frontier.map(URL(_).getOrElse(URL.empty)),
+            2
           ), "Crawler")
           crawler ! CrawlerCommand.Crawl(URL("https://www.example.com").getOrElse(URL.empty))
           // 4. Send message to crawler containing the seed URL

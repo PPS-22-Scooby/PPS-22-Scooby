@@ -48,10 +48,11 @@ object Crawler:
                                coordinator: ActorRef[CoordinatorCommand],
                                exporter: ActorRef[ExporterCommands],
                                scrapeRule: ScraperPolicy[D, T],
-                               explorationPolicy: ExplorationPolicy
+                               explorationPolicy: ExplorationPolicy,
+                               maxDepth: Int
                              ): Behavior[CrawlerCommand] =
     Behaviors.setup:
-      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy).idle()
+      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy, maxDepth).idle()
 
   def getCrawlerName(url: URL): String =
     "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.withoutProtocol.filter(_ <= 0x7f), ".")
@@ -72,7 +73,8 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
                                 coordinator: ActorRef[CoordinatorCommand],
                                 exporter: ActorRef[ExporterCommands],
                                 scrapeRule: ScraperPolicy[D, T],
-                                explorationPolicy: ExplorationPolicy
+                                explorationPolicy: ExplorationPolicy,
+                                maxDepth: Int
                                ):
   import CrawlerCommand._
 
@@ -106,10 +108,12 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
       documentEither match
         case Left(e) => handleError(e)
         case Right(document) =>
-          checkPages(document)
           scrape(document)
-
-      Behaviors.same
+          if maxDepth > 0 then
+            checkPages(document)
+          else
+            context.log.info(s"${context.self.path.name} has reached max depth! Terminating...")
+      if maxDepth == 0 then Behaviors.stopped else Behaviors.same
 
     def visitChildren(links: Iterator[String]): Behavior[CrawlerCommand] =
       val linkList = links.toList
@@ -118,7 +122,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         url <- URL(returnedUrl).toOption
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy), getCrawlerName(url))
+        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1), getCrawlerName(url))
         context.watch(child)
         child ! Crawl(url)
 
@@ -129,7 +133,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
       case CrawlerCoordinatorResponse(links) => visitChildren(links)
 
   private def waitingForChildren(alive: Int): Behavior[CrawlerCommand] =
-    context.log.info(s"Alive: $alive")
+    context.log.info(s"${context.self.path.name} -> Children alive: $alive")
     if alive == 0 then
       context.log.info(s"Crawler ${context.self.path.name} has no child -> Terminating")
       Behaviors.stopped
