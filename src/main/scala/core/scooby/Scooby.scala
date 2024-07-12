@@ -36,13 +36,14 @@ object ScoobyActor:
 
           // 2. Spawn an exporter
           val filePath = "test.txt"
-          val exporterOptions = ExporterOptions(_.data.toString, filePath)
-          val exporter = context.spawn(Exporter(exporterOptions), "Exporter")
+          // TODO fix
+//          val exporterOptions = ExporterOptions(_.data.toString, filePath)
+//          val exporter = context.spawn(Exporter(exporterOptions), "Exporter")
 
           // 3. Spawn a crawler
           val crawler = context.spawn(Crawler(
             coordinator, 
-            exporter, 
+            null, // TODO decomment exporter, 
             ScraperPolicies.scraperRule(Seq("body"), "tag"),
             _.frontier.map(URL(_).getOrElse(URL.empty))
           ), "Crawler")

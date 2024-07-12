@@ -64,13 +64,13 @@ trait DataResult[T]:
  */
 final case class Result[T] (data: Iterable[T]) extends DataResult[T]:
 
-  override def updateStream(data: T)(using aggregator: ItAggregator[T]): DataResult[T] =
+  override def updateStream(data: T)(using aggregator: ItAggregator[T]): Result[T] =
     Result(aggregator.aggregateStream(this.data, data))
 
-  override def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): DataResult[T] =
+  override def updateBatch(data: Iterable[T])(using aggregator: ItAggregator[T]): Result[T] =
     Result(aggregator.aggregateBatch(this.data, data))
 
-  override def aggregate[A <: DataResult[T]](result: A)(using aggregator: ItAggregator[T]): DataResult[T] =
+  override def aggregate[A <: DataResult[T]](result: A)(using aggregator: ItAggregator[T]): Result[T] =
     updateBatch(result.data)
 
 /**
@@ -85,7 +85,7 @@ object Result:
    * @tparam T the data type.
    * @return a new Result instance with given data.
    */
-  def fromData[T](data: T): DataResult[T] = Result(Iterable(data))
+  def fromData[T](data: T): Result[T] = Result(Iterable(data))
 
   /**
    * A builder for an empty [[DataResult]].
@@ -93,4 +93,4 @@ object Result:
    * @tparam T the data type.
    * @return a new empty Result instance.
    */
-  def empty[T]: DataResult[T] = Result(Iterable.empty[T])
+  def empty[T]: Result[T] = Result(Iterable.empty[T])
