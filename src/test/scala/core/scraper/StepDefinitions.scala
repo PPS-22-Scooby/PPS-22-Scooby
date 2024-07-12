@@ -2,16 +2,15 @@ package org.unibo.scooby
 package core.scraper
 
 import io.cucumber.scala.{EN, ScalaDsl}
-import utility.document.{RegExpExplorer, ScrapeDocument}
+import utility.document.ScrapeDocument
 import utility.http.URL
 
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, TestProbe}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import play.api.libs.json.*
 import akka.actor.typed.{ActorRef, ActorSystem}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpecLike
 import core.exporter.ExporterCommands
 
 import scala.compiletime.uninitialized
@@ -34,13 +33,13 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
   Given("""I have a scraper with a proper configuration""") : () =>
     val selectors: Seq[String] = Seq("li", "p")
 
-    scraperActor = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(selectors, "tag")))
+    scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, "tag")))
   
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
       case JsSuccess(selectors, _) =>
-        scraperActor = testKit.spawn(Scraper(exporterProbe.ref, Scraper.scraperRule(selectors, by)))
+        scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, by)))
       case JsError(errors) =>
         println(errors)
   

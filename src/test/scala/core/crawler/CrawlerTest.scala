@@ -91,5 +91,4 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
   }
-  
-  
+

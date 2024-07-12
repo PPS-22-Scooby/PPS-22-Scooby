@@ -1,17 +1,15 @@
 package org.unibo.scooby
 package core.scooby
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior}
 import core.coordinator.Coordinator
+import core.crawler.{Crawler, CrawlerCommand}
 import core.exporter.Exporter.*
 import core.exporter.{Exporter, ExporterOptions}
+import core.scraper.ScraperPolicies
+import utility.http.URL
 
-import org.unibo.scooby.core.crawler.{Crawler, CrawlerCommand}
-import org.unibo.scooby.core.scraper.Scraper
-import org.unibo.scooby.utility.http.URL
-
-import java.nio.file.Files
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorSystem, Behavior}
 
 enum ScoobyCommand:
   case Start
@@ -45,7 +43,7 @@ object ScoobyActor:
           val crawler = context.spawn(Crawler(
             coordinator, 
             exporter, 
-            Scraper.scraperRule(Seq("body"), "tag"),
+            ScraperPolicies.scraperRule(Seq("body"), "tag"),
             _.frontier.map(URL(_).getOrElse(URL.empty))
           ), "Crawler")
           crawler ! CrawlerCommand.Crawl(URL("https://www.example.com").getOrElse(URL.empty))

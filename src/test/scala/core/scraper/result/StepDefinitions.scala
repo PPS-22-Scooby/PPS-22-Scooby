@@ -10,8 +10,6 @@ import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
 import core.scraper.{Aggregator, DataResult, Result}
 
-import org.scalatest.Entry
-
 class StepDefinitions extends ScalaDsl with EN:
 
   private var typeToUse: String = uninitialized

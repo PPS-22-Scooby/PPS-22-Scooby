@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package core.scraper
 
-import utility.document.{Document, RegExpExplorer, ScrapeDocument}
+import utility.document.{Document, ScrapeDocument}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
@@ -60,22 +60,21 @@ object ScraperPolicies:
   type ScraperPolicy[D <: Document, T] = D => Iterable[T]
 
   extension [D1 <: Document, D2 <: Document, T1 <: String, T2](policy: ScraperPolicy[D1, T1])
-    
+
     /**
      * Concat two different policies.
      *
-     * @param other
-     * @param docConverter
-     * @return
+     * @param other the [[ScraperPolicy]] to concat.
+     * @param docConverter the converter used to generate a [[Document]] which fits the other [[ScraperPolicy]].
+     * @return the value obtained as concatenation of first and second [[ScraperPolicy]].
      */
     def concat(other: ScraperPolicy[D2, T2])(using docConverter: Document => D2): ScraperPolicy[D1, T2] = (doc: D1) =>
       val docConverted = docConverter.apply(Document(policy(doc).reduce(_.concat(_)), doc.url))
       other(docConverted)
-  
+
   given (Document => ScrapeDocument) = (doc: Document) =>
     ScrapeDocument(doc.content, doc.url)
-    
-  
+
   /**
    * Utility for scraper's rules based on selectBy attribute, given selectors specified.
    * Admissible values are id, tag, class and css.
@@ -87,7 +86,7 @@ object ScraperPolicies:
   def scraperRule(selectors: Seq[String], selectBy: String): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
     selectBy match
       case "id" =>
-        selectors.map(scraper.getElementById).map(_.outerHtml)
+        selectors.map(scraper.getElementById).map(_.fold("")(_.outerHtml)).filter(_.nonEmpty)
       case "tag" =>
         selectors.flatMap(scraper.getElementByTag).map(_.outerHtml)
       case "class" =>
@@ -105,7 +104,7 @@ object ScraperPolicies:
    * @return the rule based on elements' ids.
    */
   def scraperIdSelectorRule(ids: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    ids.map(scraper.getElementById).map(_.text)
+    ids.map(scraper.getElementById).map(_.fold("")(_.outerHtml))
 
   /**
    * A scraper rule based on elements' tags given.
@@ -114,7 +113,7 @@ object ScraperPolicies:
    * @return the rule based on elements' tags.
    */
   def scraperTagSelectorRule(tags: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    tags.flatMap(scraper.getElementByTag).map(_.text)
+    tags.flatMap(scraper.getElementByTag).map(_.outerHtml)
 
   /**
    * A scraper rule based on elements' classes given.
@@ -123,7 +122,7 @@ object ScraperPolicies:
    * @return the rule based on elements' classes.
    */
   def scraperClassSelectorRule(classesNames: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    classesNames.flatMap(scraper.getElementByClass).map(_.text)
+    classesNames.flatMap(scraper.getElementByClass).map(_.outerHtml)
 
   /**
    * A scraper rule based on css selectors given.
@@ -132,7 +131,7 @@ object ScraperPolicies:
    * @return the rule based on css selectors.
    */
   def scraperCSSSelectorsRule(selectors: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    selectors.flatMap(scraper.select(_)).map(_.text)
+    selectors.flatMap(scraper.select(_)).map(_.outerHtml)
 
   /**
    * A scraper rule based on regular expressions given.

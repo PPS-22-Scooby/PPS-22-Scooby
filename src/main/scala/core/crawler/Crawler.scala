@@ -9,8 +9,10 @@ import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
 import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
-import core.scraper.{ScraperPolicy, Scraper, ScraperCommands}
+import core.scraper.{Scraper, ScraperCommands}
 import core.exporter.ExporterCommands
+
+import core.scraper.ScraperPolicies.ScraperPolicy
 
 import scala.language.postfixOps
 
