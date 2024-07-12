@@ -1,11 +1,21 @@
 Feature: Result update and aggregation
 
+  Scenario: Successfully update result with a new entry
+    Given I have an empty result
+    When  The scraper obtain a new entry and update the result
+    Then  The result should be updated with the new entry
+
+  Scenario: Successfully update result with a new entry
+    Given I have a non empty result
+    When  The scraper obtain a new entry and update the result
+    Then  The result should be updated with the new entry
+
   Rule: Result should support adding data
 
     Scenario Outline: Update result with a new entry
-      Given I have a <partial_result> result of type <type>
-      When I batch a new entry <add_data>
-      Then The result should be <result>
+      Given I have a <partial_result> result of <type> type
+      When I batch a new <add_data> entry
+      Then The result should be <result> one
       Examples:
         |           type            |             partial_result            |                 add_data                  |                                 result                                       |
         |         String            |         <a>txt_match_filter</a>       |         <a>txt2_match_filter</a>          |          ["<a>txt_match_filter</a>", "<a>txt2_match_filter</a>"]             |
@@ -13,9 +23,9 @@ Feature: Result update and aggregation
         |         String            |     <a>match</a><div>match</div>      |           <div>match2</div>               |           ["<a>match</a><div>match</div>", "<div>match2</div>"]              |
 
     Scenario Outline: Update result with a multiple entry
-      Given I have a <partial_result> result of type <type>
-      When I batch new entries <add_data>
-      Then The result should be <result>
+      Given I have a <partial_result> result of <type> type
+      When I batch new <add_data> entries
+      Then The result should be <result> one
       Examples:
         |           type            |             partial_result            |                 add_data                  |                                 result                                       |
         |         String            |         <a>txt_match_filter</a>       |         ["<a>txt2_match_filter</a>", "prova"]          |          ["<a>txt_match_filter</a>", "<a>txt2_match_filter</a>", "prova"]             |
@@ -26,9 +36,9 @@ Feature: Result update and aggregation
 
     Scenario Outline: Gather data in various format
       Given I have Scrapers that elaborate documents with different filtering policies which generates different data <type>
-      And There are different <documents>
+      And I have <documents> as document
       When The scraper starts filtering the document, obtaining data to aggregate
-      Then It will obtain <result>
+      Then It will obtain <result> as result
 
       Examples:
         |           type            |                   documents                              |              result              |
@@ -40,8 +50,8 @@ Feature: Result update and aggregation
 
     Scenario Outline: Aggregate different results
       Given I have 2 Scrapers that elaborate documents with the same filtering policies of <type>, which works on different documents
-      When The scrapers finished, generated different <results>
-      Then They will aggregate partial results obtaining <aggregate>
+      When The scrapers finished, generated different <results> as result
+      Then They will aggregate partial results obtaining <aggregate> as result
 
       Examples:
         |           type            |                                                 results                                                                   |                   aggregate                              |

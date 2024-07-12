@@ -91,9 +91,9 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    * @param id
    *   the ID of the element
    * @return
-   *   the element with the given ID
+   *   an [[Option]] which encapsulates the element with the given ID
    */
-  def getElementById(id: String): HTMLElement = htmlDocument.getElementById(id)
+  def getElementById(id: String): Option[HTMLElement] = htmlDocument.getElementById(id)
 
   /**
    * Gets elements from the HTML document by their tag name.
@@ -121,3 +121,4 @@ class CrawlDocument(content: String, url: URL) extends Document(content, url)
 class ScrapeDocument(content: String, url: URL) extends Document(content, url)
       with SelectorExplorer
       with CommonHTMLExplorer
+      with RegExpExplorer
