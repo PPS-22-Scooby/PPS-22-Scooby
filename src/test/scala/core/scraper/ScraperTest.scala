@@ -1,22 +1,22 @@
 package org.unibo.scooby
 package core.scraper
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
+import akka.actor.typed.{ActorRef, ActorSystem}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpecLike
-import utility.document.{RegExpExplorer, ScrapeDocument}
+import utility.document.ScrapeDocument
 import utility.http.URL
+import core.scraper.ScraperPolicies.{given, _}
+import org.scalatest.flatspec.AnyFlatSpec
 
-class ScraperTest extends TestKit(ActorSystem("ScraperSpec"))
-  with AnyWordSpecLike
-  with Matchers
-  with BeforeAndAfterAll
-  with ImplicitSender:
+import core.exporter.ExporterCommands
+
+class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll:
 
   val classSelector: Seq[String] = Seq("testClass1", "testClass2")
   val idSelector: Seq[String] = Seq("testId1", "testId2")
+  val idSelectorNoMatch: Seq[String] = Seq("testNoMatch1", "testNoMatch2")
   val cssSelector: Seq[String] = classSelector.map(".".concat)
   val tagSelector: Seq[String] = Seq("li", "p")
   val regEx: String = "testRegex"
@@ -41,7 +41,7 @@ class ScraperTest extends TestKit(ActorSystem("ScraperSpec"))
       |  </nav>
       |  <main>
       |    ${idSelector.zipWithIndex.map { case (id, index) =>
-              s"""<section id="$id"><h${index+1}>$id</h2><p>This is the $id section${if index % 2 == 0 then " " + regEx else ""}.</p></li>"""
+              s"""<section id="$id"><h${index+1}>$id</h2><p>This is $regEx the $id section${if index % 2 == 0 then " " + regEx else ""}.</p></li>"""
             }.mkString("\n")}
       |    <section id="contact">
       |      <h2>Contact</h2>
@@ -55,61 +55,72 @@ class ScraperTest extends TestKit(ActorSystem("ScraperSpec"))
       |</html>
       |""".stripMargin
   val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
-  val regExpDocument: ScrapeDocument & RegExpExplorer = new ScrapeDocument(content, URL.empty) with RegExpExplorer
 
-  val scraperId: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(idSelector, "id")))
-  val scraperTag: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(tagSelector, "tag")))
-  val scraperClass: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(classSelector, "class")))
-  val scraperCss: ActorRef = TestActorRef(new Scraper(Scraper.scraperRule(cssSelector, "css")))
-  val scraperRegEx: ActorRef = TestActorRef(new Scraper(Scraper.regexSelectorsRule(Seq(regEx))))
+  val testKit: ActorTestKit = ActorTestKit()
+  implicit val system: ActorSystem[Nothing] = testKit.system
+  val exporterProbe: TestProbe[ExporterCommands] = testKit.createTestProbe[ExporterCommands]()
+
+  val scraperId: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelector, "id")))
+  val scraperTag: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(tagSelector, "tag")))
+  val scraperClass: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(classSelector, "class")))
+  val scraperCss: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(cssSelector, "css")))
+  val scraperRegEx: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(Seq(regEx), "regex")))
+  val scraperMultiPolicies: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelector, "id").concat(ScraperPolicies.scraperRule(Seq(regEx), "regex"))))
+  val scraperNoMatch: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelectorNoMatch, "id")))
 
   override def beforeAll(): Unit =
     // system = ActorSystem("ScraperTestSystem")
 
-  "Scraper actor" should:
-    "process Messages.Scrape message correctly" in:
+  "Scraper" should "process Messages.Scrape message correctly" in:
 
-      scraperId ! Scraper.ScraperCommands.Scrape(document)
-      scraperTag ! Scraper.ScraperCommands.Scrape(document)
-      scraperClass ! Scraper.ScraperCommands.Scrape(document)
-      scraperCss ! Scraper.ScraperCommands.Scrape(document)
+      scraperId ! ScraperCommands.Scrape(document)
+      scraperTag ! ScraperCommands.Scrape(document)
+      scraperClass ! ScraperCommands.Scrape(document)
+      scraperCss ! ScraperCommands.Scrape(document)
+      scraperRegEx ! ScraperCommands.Scrape(document)
 
-      scraperId ! Scraper.ScraperCommands.Scrape(document)
-      scraperTag ! Scraper.ScraperCommands.Scrape(document)
-      scraperClass ! Scraper.ScraperCommands.Scrape(document)
-      scraperCss ! Scraper.ScraperCommands.Scrape(document)
+      scraperId ! ScraperCommands.Scrape(document)
+      scraperTag ! ScraperCommands.Scrape(document)
+      scraperClass ! ScraperCommands.Scrape(document)
+      scraperCss ! ScraperCommands.Scrape(document)
+      scraperRegEx ! ScraperCommands.Scrape(document)
 
-    "process a document and send the result to sender" in:
+  "Scraper" should "process a document and send the result to exporter" in:
+    val expectedById: DataResult[String] = idSelector.map(document.getElementById).map(_.fold(Result.empty[String])(el => Result.fromData(el.outerHtml)))
+      .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
+    val expectedByTag: DataResult[String] = tagSelector.flatMap(document.getElementByTag).map(_.outerHtml).map(elem => Result.fromData(elem))
+      .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
+    val expectedByClass: DataResult[String] = classSelector.flatMap(document.getElementByClass).map(_.outerHtml).map(elem => Result.fromData(elem))
+      .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
+    val expectedByCss: DataResult[String] = cssSelector.flatMap(sel => document.select(sel)).map(_.outerHtml).map(elem => Result.fromData(elem))
+      .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
+    val expectedByRegEx: DataResult[String] = Result(document.find(regEx))
 
-      // TestProbe to intercept messages
-      val probeId = TestProbe()
-      val probeTag = TestProbe()
-      val probeClass = TestProbe()
-      val probeCss = TestProbe()
-      val probeRegEx = TestProbe()
+    scraperId ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(expectedById))
 
-      scraperId.tell(Scraper.ScraperCommands.Scrape(document), probeId.ref)
-      scraperTag.tell(Scraper.ScraperCommands.Scrape(document), probeTag.ref)
-      scraperClass.tell(Scraper.ScraperCommands.Scrape(document), probeClass.ref)
-      scraperCss.tell(Scraper.ScraperCommands.Scrape(document), probeCss.ref)
-      scraperRegEx.tell(Scraper.ScraperCommands.Scrape(regExpDocument), probeRegEx.ref)
+    scraperTag ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(expectedByTag))
 
-      val expectedById: DataResult[String] = idSelector.map(document.getElementById).map(_.text).map(elem => Result.fromData(elem))
-        .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByTag: DataResult[String] = tagSelector.flatMap(document.getElementByTag).map(_.text).map(elem => Result.fromData(elem))
-        .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByClass: DataResult[String] = classSelector.flatMap(document.getElementByClass).map(_.text).map(elem => Result.fromData(elem))
-        .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByCss: DataResult[String] = cssSelector.flatMap(sel => document.select(sel)).map(_.text).map(elem => Result.fromData(elem))
-        .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-      val expectedByRegEx: DataResult[String] = Result(regExpDocument.find(regEx))
+    scraperClass ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(expectedByClass))
 
-      probeId.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedById))
-      probeTag.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByTag))
-      probeClass.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByClass))
-      probeCss.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByCss))
-      probeRegEx.expectMsg(Scraper.ScraperCommands.SendPartialResult(expectedByRegEx))
+    scraperCss ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(expectedByCss))
 
-  // Cleanup resources after all tests
+    scraperRegEx ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(expectedByRegEx))
+
+  "Scraper" should "support policies concatenation" in:
+    scraperMultiPolicies ! ScraperCommands.Scrape(document)
+    val firstDocumentContent: String = idSelector.map(document.getElementById).map(_.fold(Result.empty[String])(el => Result.fromData(el.outerHtml)))
+      .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String]).data.mkString
+    val expected = Result(ScrapeDocument(firstDocumentContent, document.url).find(regEx))
+    exporterProbe.expectMessage(ExporterCommands.Export(expected))
+    
+  "Scraper" should "handle no matches gracefully" in:
+    scraperNoMatch ! ScraperCommands.Scrape(document)
+    exporterProbe.expectMessage(ExporterCommands.Export(Result.empty[String]))
+
   override def afterAll(): Unit =
-    TestKit.shutdownActorSystem(system)
+    testKit.shutdownTestKit()

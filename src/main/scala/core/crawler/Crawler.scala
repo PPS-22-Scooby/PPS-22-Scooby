@@ -9,8 +9,10 @@ import akka.actor.typed.{ActorRef, Behavior}
 import utility.http.Clients.SimpleHttpClient
 import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
-import core.scraper.{ScraperPolicy, Scraper}
+import core.scraper.{Scraper, ScraperCommands}
 import core.exporter.ExporterCommands
+
+import core.scraper.ScraperPolicies.ScraperPolicy
 
 import scala.language.postfixOps
 
@@ -92,7 +94,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         case Right(document) =>
           this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
           val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
-          scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
+          scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
       Behaviors.same
 
     case CrawlerCoordinatorResponse(links) =>

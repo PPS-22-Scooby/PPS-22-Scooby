@@ -44,10 +44,10 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
   "A document with HtmlExplorer" should "create an HTML document and extract elements by id" in:
     val document = new Document(html, url) with CommonHTMLExplorer
-    document.getElementById("test").text should be("Test")
-    document.getElementById("link1").attr("href") should be("/example")
-    document.getElementById("link1").tag should be("a")
-    document.getElementById("link1").outerHtml should be("""<a id="link1" href="/example">Ping</a>""")
+    document.getElementById("test").fold("")(_.text) should be("Test")
+    document.getElementById("link1").fold("")(_.attr("href")) should be("/example")
+    document.getElementById("link1").fold("")(_.tag) should be("a")
+    document.getElementById("link1").fold("")(_.outerHtml) should be("""<a id="link1" href="/example">Ping</a>""")
 
   "A document with HtmlExplorer" should "create an HTML document and extract elements by tag" in:
     val document = new Document(html, url) with CommonHTMLExplorer

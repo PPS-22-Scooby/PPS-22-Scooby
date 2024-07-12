@@ -1,21 +1,18 @@
 package org.unibo.scooby
 package core.scraper
 
-import utility.document.{Document, RegExpExplorer, ScrapeDocument}
-import utility.message.CommonMessages.{CommonMessages, onPaused}
+import utility.document.{Document, ScrapeDocument}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.{Actor, Props, Stash}
 import core.exporter.ExporterCommands
+import ScraperPolicies.ScraperPolicy
 
 /**
- * A type representing a function that extract an [[Iterable]] used to build [[DataResult]] from a [[Document]]
- *
- * @tparam D a type which is a subtype of [[Document]] type.
- * @tparam T a generic type which represents the expected [[DataResult]] type.
+ * Enum representing all [[Scraper]]'s messages.
  */
-type ScraperPolicy[D <: Document, T] = D => Iterable[T]
+enum ScraperCommands:
+  case Scrape[D <: Document](doc: D)
 
 /**
  * Class representing Scraper actor.
@@ -26,16 +23,16 @@ type ScraperPolicy[D <: Document, T] = D => Iterable[T]
  */
 class Scraper[D <: Document, T](val exporter: ActorRef[ExporterCommands], val scrapeRule: ScraperPolicy[D, T]):
 
-  import Scraper.ScraperCommands
+  import ScraperCommands._
   import core.exporter.ExporterCommands
 
   def idle(): Behavior[ScraperCommands] =
-    Behaviors.setup : context =>
-      Behaviors.receiveMessage :
+    Behaviors.setup: context =>
+      Behaviors.receiveMessage:
         case ScraperCommands.Scrape(doc: D) =>
           val res = resultFromRule(doc)
           exporter ! ExporterCommands.Export(res)
-          Behaviors.same
+          Behaviors.stopped
         case _ => Behaviors.same
 
 
@@ -52,12 +49,31 @@ object Scraper:
       context => new Scraper(exporter, scrapeRule).idle()
     }
 
+object ScraperPolicies:
+
   /**
-   * Enum representing all [[Scraper]] messages.
+   * A type representing a function that extract an [[Iterable]] used to build [[DataResult]] from a [[Document]]
+   *
+   * @tparam D a type which is a subtype of [[Document]] type.
+   * @tparam T a generic type which represents the expected [[DataResult]] type.
    */
-  enum ScraperCommands:
-    case Scrape[D <: Document](doc: D)
-    case SendPartialResult[T](result: DataResult[T])
+  type ScraperPolicy[D <: Document, T] = D => Iterable[T]
+
+  extension [D1 <: Document, D2 <: Document, T1 <: String, T2](policy: ScraperPolicy[D1, T1])
+
+    /**
+     * Concat two different policies.
+     *
+     * @param other the [[ScraperPolicy]] to concat.
+     * @param docConverter the converter used to generate a [[Document]] which fits the other [[ScraperPolicy]].
+     * @return the value obtained as concatenation of first and second [[ScraperPolicy]].
+     */
+    def concat(other: ScraperPolicy[D2, T2])(using docConverter: Document => D2): ScraperPolicy[D1, T2] = (doc: D1) =>
+      val docConverted = docConverter.apply(Document(policy(doc).reduce(_.concat(_)), doc.url))
+      other(docConverted)
+
+  given (Document => ScrapeDocument) = (doc: Document) =>
+    ScrapeDocument(doc.content, doc.url)
 
   /**
    * Utility for scraper's rules based on selectBy attribute, given selectors specified.
@@ -70,13 +86,15 @@ object Scraper:
   def scraperRule(selectors: Seq[String], selectBy: String): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
     selectBy match
       case "id" =>
-        selectors.map(scraper.getElementById).map(_.outerHtml)
+        selectors.map(scraper.getElementById).map(_.fold("")(_.outerHtml)).filter(_.nonEmpty)
       case "tag" =>
         selectors.flatMap(scraper.getElementByTag).map(_.outerHtml)
       case "class" =>
         selectors.flatMap(scraper.getElementByClass).map(_.outerHtml)
       case "css" =>
         selectors.flatMap(scraper.select(_)).map(_.outerHtml)
+      case "regex" =>
+        selectors.flatMap(scraper.find)
       case _ =>
         throw Error(s"Not yet implemented rule by $selectBy")
 
@@ -86,7 +104,7 @@ object Scraper:
    * @return the rule based on elements' ids.
    */
   def scraperIdSelectorRule(ids: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    ids.map(scraper.getElementById).map(_.text)
+    ids.map(scraper.getElementById).map(_.fold("")(_.outerHtml))
 
   /**
    * A scraper rule based on elements' tags given.
@@ -95,7 +113,7 @@ object Scraper:
    * @return the rule based on elements' tags.
    */
   def scraperTagSelectorRule(tags: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    tags.flatMap(scraper.getElementByTag).map(_.text)
+    tags.flatMap(scraper.getElementByTag).map(_.outerHtml)
 
   /**
    * A scraper rule based on elements' classes given.
@@ -104,7 +122,7 @@ object Scraper:
    * @return the rule based on elements' classes.
    */
   def scraperClassSelectorRule(classesNames: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    classesNames.flatMap(scraper.getElementByClass).map(_.text)
+    classesNames.flatMap(scraper.getElementByClass).map(_.outerHtml)
 
   /**
    * A scraper rule based on css selectors given.
@@ -113,7 +131,7 @@ object Scraper:
    * @return the rule based on css selectors.
    */
   def scraperCSSSelectorsRule(selectors: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    selectors.flatMap(scraper.select(_)).map(_.text)
+    selectors.flatMap(scraper.select(_)).map(_.outerHtml)
 
   /**
    * A scraper rule based on regular expressions given.
@@ -121,20 +139,5 @@ object Scraper:
    * @param regex a [[Seq]] of regex used in the rule.
    * @return the rule based on regex.
    */
-  def regexSelectorsRule(regex: Seq[String]): ScraperPolicy[RegExpExplorer, String] = (regExScraper: RegExpExplorer) =>
-    regex.flatMap(regExScraper.find)
-
-  /**
-   * A scraper rule which concatenates a rule with selectors and one with regex.
-   *
-   * @param selectors the [[Seq]] of selectors used in the first rule.
-   * @param selectBy a selector to specify the rule.
-   * @param regex the [[Seq]] of regex to apply in the second rule.
-   * @return a rule that can be applied to [[ScrapeDocument]] to obtain an [[Iterable]] of String as a result of the concatenated rules.
-   */
-  def scrapeSelectThenRegex(selectors: Seq[String], selectBy: String)(regex: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
-    val doc = new Document(
-      scraperRule(selectors, selectBy)(scraper).reduceOption(_.concat(_)).getOrElse(""),
-      scraper.url)
-      with RegExpExplorer
-    regexSelectorsRule(regex)(doc)
+  def regexSelectorsRule(regex: Seq[String]): ScraperPolicy[ScrapeDocument, String] = (scraper: ScrapeDocument) =>
+    regex.flatMap(scraper.find)
