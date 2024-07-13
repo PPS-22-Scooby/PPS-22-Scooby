@@ -165,6 +165,22 @@ object URL:
         Right(new URL(protocol, host, port, path, parseQueryParams(queryString), fragment))
       )
 
+  extension(string: String)
+    /**
+     * Extension method that converts a [[String]] to a [[URL]]
+     * @return
+     *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
+     */
+    def toUrl: Either[String, URL] = URL(string)
+
+  extension(string: StringContext)
+    /**
+     * Extension method that converts a [[StringContext]] to a [[URL]]
+     * @return
+     *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
+     */
+    def url(args: Any*): Either[String, URL] = URL(string.s(args*))
+
   /**
    * Used to generate an empty URL, mainly as placeholder or for testing purposes.
    * @return
