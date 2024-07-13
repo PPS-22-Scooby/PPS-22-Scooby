@@ -12,12 +12,16 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 import org.slf4j.event.Level
 import utility.http.Clients.SimpleHttpClient
 
+import org.unibo.scooby.core.exporter.ExporterCommands
+
 
 class StepDefinitions extends ScalaDsl with EN :
 
   val testKit = ActorTestKit()
   val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
-  val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref))
+  val exporterProbe = testKit.createTestProbe[ExporterCommands]()
+  val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref, exporterProbe.ref, _.content, 
+    _.frontier.map(URL(_).getOrElse(URL.empty)), 3))
 
   var url: URL = URL.empty
 
