@@ -1,6 +1,6 @@
 package org.unibo.scooby
 package core.exporter
-import core.scraper.Result
+import core.scraper.{DataResult, Result}
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -39,7 +39,7 @@ enum ExporterCommands:
    * Command to signal the end of computation, indicating that no more results will be sent.
    */
   case SignalEnd()
-
+  
 /**
  * Companion object for the `Exporter` actor, providing factory methods for creating different types of exporting behaviors.
  */

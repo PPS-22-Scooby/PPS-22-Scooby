@@ -2,8 +2,10 @@ package org.unibo.scooby
 package utility.document.html
 
 import utility.document.Parser
+
 import org.jsoup.Jsoup
-import scala.jdk.CollectionConverters._
+
+import scala.jdk.CollectionConverters.*
 
 /**
  * Represents a HTML Document Object Model (DOM).
@@ -30,10 +32,11 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
    * @param id
    *   the ID of the element
    * @return
-   *   an HTMLElement instance
+   *   an [[Option]] of [[HTMLElement]] instance
    */
-  def getElementById(id: String): HTMLElement =
-    HTMLElement(htmlDocument.getElementById(id))
+  def getElementById(id: String): Option[HTMLElement] =
+    Option(htmlDocument.getElementById(id)).collect:
+      case element => HTMLElement(element)
 
   /**
    * Gets HTML elements from the DOM by their tag name.

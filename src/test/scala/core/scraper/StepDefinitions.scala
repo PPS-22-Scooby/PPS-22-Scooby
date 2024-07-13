@@ -2,50 +2,44 @@ package org.unibo.scooby
 package core.scraper
 
 import io.cucumber.scala.{EN, ScalaDsl}
-import utility.document.{Document, ScrapeDocument, RegExpExplorer}
+import utility.document.ScrapeDocument
 import utility.http.URL
 
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import play.api.libs.json.*
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestKit, TestProbe}
+import akka.actor.typed.{ActorRef, ActorSystem}
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpecLike
+import core.exporter.ExporterCommands
 
 import scala.compiletime.uninitialized
 
-class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
-  with ImplicitSender with AnyWordSpecLike with Matchers with BeforeAndAfterAll
-  with ScalaDsl with EN:
+class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl, EN:
 
-  private var scraperActor: ActorRef = uninitialized
+  private var scraperActor: ActorRef[ScraperCommands] = uninitialized
   private var docContent: String = uninitialized
   private var docUrl: URL = uninitialized
-  private var document: Document = uninitialized
   private var scrapeDocument: ScrapeDocument = uninitialized
-  private var result: DataResult[String] = uninitialized
-  private var probe: TestProbe = uninitialized
-  
+  private var result: Result[String] = uninitialized
+
+  val testKit: ActorTestKit = ActorTestKit()
+  implicit val system: ActorSystem[Nothing] = testKit.system
+  val exporterProbe: TestProbe[ExporterCommands] = testKit.createTestProbe[ExporterCommands]()
 
   override def afterAll(): Unit =
-    TestKit.shutdownActorSystem(system)
+    testKit.shutdownTestKit()
 
   Given("""I have a scraper with a proper configuration""") : () =>
-    val system = ActorSystem("ScraperSystem")
-
     val selectors: Seq[String] = Seq("li", "p")
 
-    scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, "tag")), "scraperActor")
+    scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, "tag")))
   
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
-      case JsSuccess(selectors: Seq[String], _) =>
-        by match
-          case "regex" =>
-            scraperActor = system.actorOf(ScraperActor.props(ScraperActor.regexSelectorsRule(selectors)), "scraperActor")
-          case _ =>
-            scraperActor = system.actorOf(ScraperActor.props(ScraperActor.scraperRule(selectors, by)), "scraperActor")
+      case JsSuccess(selectors, _) =>
+        scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, by)))
       case JsError(errors) =>
         println(errors)
   
@@ -96,23 +90,21 @@ class StepDefinitions extends TestKit(ActorSystem("TestSystem"))
     docContent = doc
     docUrl = URL.empty
 
-    scrapeDocument = new ScrapeDocument(docContent, docUrl) with RegExpExplorer
+    scrapeDocument = new ScrapeDocument(docContent, docUrl)
     
   When("""The scraper applies the rule""") : () =>
-    probe = TestProbe()
-
-    scraperActor.tell(ScraperActor.Messages.Scrape(scrapeDocument), probe.ref)
+    scraperActor ! ScraperCommands.Scrape(scrapeDocument)
 
   Then("""It should send the result""") : () =>
-    probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
+    exporterProbe.expectMessage(ExporterCommands.Export(result))
   
   Then("""It should send an empty result""") : () =>
-    probe.expectMsg(ScraperActor.Messages.SendPartialResult(result))
+    exporterProbe.expectMessage(ExporterCommands.Export(result))
   
   Then("""^The scraper should obtain (.*) as result$""") : (sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
-      case JsSuccess(expectedResult: Seq[String], _) =>
-        probe.expectMsg(ScraperActor.Messages.SendPartialResult(Result(expectedResult)))
+      case JsSuccess(expectedResult, _) =>
+        exporterProbe.expectMessage(ExporterCommands.Export(Result(expectedResult)))
       case JsError(errors) =>
         println(errors)
