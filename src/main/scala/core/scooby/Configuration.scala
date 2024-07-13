@@ -69,4 +69,4 @@ object Configuration:
   case class ExporterConfiguration[T](exportingStrategies: Seq[SingleExporting[T]])
 
 
-
+  case class CoordinatorConfiguration()
