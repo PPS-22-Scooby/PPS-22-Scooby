@@ -3,18 +3,19 @@ package core.crawler
 
 import core.coordinator.CoordinatorCommand
 import core.crawler.CrawlerCommand.*
-import core.exporter.{Exporter, ExporterCommands, ExporterOptions}
-import core.scraper.{Scraper, ScraperPolicy}
+import core.exporter.{Exporter, ExporterCommands}
+import core.scraper.{Scraper, ScraperPolicies}
 import utility.ScalaTestWithMockServer
 import utility.document.ScrapeDocument
 import utility.http.URL
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
 
 class CrawlerLifecyleTest extends ScalaTestWithMockServer:
 
-  val scraperRulePlaceholder: ScraperPolicy[ScrapeDocument, String] = Scraper.scraperRule(Seq("body"), "tag")
+  val scraperRulePlaceholder: ScraperPolicy[ScrapeDocument, String] = ScraperPolicies.scraperRule(Seq("body"), "tag")
 
   "Crawler" should "die if there is no valid link" in:
     val mockedBehavior: Behavior[CoordinatorCommand] = Behaviors.receiveMessage:

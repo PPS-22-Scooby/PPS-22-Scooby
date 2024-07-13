@@ -4,10 +4,10 @@ package core.scooby
 import core.crawler.ExplorationPolicy
 import core.exporter.{AggregationBehavior, ExportingBehavior}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
-import core.scraper.ScraperPolicy
+import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.document.Document
 import utility.http.Configuration.ClientConfiguration
-import org.unibo.scooby.utility.http.URL
+import utility.http.URL
 
 enum SingleExporting[A](behavior: ExportingBehavior[A]):
   case StreamExporting[T](behavior: ExportingBehavior[T]) extends SingleExporting[T](behavior)

@@ -21,7 +21,7 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
   private var docContent: String = uninitialized
   private var docUrl: URL = uninitialized
   private var scrapeDocument: ScrapeDocument = uninitialized
-  private var result: DataResult[String] = uninitialized
+  private var result: Result[String] = uninitialized
 
   val testKit: ActorTestKit = ActorTestKit()
   implicit val system: ActorSystem[Nothing] = testKit.system
