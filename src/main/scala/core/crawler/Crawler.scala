@@ -11,7 +11,7 @@ import utility.http.Clients.SimpleHttpClient
 import utility.http.api.Calls.GET
 import utility.http.{Configuration, HttpError, HttpErrorType, URL}
 
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer}
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import org.unibo.scooby.utility.http.Configuration.ClientConfiguration
 
@@ -34,6 +34,8 @@ enum CrawlerCommand:
    */
   case CrawlerCoordinatorResponse(result: Iterator[String])
 
+  case ChildTerminated()
+
 object Crawler:
   /**
    * Creates a new Crawler actor.
@@ -53,9 +55,10 @@ object Crawler:
                                maxDepth: Int,
                                networkConfiguration: ClientConfiguration = Configuration.default
                              ): Behavior[CrawlerCommand] =
-    Behaviors.setup:
-      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy, 
-        maxDepth, networkConfiguration).idle()
+    Behaviors.withStash(50): buffer =>
+      Behaviors.setup:
+        context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy,
+          maxDepth, networkConfiguration, buffer).idle()
 
   def getCrawlerName(url: URL): String =
     "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.withoutProtocol.filter(_ <= 0x7f), ".")
@@ -78,7 +81,8 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
                                 scrapeRule: ScraperPolicy[D, T],
                                 explorationPolicy: ExplorationPolicy,
                                 maxDepth: Int,
-                                networkConfiguration: ClientConfiguration
+                                networkConfiguration: ClientConfiguration,
+                                buffer: StashBuffer[CrawlerCommand]
                                ):
   import CrawlerCommand.*
 
@@ -104,8 +108,8 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         Behaviors.stopped
 
       def scrape(document: CrawlDocument): Unit =
-        val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
-        context.watch(scraper)
+        val scraper = context.spawn(Scraper(exporter, scrapeRule), s"scraper-${getCrawlerName(url)}")
+        context.watchWith(scraper, ChildTerminated())
         scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
       def checkPages(document: CrawlDocument): Unit =
@@ -130,15 +134,19 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         url <- URL(returnedUrl).toOption
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1), getCrawlerName(url))
-        context.watch(child)
+        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1),
+          s"crawler-${getCrawlerName(url)}")
+        context.watchWith(child, ChildTerminated())
         child ! Crawl(url)
 
-      waitingForChildren(linkList.size + 1)
+      buffer.unstashAll(waitingForChildren(linkList.size + 1))
 
     Behaviors.receiveMessage:
       case Crawl(url) => crawl(url)
       case CrawlerCoordinatorResponse(links) => visitChildren(links)
+      case x: ChildTerminated =>
+        buffer.stash(x)
+        Behaviors.same
 
   private def waitingForChildren(alive: Int): Behavior[CrawlerCommand] =
     context.log.info(s"${context.self.path.name} -> Children alive: $alive")
@@ -146,10 +154,11 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
       context.log.info(s"Crawler ${context.self.path.name} has no child -> Terminating")
       Behaviors.stopped
     else
-      Behaviors.receiveSignal:
-        case (context, Terminated(child)) =>
-          context.log.info(s"Child Crawler ${child.path.name} terminated")
+      Behaviors.receiveMessage:
+        case ChildTerminated() =>
+          context.log.info(s"Child terminated")
           waitingForChildren(alive - 1)
+        case _ => Behaviors.same
 
 
 
