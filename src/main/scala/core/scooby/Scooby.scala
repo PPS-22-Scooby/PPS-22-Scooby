@@ -15,12 +15,24 @@ import utility.http.URL
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
 
+/**
+ * Main commands to be used inside Scooby
+ */
 enum ScoobyCommand:
+  /**
+   * Starts the application
+   */
   case Start
 
 object Scooby:
   import ScoobyCommand.*
 
+  /**
+   * Runs the Scooby application.
+   * @param configuration configuration to be used for this application
+   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
+   * @tparam T type of the [[Result]]s that will be exported
+   */
   def run[D <: Document, T](configuration: Configuration[D, T]): Unit =
     val scooby: ActorSystem[ScoobyCommand] = ActorSystem(ScoobyActor(configuration), "Scooby")
     scooby ! Start
@@ -29,11 +41,17 @@ object Scooby:
 object ScoobyActor:
   import ScoobyCommand.*
 
+  /**
+   * Builds the main [[ScoobyActor]]'s behavior
+   * @param configuration configuration to be used for this application
+   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
+   * @tparam T type of the [[Result]]s that will be exported
+   * @return the behavior for the [[ScoobyActor]]
+   */
   def apply[D <: Document, T](configuration: Configuration[D, T]): Behavior[ScoobyCommand] =
     Behaviors.setup: context =>
       Behaviors.receiveMessage:
         case Start =>
-
 
           // 1. Spawn a coordinator
           val coordinator = context.spawn(Coordinator(), "Coordinator")
@@ -57,15 +75,15 @@ object ScoobyActor:
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 
           context.watch(crawler)
-          // 4. Send message to crawler containing the seed URL
-
-          // (Behind the scenes) -> crawler will analyze urls (--> coordinator), create new crawlers (sub-urls) and new scrapers
-          // (Behind the scenes) -> scraper send results to the exporter(s)
-
           // TODO: once finished we need to destroy the actor system.
 
           waitCrawlingFinished(exporters)
 
+  /**
+   * Waiting behavior for the [[ScoobyActor]]. Waits until all the crawling is finished
+   * @param exporters exporters that need to notified when the crawling is finished
+   * @return the behavior that waits until all the crawling is finished
+   */
   private def waitCrawlingFinished(exporters: Iterable[ActorRef[ExporterCommands]]): Behavior[ScoobyCommand] =
     Behaviors.receiveSignal:
       case (context, Terminated(child)) =>
@@ -75,9 +93,11 @@ object ScoobyActor:
         onFinishedExecution()
         Behaviors.stopped
 
-
+  /**
+   * Callback for when the application ends its execution.
+   */
   def onFinishedExecution(): Unit =
-    // kill actor system
+    // TODO kill actor system
     println("Process end with success!")
 
 
