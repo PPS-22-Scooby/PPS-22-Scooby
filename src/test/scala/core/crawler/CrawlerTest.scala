@@ -8,6 +8,7 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.CoordinatorCommand
 import utility.http.URL
+import utility.http.URL.*
 import utility.MockServer
 
 import akka.actor.testkit.typed.CapturedLogEvent
@@ -48,18 +49,22 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     Crawler(coordinator, exporterProbe.ref, _.content, _.frontier.map(URL(_).getOrElse(URL.empty)), 2)
 
 
-  /*"Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
+  "Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref))
     val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
     crawler ! Crawl(url)
-    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List("https://www.fortest.it"), crawler))
+    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(url"https://www.fortest.it".getOrElse(URL.empty)), crawler))
 
   it should "spawn a new Crawler actor for each link received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
-    val linksMap = Iterator("https://www.facebook.it", "https://www.google.com")
+    val linksMap = Iterator(
+      url"https://www.facebook.it".getOrElse(URL.empty),
+      url"https://www.google.com".getOrElse(URL.empty)
+    )
+
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
@@ -81,21 +86,21 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
       CapturedLogEvent(Level.ERROR, f"Error while crawling $url: Exception when sending request: GET $url")
     )
 
-  it should "handle CrawlerCoordinatorResponse correctly when the same link is sent twice" in {
+  it should "handle CrawlerCoordinatorResponse correctly when the same link is sent twice" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
     val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
-    val link = url.toString
+
 
     behaviorTestKit.run(CrawlerCommand.Crawl(url))
 
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(link)))
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(url)))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
     val childInbox = behaviorTestKit.childInbox[CrawlerCommand](s"crawler-${url.withoutProtocol}")
     childInbox.expectMessage(CrawlerCommand.Crawl(url))
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
-  }*/
+  
 
