@@ -59,7 +59,7 @@ object Crawler:
   def apply[D <: Document, T](
                                coordinator: ActorRef[CoordinatorCommand],
                                exporter: ActorRef[ExporterCommands],
-                               scrapeRule: ScraperPolicy[D, T],
+                               scrapeRule: ScraperPolicy[T],
                                explorationPolicy: ExplorationPolicy,
                                maxDepth: Int,
                                networkConfiguration: ClientConfiguration = Configuration.default
@@ -99,7 +99,7 @@ type ExplorationPolicy = CrawlDocument => Iterable[URL]
 class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
                                 coordinator: ActorRef[CoordinatorCommand],
                                 exporter: ActorRef[ExporterCommands],
-                                scrapeRule: ScraperPolicy[D, T],
+                                scrapeRule: ScraperPolicy[T],
                                 explorationPolicy: ExplorationPolicy,
                                 maxDepth: Int,
                                 networkConfiguration: ClientConfiguration,
