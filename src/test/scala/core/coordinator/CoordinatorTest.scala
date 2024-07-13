@@ -8,6 +8,8 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
 import core.crawler.CrawlerCommand
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
+import utility.http.URL.*
+import utility.http.URL
 
 class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
 
@@ -19,9 +21,9 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
     "return an iterator of pages and their crawled status" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
-      coordinator ! CheckPages(List("http://www.google.com", "http://www.github.com"), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set("http://www.google.com", "http://www.github.com"))
-
+      val pages = List(url"http://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty))
+      coordinator ! CheckPages(pages, probe.ref)
+      assert(probe.receiveMessage().result.toSet == pages.toSet)
 
     "return an empty iterator when no pages are provided" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
@@ -29,44 +31,28 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
       coordinator ! CheckPages(List.empty, probe.ref)
       assert(probe.receiveMessage().result.toSet == Set.empty)
 
-
     "return an iterator without pages that have been crawled" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
-      coordinator ! SetCrawledPages(List("http://www.google.com"))
-      coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com"))
+      val alreadyCrawledPages = List(url"http://www.google.com".getOrElse(empty))
+      val pages = List(url"https://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty))
 
+      coordinator ! SetCrawledPages(alreadyCrawledPages)
+      coordinator ! CheckPages(pages, probe.ref)
+      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com").map(_.toUrl.getOrElse(empty)))
 
-    "return an iterator with true values for pages that have been checked" in :
+    "return an iterator with only pages that should be checked" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
-      coordinator ! CheckPages(List("http://www.google.com"), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set("http://www.google.com"))
-      coordinator ! CheckPages(List("https://www.google.com", "http://www.github.com"), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com"))
 
+      coordinator ! CheckPages(List(url"http://www.google.com".getOrElse(empty)), probe.ref)
+      assert(probe.receiveMessage().result.toSet == Set(url"http://www.google.com".getOrElse(empty)))
+      coordinator ! CheckPages(List(url"https://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty)), probe.ref)
+      assert(probe.receiveMessage().result.toSet == Set(url"http://www.github.com".getOrElse(empty)))
 
     "update the list of crawled pages" in :
-      val probe = testKit.createTestProbe[List[String]]()
+      val probe = testKit.createTestProbe[List[URL]]()
       val coordinator = testKit.spawn(Coordinator())
-      coordinator ! SetCrawledPages(List("http://www.google.com"))
+      coordinator ! SetCrawledPages(List(url"http://www.google.com".getOrElse(empty)))
       coordinator ! GetCrawledPages(probe.ref)
-      probe.expectMessage(List("www.google.com"))
-
-
-    "not add invalid URLs to the crawled list" in :
-      val probe = testKit.createTestProbe[List[String]]()
-      val coordinator = testKit.spawn(Coordinator())
-      coordinator ! SetCrawledPages(List("invalid_url"))
-      coordinator ! GetCrawledPages(probe.ref)
-      probe.expectMessage(List.empty)
-
-
-    "normalize URLs before adding to the crawled list" in :
-      val probe = testKit.createTestProbe[List[String]]()
-      val coordinator = testKit.spawn(Coordinator())
-      coordinator ! SetCrawledPages(List("http://www.google.com"))
-      coordinator ! GetCrawledPages(probe.ref)
-      probe.expectMessage(List("www.google.com"))
-
+      probe.expectMessage(List(url"http://www.google.com".getOrElse(empty)))

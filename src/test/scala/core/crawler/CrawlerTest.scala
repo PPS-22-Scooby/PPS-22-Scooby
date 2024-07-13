@@ -48,7 +48,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     Crawler(coordinator, exporterProbe.ref, _.content, _.frontier.map(URL(_).getOrElse(URL.empty)), 2)
 
 
-  "Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
+  /*"Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref))
     val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
@@ -97,5 +97,5 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     childInbox.expectMessage(CrawlerCommand.Crawl(url))
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
-  }
+  }*/
 

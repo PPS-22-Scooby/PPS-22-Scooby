@@ -7,67 +7,61 @@ import core.coordinator.CoordinatorCommand.*
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.junit.Assert.*
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
+import utility.http.URL.toUrl
+import utility.http.URL
 
 class StepDefinitions extends ScalaDsl with EN :
 
   private val testKit = ActorTestKit()
   private val coordinator = testKit.spawn(Coordinator())
-  List.empty
-  Map.empty
-  private var checkResult: Option[Boolean] = None
+  private var isCrawled: Boolean = false
 
   Given("""I have a list of already crawled pages (.*)$""") :
     (crawledPages: String) =>
-      val pages = crawledPages.split(",").map(_.trim).toList
+      val pages = crawledPages.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
       coordinator ! SetCrawledPages(pages)
 
-
   Given("""I have an empty list of already crawled pages""") :
-    () => coordinator ! SetCrawledPages(List.empty)
-
+    () => coordinator ! SetCrawledPages(List.empty[URL])
 
   When("""I check if (.*) is already crawled$""") :
     (page: String) =>
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
-      coordinator ! CheckPages(List(page), probe.ref)
+      val convPage = page.toUrl.getOrElse(URL.empty)
+      coordinator ! CheckPages(List(convPage), probe.ref)
       val retrievedPage = probe.receiveMessage().result
-      this.checkResult = Some(retrievedPage.contains(page))
-      println(this.checkResult)
-
-
+      this.isCrawled = !retrievedPage.contains(page.toUrl.getOrElse(URL.empty))
 
   When("""I add (.*) to the crawled list$""") :
     (newPages: String) =>
-      val pages = newPages.split(",").map(_.trim).toList
+      val pages = newPages.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
       coordinator ! SetCrawledPages(pages)
 
-
   Then("""The coordinator response result should be true$""") :
-    () => assertTrue(this.checkResult.getOrElse(false))
+    () => assertTrue(this.isCrawled)
 
   Then("""The coordinator response result should be false$"""):
-    () => assertFalse(this.checkResult.getOrElse(true))
+    () =>assertFalse(this.isCrawled)
 
   Then("""The updated crawled list should be (.*)$""") :
     (updatedList: String) =>
-      val probe = testKit.createTestProbe[List[String]]()
+      val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
       assertEquals(expectedList, probe.receiveMessage())
 
 
   Then("""Only valid URLs should be added to the list, resulting in (.*)$""") :
     (updatedList: String) =>
-      val probe = testKit.createTestProbe[List[String]]()
+      val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
       assertEquals(expectedList, probe.receiveMessage())
 
 
   Then("""The updated crawled list should not contain duplicates and be (.*)$"""):
     (updatedList: String) =>
-      val probe = testKit.createTestProbe[List[String]]()
+      val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
       assertEquals(expectedList, probe.receiveMessage().distinct)
-

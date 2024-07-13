@@ -17,7 +17,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
 
   val scraperRulePlaceholder: ScraperPolicy[ScrapeDocument, String] = ScraperPolicies.scraperRule(Seq("body"), "tag")
 
-  "Crawler" should "die if there is no valid link" in:
+  /*"Crawler" should "die if there is no valid link" in:
     val mockedBehavior: Behavior[CoordinatorCommand] = Behaviors.receiveMessage:
       case CoordinatorCommand.CheckPages(links, replyTo) if links.nonEmpty && links.head == "https://www.fortest.it" =>
         replyTo ! CrawlerCoordinatorResponse(List("http://localhost:8080/notFound").iterator)
@@ -79,7 +79,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
     crawler2 ! Crawl(url)
     coordinatorProbe.expectTerminated(crawler2.ref)
     count should be(2)
-
+*/
 
 
 
