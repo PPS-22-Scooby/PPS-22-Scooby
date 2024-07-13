@@ -12,6 +12,7 @@ import utility.http.Clients.SimpleHttpClient
 import utility.http.Configuration.ClientConfiguration
 import utility.http.api.Calls.GET
 import utility.http.{Configuration, HttpError, HttpErrorType, URL}
+import utility.http.URL.*
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -215,8 +216,19 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         case _ => Behaviors.same
 
 
+object ExplorationPolicies:
+  /**
+   * Policy that extracts all the links from the document
+   * @return all the links in the document
+   */
+  def allLinks: ExplorationPolicy = _.frontier.map(_.toUrl.getOrElse(URL.empty))
 
-
-
+  /**
+   * Policy that extracts only the links that are in the same domain of the document
+   * @return all the links in the document
+   */
+  def sameDomainLinks: ExplorationPolicy = (document: CrawlDocument) =>
+    document.frontier.map(_.toUrl.getOrElse(URL.empty)).filter(_.domain == document.url.domain)
+      
 
 
