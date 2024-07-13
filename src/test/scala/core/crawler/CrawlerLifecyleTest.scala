@@ -3,15 +3,15 @@ package core.crawler
 
 import core.coordinator.CoordinatorCommand
 import core.crawler.CrawlerCommand.*
-import core.exporter.{Exporter, ExporterCommands}
-import core.scraper.{Scraper, ScraperPolicies}
+import core.exporter.ExporterCommands
+import core.scraper.ScraperPolicies
+import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.ScalaTestWithMockServer
 import utility.document.ScrapeDocument
 import utility.http.URL
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
 
 class CrawlerLifecyleTest extends ScalaTestWithMockServer:
 
