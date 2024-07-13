@@ -1,18 +1,19 @@
 package org.unibo.scooby
 package core.crawler
 
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import utility.http.{HttpError, HttpErrorType, URL}
-import utility.http.api.Calls.GET
-
-import akka.actor.typed.{ActorRef, Behavior, Terminated}
-import utility.http.Clients.SimpleHttpClient
-import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import core.coordinator.CoordinatorCommand
-import core.scraper.{Scraper, ScraperPolicy}
+import core.crawler.Crawler.getCrawlerName
 import core.exporter.ExporterCommands
+import core.scraper.{Scraper, ScraperCommands}
+import core.scraper.ScraperPolicies.ScraperPolicy
+import utility.document.{CrawlDocument, Document, ScrapeDocument}
+import utility.http.Clients.SimpleHttpClient
+import utility.http.api.Calls.GET
+import utility.http.{Configuration, HttpError, HttpErrorType, URL}
 
-import org.unibo.scooby.core.crawler.Crawler.getCrawlerName
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.{ActorRef, Behavior, Terminated}
+import org.unibo.scooby.utility.http.Configuration.ClientConfiguration
 
 import scala.language.postfixOps
 
@@ -49,10 +50,12 @@ object Crawler:
                                exporter: ActorRef[ExporterCommands],
                                scrapeRule: ScraperPolicy[D, T],
                                explorationPolicy: ExplorationPolicy,
-                               maxDepth: Int
+                               maxDepth: Int,
+                               networkConfiguration: ClientConfiguration = Configuration.default
                              ): Behavior[CrawlerCommand] =
     Behaviors.setup:
-      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy, maxDepth).idle()
+      context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy, 
+        maxDepth, networkConfiguration).idle()
 
   def getCrawlerName(url: URL): String =
     "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.withoutProtocol.filter(_ <= 0x7f), ".")
@@ -74,11 +77,12 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
                                 exporter: ActorRef[ExporterCommands],
                                 scrapeRule: ScraperPolicy[D, T],
                                 explorationPolicy: ExplorationPolicy,
-                                maxDepth: Int
+                                maxDepth: Int,
+                                networkConfiguration: ClientConfiguration
                                ):
-  import CrawlerCommand._
+  import CrawlerCommand.*
 
-  given httpClient: SimpleHttpClient = SimpleHttpClient()
+  given httpClient: SimpleHttpClient = SimpleHttpClient(networkConfiguration)
 
   /**
    * The behavior of the Crawler actor.
@@ -90,16 +94,19 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
 
     def crawl(url: URL): Behavior[CrawlerCommand] =
 
-      def handleError(e: HttpError): Unit = e match
-        case HttpError(_, HttpErrorType.NETWORK) | HttpError(_, HttpErrorType.GENERIC) =>
-          context.log.error(s"Error while crawling $url: ${e.message}")
-        case HttpError(_, HttpErrorType.DESERIALIZING) =>
-          context.log.error(s"$url does not have a text content type")
+      def handleError(e: HttpError): Behavior[CrawlerCommand] =
+        e match
+          case HttpError(_, HttpErrorType.NETWORK) | HttpError(_, HttpErrorType.GENERIC) =>
+            context.log.error(s"Error while crawling $url: ${e.message}")
+          case HttpError(_, HttpErrorType.DESERIALIZING) =>
+            context.log.error(s"$url does not have a text content type")
+
+        Behaviors.stopped
 
       def scrape(document: CrawlDocument): Unit =
         val scraper = context.spawnAnonymous(Scraper(exporter, scrapeRule))
         context.watch(scraper)
-        scraper ! Scraper.ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
+        scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
       def checkPages(document: CrawlDocument): Unit =
         this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
@@ -111,9 +118,10 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
           scrape(document)
           if maxDepth > 0 then
             checkPages(document)
+            Behaviors.same
           else
             context.log.info(s"${context.self.path.name} has reached max depth! Terminating...")
-      if maxDepth == 0 then Behaviors.stopped else Behaviors.same
+            Behaviors.stopped
 
     def visitChildren(links: Iterator[String]): Behavior[CrawlerCommand] =
       val linkList = links.toList
@@ -126,7 +134,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
         context.watch(child)
         child ! Crawl(url)
 
-      waitingForChildren(linkList.size)
+      waitingForChildren(linkList.size + 1)
 
     Behaviors.receiveMessage:
       case Crawl(url) => crawl(url)
