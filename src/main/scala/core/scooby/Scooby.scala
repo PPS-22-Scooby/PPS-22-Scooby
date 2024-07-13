@@ -4,16 +4,16 @@ package core.scooby
 import core.coordinator.Coordinator
 import core.crawler.{Crawler, CrawlerCommand}
 import core.exporter.Exporter.*
-import core.exporter.{Exporter, ExporterCommands, ExportingBehavior}
+import core.exporter.ExporterCommands.SignalEnd
+import core.exporter.{Exporter, ExporterCommands}
+import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
-import core.scraper.Scraper
+import core.scraper.ScraperPolicies
 import utility.document.Document
 import utility.http.URL
-import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
-import core.exporter.ExporterCommands.SignalEnd
 
 enum ScoobyCommand:
   case Start
@@ -91,7 +91,7 @@ object Main:
           2,
           utility.http.Configuration.default
         ),
-        ScraperConfiguration(Scraper.scraperRule(Seq("link"), "tag")),
+        ScraperConfiguration(ScraperPolicies.scraperRule(Seq("link"), "tag")),
         ExporterConfiguration(Seq(
           BatchExporting(
             ExportingBehaviors.writeOnConsole(Formats.string),
