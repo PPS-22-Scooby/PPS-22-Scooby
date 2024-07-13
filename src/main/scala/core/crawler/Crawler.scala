@@ -51,12 +51,11 @@ object Crawler:
    * @param explorationPolicy policy that specifies what links to explore inside the [[CrawlDocument]]
    * @param maxDepth max recursion depth for crawlers (maximum depth of the tree of crawlers)
    * @param networkConfiguration network configuration for the HTTP client
-   * @tparam D type of [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
    * @tparam T type of [[Result]]s that get exported
    * @return
    *   the behavior of the Crawler actor
    */
-  def apply[D <: Document, T](
+  def apply[T](
                                coordinator: ActorRef[CoordinatorCommand],
                                exporter: ActorRef[ExporterCommands],
                                scrapeRule: ScraperPolicy[T],
@@ -66,7 +65,7 @@ object Crawler:
                              ): Behavior[CrawlerCommand] =
     Behaviors.withStash(50): buffer =>
       Behaviors.setup:
-        context => new Crawler[D, T](context, coordinator, exporter, scrapeRule, explorationPolicy,
+        context => new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
           maxDepth, networkConfiguration, buffer).idle()
 
   /**
@@ -93,10 +92,9 @@ type ExplorationPolicy = CrawlDocument => Iterable[URL]
  * @param explorationPolicy policy that specifies what links to explore inside the [[CrawlDocument]]
  * @param maxDepth max recursion depth for crawlers (maximum depth of the tree of crawlers)
  * @param networkConfiguration network configuration for the HTTP client
- * @tparam D type of [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
  * @tparam T type of [[Result]]s that get exported
  */
-class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
+class Crawler[T](context: ActorContext[CrawlerCommand],
                                 coordinator: ActorRef[CoordinatorCommand],
                                 exporter: ActorRef[ExporterCommands],
                                 scrapeRule: ScraperPolicy[T],

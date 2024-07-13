@@ -35,7 +35,7 @@ enum SingleExporting[A](behavior: ExportingBehavior[A]):
  * @tparam D type of [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
  * @tparam T type of [[Result]] that will be exported
  */
-case class Configuration[D <: Document, T](crawlerConfiguration: CrawlerConfiguration,
+case class Configuration[T](crawlerConfiguration: CrawlerConfiguration,
                                            scraperConfiguration: ScraperConfiguration[T],
                                            exporterConfiguration: ExporterConfiguration[T])
 
