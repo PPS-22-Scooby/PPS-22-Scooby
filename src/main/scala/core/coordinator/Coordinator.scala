@@ -4,13 +4,22 @@ package core.coordinator
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import utility.rule.ConditionalRule
-
 import core.crawler.CrawlerCommand
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 
+import utility.http.URL
+import utility.http.URL.*
+
+
 enum CoordinatorCommand:
 
-  case SetupRobots(page: String)
+  /**
+   * A message that instructs the Coordinator actor to set up the robots.txt file for a given page.
+   *
+   * @param page
+   *   The page to set up the robots.txt file for.
+   */
+  case SetupRobots(page: URL)
 
   /**
    * A message that instructs the Coordinator actor to check a list of pages.
@@ -20,7 +29,7 @@ enum CoordinatorCommand:
    * @param replyTo
    *   The actor to send the result to.
    */
-  case CheckPages(pages: List[String], replyTo: ActorRef[CrawlerCoordinatorResponse])
+  case CheckPages(pages: List[URL], replyTo: ActorRef[CrawlerCoordinatorResponse])
 
   /**
    * A message that instructs the Coordinator actor to set a list of pages as crawled.
@@ -28,7 +37,7 @@ enum CoordinatorCommand:
    * @param pages
    *   The list of pages to set as crawled.
    */
-  case SetCrawledPages(pages: List[String])
+  case SetCrawledPages(pages: List[URL])
 
   /**
    * A message that instructs the Coordinator actor to get the list of crawled pages.
@@ -36,7 +45,7 @@ enum CoordinatorCommand:
    * @param replyTo
    *   The actor to send the result to.
    */
-  case GetCrawledPages(replyTo: ActorRef[List[String]])
+  case GetCrawledPages(replyTo: ActorRef[List[URL]])
 
   /**
    * A message that contains the result of a CheckPages message.
@@ -50,27 +59,6 @@ enum CoordinatorCommand:
  * The Coordinator object contains the definitions of the messages that the Coordinator actor can receive.
  */
 object Coordinator:
-  /**
-   * Normalizes a URL by removing the http:// or https:// prefix.
-   *
-   * @param url
-   *   The URL to normalize.
-   * @return
-   *   The normalized URL.
-   */
-  def normalizeURL(url: String): String = url.replaceFirst("^(http://|https://)", "")
-
-  /**
-   * Checks if a URL is valid.
-   *
-   * @param url
-   *   The URL to check.
-   * @return
-   *   True if the URL is valid, false otherwise.
-   */
-  def isValidURL(url: String): Boolean =
-    val regex = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(\\S*)?$"
-    url.matches(regex)
 
   /**
    * The behavior of the Coordinator actor when it is first created.
@@ -78,12 +66,11 @@ object Coordinator:
   def apply(): Behavior[CoordinatorCommand] =
     import utility.rule.Rule.policy
     Behaviors.setup { context =>
-      val defaultUrlPolicy: ConditionalRule[(String, Set[String])] = policy {
-        (url: String, crawledPages: Set[String]) =>
-          val normalizedPage = normalizeURL(url)
-          val isAlreadyCrawled = crawledPages.contains(normalizedPage)
-          isValidURL(url) && !isAlreadyCrawled
-      }
+      val defaultUrlPolicy: ConditionalRule[(URL, Set[URL])] = policy:
+        (url: URL, crawledPages: Set[URL]) => !crawledPages
+          .map(_.domain)
+          .contains(url.domain)
+
       new Coordinator(context, defaultUrlPolicy).idle(Set.empty, Set.empty)
     }
 
@@ -93,10 +80,9 @@ object Coordinator:
  * @param context
  *   The context in which the actor is running.
  */
-class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: ConditionalRule[(String, Set[String])]):
+class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: ConditionalRule[(URL, Set[URL])]):
 
   import CoordinatorCommand.*
-  import Coordinator.*
 
   /**
    * The behavior of the Coordinator actor when it is idle.
@@ -110,20 +96,22 @@ class Coordinator(context: ActorContext[CoordinatorCommand], urlPolicy: Conditio
    * @return
    *   A Behavior[Command] that describes how the actor should process the next message it receives.
    */
-  def idle(crawledPages: Set[String], blackList: Set[String]): Behavior[CoordinatorCommand] =
+  def idle(crawledPages: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
       case SetupRobots(page) =>
-        val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(page))
+        val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(page.toString))
         idle(crawledPages, disallowed)
 
       case CheckPages(pages, replyTo) =>
         val checkResult = pages.filter(page => urlPolicy.executeOn(page, crawledPages))
-        val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url, blackList))
+        val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
-        idle(crawledPages ++ checkResult.map(normalizeURL).toSet, blackList)
+        idle(crawledPages ++ checkResult.toSet, blackList)
 
       case SetCrawledPages(pages) =>
-        val validPages = pages.filter(isValidURL).map(normalizeURL).toSet
+        val validPages = pages.toSet.filterNot(_ == URL.empty)
+          .diff(crawledPages)
+          .filterNot(el => crawledPages.map(_.withoutProtocol).contains(el.withoutProtocol))
         idle(crawledPages ++ validPages, blackList)
 
       case GetCrawledPages(replyTo) =>

@@ -6,6 +6,7 @@ import core.crawler.Crawler.getCrawlerName
 import core.exporter.ExporterCommands
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Scraper, ScraperCommands}
+
 import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Configuration.ClientConfiguration
@@ -32,7 +33,7 @@ enum CrawlerCommand:
    * @param result
    *   a map of URLs to their corresponding statuses
    */
-  case CrawlerCoordinatorResponse(result: Iterator[String])
+  case CrawlerCoordinatorResponse(result: Iterator[URL])
 
   /**
    * Command for when a child of this Crawler gets terminated
@@ -153,7 +154,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
        * @param document document obtained by fetching the URL
        */
       def checkPages(document: CrawlDocument): Unit =
-        this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).map(_.toString).toList, context.self)
+        this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).toList, context.self)
 
       val documentEither: Either[HttpError, CrawlDocument] = GET(url)
       documentEither match
@@ -172,11 +173,11 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
      * @param links valid links that get visited. One [[Crawler]] is spawned for each.
      * @return the behavior
      */
-    def visitChildren(links: Iterator[String]): Behavior[CrawlerCommand] =
+    def visitChildren(links: Iterator[URL]): Behavior[CrawlerCommand] =
       val linkList = links.toList
       for
         returnedUrl <- linkList
-        url <- URL(returnedUrl).toOption
+        url <- Some(returnedUrl)
       do
         context.log.info(s"Crawling: ${url.toString}")
         val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1),

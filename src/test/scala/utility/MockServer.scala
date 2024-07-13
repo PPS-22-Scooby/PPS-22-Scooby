@@ -132,6 +132,7 @@ object MockServer:
                 ContentTypes.`text/plain(UTF-8)`,
                 """User-agent: *
                 |Disallow: /private/
+                |Disallow: /tmp/
                 |Allow: /""".stripMargin
               ),
               status = StatusCodes.OK
