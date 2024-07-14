@@ -32,7 +32,7 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
           val res = resultFromRule(doc)
           exporter ! ExporterCommands.Export(res)
           Behaviors.stopped
-        case _ => Behaviors.same
+
 
 
   private def resultFromRule(argument: ScrapeDocument): Result[T] =
