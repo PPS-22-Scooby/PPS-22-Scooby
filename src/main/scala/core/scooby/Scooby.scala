@@ -30,10 +30,9 @@ object Scooby:
   /**
    * Runs the Scooby application.
    * @param configuration configuration to be used for this application
-   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
    * @tparam T type of the [[Result]]s that will be exported
    */
-  def run[D <: Document, T](configuration: Configuration[D, T]): Unit =
+  def run[T](configuration: Configuration[T]): Unit =
     val scooby: ActorSystem[ScoobyCommand] = ActorSystem(ScoobyActor(configuration), "Scooby")
     scooby ! Start
 
@@ -44,11 +43,10 @@ object ScoobyActor:
   /**
    * Builds the main [[ScoobyActor]]'s behavior
    * @param configuration configuration to be used for this application
-   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
    * @tparam T type of the [[Result]]s that will be exported
    * @return the behavior for the [[ScoobyActor]]
    */
-  def apply[D <: Document, T](configuration: Configuration[D, T]): Behavior[ScoobyCommand] =
+  def apply[T](configuration: Configuration[T]): Behavior[ScoobyCommand] =
     Behaviors.setup: context =>
       Behaviors.receiveMessage:
         case Start =>

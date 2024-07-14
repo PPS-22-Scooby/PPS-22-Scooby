@@ -62,7 +62,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val linksMap = Iterator("https://www.facebook.it", "https://www.google.com")
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
 
-    behaviorTestKit.expectEffectType[Spawned[Crawler[ScrapeDocument, String]]]
+    behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
 
     val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.facebook.it")
     val child2Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.google.com")
@@ -92,7 +92,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(link)))
 
-    behaviorTestKit.expectEffectType[Spawned[Crawler[ScrapeDocument, String]]]
+    behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
     val childInbox = behaviorTestKit.childInbox[CrawlerCommand](s"crawler-${url.withoutProtocol}")
     childInbox.expectMessage(CrawlerCommand.Crawl(url))
 
