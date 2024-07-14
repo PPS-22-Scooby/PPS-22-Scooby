@@ -157,6 +157,7 @@ class Crawler[D <: Document, T](context: ActorContext[CrawlerCommand],
        * @param document document obtained by fetching the URL
        */
       def checkPages(document: CrawlDocument): Unit =
+        context.log.info(document.frontier.toString())
         this.coordinator ! CoordinatorCommand.CheckPages(explorationPolicy(document).toList, context.self)
 
       val documentEither: Either[HttpError, CrawlDocument] = GET(url)

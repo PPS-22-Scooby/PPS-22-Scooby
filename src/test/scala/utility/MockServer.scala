@@ -85,6 +85,28 @@ object MockServer:
         }
       }
 
+    val extUrl: Route =
+      path("ext-url") {
+        get {
+          complete(
+            HttpResponse(
+              entity = HttpEntity(
+                ContentTypes.`text/html(UTF-8)`,
+                """<html>
+                  |<head><title>Simple Akka HTTP Server</title></head>
+                  |<body>
+                  | <a href="http://localhost:8080/a">Same Link</a>
+                  | <a href="http://localhost:8080/b">Same Link But B</a>
+                  | <a href="http://www.external-url.it"> External URL</a>
+                  |</body>
+                  |</html>""".stripMargin
+              ),
+              status = StatusCodes.OK
+            )
+          )
+        }
+      }
+
     val echo: Route =
       path("echo") {
         post {
@@ -153,6 +175,7 @@ object MockServer:
       }
     }
 
+
     def running(bindingFuture: Future[Http.ServerBinding]): Behavior[Command] =
       Behaviors.receiveMessage {
         case Start(_) =>
@@ -174,7 +197,7 @@ object MockServer:
 
     Behaviors.receiveMessage {
       case Start(replyTo) =>
-        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ robotsTxt ~ json ~ echo ~ notFound)
+        val bindingFuture = Http().newServerAt("localhost", 8080).bind(route ~ extUrl ~ robotsTxt ~ json ~ echo ~ notFound)
         val log = context.log
         bindingFuture.onComplete {
           case Success(_) =>
