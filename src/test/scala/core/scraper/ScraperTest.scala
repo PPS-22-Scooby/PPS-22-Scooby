@@ -45,7 +45,7 @@ class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll:
             }.mkString("\n")}
       |    <section id="contact">
       |      <h2>Contact</h2>
-      |      <p>This is the contact section.</p>
+      |      <p>This is the contact section $regEx.</p>
       |    </section>
       |  </main>
       |  <footer>

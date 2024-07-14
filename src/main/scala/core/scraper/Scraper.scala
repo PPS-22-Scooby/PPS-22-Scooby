@@ -1,12 +1,14 @@
 package org.unibo.scooby
 package core.scraper
 
-import utility.document.{Document, ScrapeDocument}
+import utility.document.ScrapeDocument
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import core.exporter.ExporterCommands
+
 import ScraperPolicies.ScraperPolicy
+import utility.http.URL
 
 /**
  * Enum representing all [[Scraper]]'s messages.
@@ -43,7 +45,7 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
  */
 object Scraper:
 
-  def apply[ScrapeDocument, T](exporter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
+  def apply[T](exporter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
     Behaviors.setup {
       context => new Scraper(exporter, scrapeRule).idle()
     }
@@ -57,7 +59,7 @@ object ScraperPolicies:
    */
   type ScraperPolicy[T] = ScrapeDocument => Iterable[T]
 
-  extension (policy: ScraperPolicy[String])
+  extension [T1 <: String, T2](policy: ScraperPolicy[T1])
 
     /**
      * Concat two different policies.
@@ -66,9 +68,13 @@ object ScraperPolicies:
      * @param docConverter the converter used to generate a [[Document]] which fits the other [[ScraperPolicy]].
      * @return the value obtained as concatenation of first and second [[ScraperPolicy]].
      */
-    def concat(other: ScraperPolicy[String])(using docConverter: ScrapeDocument => ScrapeDocument): ScraperPolicy[String] = (doc: ScrapeDocument) =>
-      val docConverted = docConverter.apply(doc)
+    def concat(other: ScraperPolicy[T2])(using docConverter: (Iterable[T1], URL) => ScrapeDocument): ScraperPolicy[T2] = (doc: ScrapeDocument) =>
+      val docConverted = docConverter(policy(doc), doc.url)
       other(docConverted)
+
+  given ((Iterable[String], URL) => ScrapeDocument) = (doc: Iterable[String], url: URL) =>
+    val content = doc.mkString("\n")
+    ScrapeDocument(content, url)
 
   /**
    * Utility for scraper's rules based on selectBy attribute, given selectors specified.
@@ -99,7 +105,7 @@ object ScraperPolicies:
    * @return the rule based on elements' ids.
    */
   def scraperIdSelectorRule(ids: Seq[String]): ScraperPolicy[String] = (scraper: ScrapeDocument) =>
-    ids.map(scraper.getElementById).map(_.fold("")(_.outerHtml))
+    ids.map(scraper.getElementById).map(_.fold("")(_.outerHtml)).filter(_.nonEmpty)
 
   /**
    * A scraper rule based on elements' tags given.
