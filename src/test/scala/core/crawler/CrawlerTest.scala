@@ -20,8 +20,8 @@ import scala.concurrent.duration.*
 import akka.actor.typed.scaladsl.AskPattern.*
 import akka.util.Timeout
 import org.slf4j.event.Level
-import org.unibo.scooby.core.exporter.ExporterCommands
-import org.unibo.scooby.utility.document.ScrapeDocument
+import core.exporter.ExporterCommands
+import utility.document.ScrapeDocument
 
 import scala.language.{implicitConversions, postfixOps}
 
@@ -44,9 +44,12 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     webServerSystem ! MockServer.Stop
     testKit.shutdownTestKit()
 
-  def buildCrawler(coordinator: ActorRef[CoordinatorCommand]): Behavior[CrawlerCommand] =
+  def buildCrawler(
+                    coordinator: ActorRef[CoordinatorCommand],
+                    policy: ExplorationPolicy = ExplorationPolicies.allLinks
+                  ): Behavior[CrawlerCommand] =
     val exporterProbe = testKit.createTestProbe[ExporterCommands]()
-    Crawler(coordinator, exporterProbe.ref, _.content, _.frontier.map(URL(_).getOrElse(URL.empty)), 2)
+    Crawler(coordinator, exporterProbe.ref, _.content, policy, 2)
 
 
   "Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
@@ -92,9 +95,7 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
 
     val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
 
-
     behaviorTestKit.run(CrawlerCommand.Crawl(url))
-
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(url)))
 
     behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
@@ -102,5 +103,28 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     childInbox.expectMessage(CrawlerCommand.Crawl(url))
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
-  
 
+  it should "explore only links with the same domain if exploration strategy is sameDomainLinks" in:
+    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
+    val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref, ExplorationPolicies.sameDomainLinks))
+
+    val url = url"http://localhost:8080/ext-url".getOrElse(fail("Invalid URL"))
+    crawler ! Crawl(url)
+
+    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(
+      url"http://localhost:8080/a".getOrElse(URL.empty),
+      url"http://localhost:8080/b".getOrElse(URL.empty)
+    ), crawler))
+  
+  it should "explore all links if exploration strategy is allLinks" in:
+    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
+    val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref, ExplorationPolicies.allLinks))
+
+    val url = url"http://localhost:8080/ext-url".getOrElse(fail("Invalid URL"))
+    crawler ! Crawl(url)
+
+    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(
+      url"http://localhost:8080/a".getOrElse(URL.empty),
+      url"http://localhost:8080/b".getOrElse(URL.empty),
+      url"http://www.external-url.it".getOrElse(URL.empty)
+    ), crawler))
