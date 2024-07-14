@@ -91,7 +91,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="crawler/Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="../utility/document/Document.html" t="t">Document</a>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="crawler/CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: <span data-unresolved-link="" t="t">D</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">networkConfiguration</span>: <a href="../utility/http/Configuration$$ClientConfiguration.html" t="t">ClientConfiguration</a>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="crawler/CrawlerCommand.html" t="t">CrawlerCommand</a>])
+            <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="crawler/Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="crawler/CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">networkConfiguration</span>: <a href="../utility/http/Configuration$$ClientConfiguration.html" t="t">ClientConfiguration</a>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="crawler/CrawlerCommand.html" t="t">CrawlerCommand</a>])
            </div>
           </div>
          </div>
@@ -109,12 +109,6 @@
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
-              <dt class="body-small">
-               D
-              </dt>
-              <dd class="body-medium">
-               <p>type of <span data-unresolved-link="" title="Problem linking Document: No DRI found for query">Document</span> managed by the scraper (TODO replace with <span data-unresolved-link="" title="Problem linking ScrapeDocument: No DRI found for query">ScrapeDocument</span>))</p>
-              </dd>
               <dt class="body-small">
                T
               </dt>
