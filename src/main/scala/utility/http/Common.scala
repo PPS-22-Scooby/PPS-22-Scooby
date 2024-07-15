@@ -191,7 +191,7 @@ object Request:
      * @return
      *   a new [[RequestBuilder]] with this URL set
      */
-    def at(url: String): RequestBuilder = copy(url = URL(url).getOrElse(URL.empty))
+    def at(url: String): RequestBuilder = copy(url = URL(url))
 
     /**
      * Sets the headers for the built request
@@ -217,10 +217,13 @@ object Request:
      *   a [[Right]] of [[Request]] if the provided URL was provided and well formatted, [[Left]] of a [[HttpError]]
      *   representing an error otherwise (es. "You must provide a valid URL")
      */
-    def build: Either[HttpError, Request] =
-      if url != URL.empty then Right(Request(method, url, headers, body))
-      else
-        Left("You must provide a valid URL".asHttpError)
+    def build: Either[HttpError, Request] = url match
+      case URL.Absolute(protocol, host, port, path, queryParams, fragment) => Right(Request(method, url, headers, body))
+      case URL.Relative(path, fragment) =>
+        Left("Relative URL was not transformed into Absolute before making the call".asHttpError)
+      case URL.Invalid() =>
+        Left("Invalid URL was provided".asHttpError)
+
 
   /**
    * Used to instantiate a builder that builds [[Request]] s

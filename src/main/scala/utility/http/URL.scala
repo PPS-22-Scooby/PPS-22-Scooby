@@ -130,9 +130,21 @@ enum URL private (
       case URL.Relative(path, fragment) => Relative(path.withoutTrailingSlashes + "/" + other.withoutLeadingSlashes, 
         fragment)
       case URL.Invalid() => this
+      
+      
+  def asAbsolute(root: URL): URL = this match
+    case x: Absolute => this
+    case x: Relative => root / x
+    case x: Invalid => x
+    
+  def isValid: Boolean = this match
+    case Invalid() => false
+    case _ => true
+    
 
   /**
    * Gets the port string (e.g. if a URL has port 4000, it returns ":4000"). 
+   *
    * @return the port string <b>or</b> empty string if the URL has no port
    */
   def portString: String = port.map(":" + _).getOrElse("")

@@ -220,14 +220,14 @@ object ExplorationPolicies:
    * Policy that extracts all the links from the document
    * @return all the links in the document
    */
-  def allLinks: ExplorationPolicy = _.frontier.map(_.toUrl.getOrElse(URL.empty))
+  def allLinks: ExplorationPolicy = _.frontier
 
   /**
    * Policy that extracts only the links that are in the same domain of the document
    * @return all the links in the document
    */
   def sameDomainLinks: ExplorationPolicy = (document: CrawlDocument) =>
-    document.frontier.map(_.toUrl.getOrElse(URL.empty)).filter(_.domain == document.url.domain)
+    document.frontier.filter(_.domain == document.url.domain)
       
 
 
