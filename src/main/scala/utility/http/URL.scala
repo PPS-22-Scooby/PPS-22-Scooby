@@ -20,14 +20,35 @@ import scala.util.matching.Regex
  * @param fragment
  *   fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no fragment
  */
-final case class URL private (
-  protocol: String,
+enum URL private (
+  val protocol: String,
   private val host: String,
   private val port: Option[Int],
-  path: String,
-  queryParams: Map[String, String],
-  fragment: Option[String]
+  val path: String,
+  val queryParams: Map[String, String],
+  val fragment: Option[String]
 ) extends Ordered[URL]:
+
+  case Absolute(override val protocol: String,
+                private val host: String,
+                private val port: Option[Int],
+                override val path: String,
+                override val queryParams: Map[String, String],
+                override val fragment: Option[String]) extends URL(protocol, host, port, path, queryParams, fragment)
+
+  case Relative(override val path: String, override val fragment: Option[String]) 
+    extends URL("", "", Option.empty, path, Map.empty, fragment)
+
+  case Invalid() extends URL("", "", Option.empty, "", Map.empty, Option.empty)
+
+
+  extension(path: String)
+    private def withoutLeadingSlashes: String = path.replaceAll("^/+", "")
+    private def withoutTrailingSlashes: String = path.replaceAll("/+$", "")
+
+    @targetName("appendPath")
+    infix def /(otherPath: String): String = path.withoutTrailingSlashes + "/" + otherPath.withoutLeadingSlashes
+
 
   /**
    * Gets the URL without the protocol (e.g. "http://www.example.com/example" => "www.example.com/example")
@@ -36,7 +57,7 @@ final case class URL private (
   def withoutProtocol: String = domain + path + queryString + fragmentString
 
   /**
-   * Gets the domain from the URL
+   * Gets the domain from the URL (e.g. "http://www.example.com/example" => "www.example.com")
    * @return
    *   a [[String]] containing the domain
    */
@@ -47,7 +68,14 @@ final case class URL private (
    * @return
    *   the parent [[URL]] of this URL.
    */
-  def parent: URL = URL(protocol, host, port, path.split("/").dropRight(1).mkString("/") + "/", Map.empty, Option.empty)
+  def parent: URL =
+    def dropLast(path: String) = path.split("/").dropRight(1).mkString("/") + "/"
+
+    this match
+    case Absolute(protocol, host, port, path, queryParams, fragment) => Absolute(protocol, host, port,
+      dropLast(path), Map.empty, Option.empty)
+    case Relative(path, fragment) => Relative(dropLast(path), Option.empty)
+    case Invalid() => Invalid()
 
   /**
    * Gets the "depth" of this URL's path. For example a URL `https://www.example.com` has depth 0 and
@@ -76,8 +104,9 @@ final case class URL private (
    *   a new [[URL]] with the new path appended
    */
   @targetName("append")
-  infix def /(other: String): URL =
-    this / URL(protocol, host, port, path + other, Map.empty, Option.empty)
+  infix def /(other: String): URL = this / URL(other)
+
+
 
   /**
    * Utility method that appends an another [[URL]] to this URL, with the same protocol, host and post, placing the
@@ -89,21 +118,18 @@ final case class URL private (
    */
   @targetName("append")
   infix def /(other: URL): URL =
-    def removeLeadingTrailingSlashes(input: String): String =
-      input.replaceAll("^/+", "").replaceAll("/+$", "")
-
-    if other.protocol == protocol && other.host == host && other.port == port then
-      // warning: not giving info about malformed URLs -> just returning itself if fails
-      URL.apply(URL(
+    this match
+      case URL.Absolute(protocol, host, port, path, queryParams, fragment) => Absolute(
         protocol,
         host,
         port,
-        removeLeadingTrailingSlashes(path) + "/" + removeLeadingTrailingSlashes(other.path),
+        path.withoutTrailingSlashes + "/" + other.withoutLeadingSlashes,
         Map.empty,
         Option.empty
-      ).toString).getOrElse(this)
-    else
-      this
+      )
+      case URL.Relative(path, fragment) => Relative(path.withoutTrailingSlashes + "/" + other.withoutLeadingSlashes, 
+        fragment)
+      case URL.Invalid() => this
 
   /**
    * Gets the port string (e.g. if a URL has port 4000, it returns ":4000"). 
@@ -135,7 +161,7 @@ object URL:
    * @return
    *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
    */
-  def apply(url: String): Either[String, URL] =
+  def apply(url: String): URL =
     def parseQueryParams(queryString: String): Map[String, String] =
       if queryString.isEmpty then
         Map.empty[String, String]
@@ -154,7 +180,7 @@ object URL:
 
     """^(https?)://([^:/?#]+)(:\d+)?([^?#]*)(\?[^#]*)?(#.*)?$""".r
       .findFirstMatchIn(url)
-      .fold(Left("Invalid URL"))((matches: Regex.Match) =>
+      .fold(Invalid())((matches: Regex.Match) =>
         val protocol = matches.group(1)
         val host = matches.group(2)
         val port = Option(matches.group(3)).map(_.drop(1).toInt)
@@ -162,7 +188,7 @@ object URL:
         val queryString = Option(matches.group(5)).getOrElse("")
         val fragment = Option(matches.group(6)).map(_.drop(1))
 
-        Right(new URL(protocol, host, port, path, parseQueryParams(queryString), fragment))
+        Absolute(protocol, host, port, path, parseQueryParams(queryString), fragment)
       )
 
   extension(string: String)
@@ -171,7 +197,7 @@ object URL:
      * @return
      *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
      */
-    def toUrl: Either[String, URL] = URL(string)
+    def toUrl: URL = URL(string)
 
   extension(string: StringContext)
     /**
@@ -179,11 +205,11 @@ object URL:
      * @return
      *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
      */
-    def url(args: Any*): Either[String, URL] = URL(string.s(args*))
+    def url(args: Any*): URL = URL(string.s(args*))
 
   /**
    * Used to generate an empty URL, mainly as placeholder or for testing purposes.
    * @return
    *   an empty URL
    */
-  def empty: URL = new URL("", "", Option.empty, "", Map.empty, Option.empty)
+  def empty: URL = Invalid()
