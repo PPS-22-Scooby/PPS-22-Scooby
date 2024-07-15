@@ -40,9 +40,9 @@ Feature: Coordinator
     Then Only valid URLs should be added to the list, resulting in <updated_list>
 
     Examples:
-      | crawled_pages                             | new_pages                              | updated_list                                                        |
-      | http://www.google.it, http://www.unibo.it | http://www.microsoft.com, invalid_url  | http://www.google.it, http://www.unibo.it, http://www.microsoft.com |
-      | http://www.wikipedia.com                  | http://www.sony.com, www.invalid       | http://www.wikipedia.com, http://www.sony.com                                     |
+      | crawled_pages                             | new_pages                                  | updated_list                                                        |
+      | http://www.google.it, http://www.unibo.it | http://www.microsoft.com, www.invalid_url  | http://www.google.it, http://www.unibo.it, http://www.microsoft.com |
+      | http://www.wikipedia.com                  | http://www.sony.com, www.invalid           | http://www.wikipedia.com, http://www.sony.com                       |
 
   Scenario Outline: Avoid duplicates in the crawled list
     Given I have a list of already crawled pages <crawled_pages>

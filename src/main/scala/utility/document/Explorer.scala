@@ -1,9 +1,10 @@
 package org.unibo.scooby
 package utility.document
 
+import utility.document.html.*
+import utility.http.URL
+
 import scala.util.matching.Regex
-import html.*
-import org.unibo.scooby.utility.http.URL
 
 /**
  * Trait that provides functionality to explore a document using regular expressions.
@@ -16,9 +17,9 @@ trait RegExpExplorer extends Document:
    * @param regExp
    *   the regular expression to match
    * @return
-   *   an iterable of all matches
+   *   an sequence of all matches
    */
-  def find(regExp: String): Iterable[String] =
+  def find(regExp: String): Seq[String] =
     group(regExp.r.findAllMatchIn(content))
 
   /**
@@ -42,7 +43,7 @@ trait LinkExplorer extends RegExpExplorer:
    * @return
    *   a sequence of all links
    */
-  def frontier: Iterable[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).asAbsolute(url)).filter(_.isValid)
+  def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).asAbsolute(url)).filter(_.isValid).toSeq
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
 

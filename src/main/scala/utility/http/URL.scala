@@ -1,9 +1,11 @@
 package org.unibo.scooby
 package utility.http
 
+import java.net
+import java.net.URI
 import scala.annotation.targetName
 import scala.math.Ordered
-import scala.util.matching.Regex
+import scala.util.{Failure, Success, Try}
 
 /**
  * Class that represents a URL used for HTTP calls.
@@ -104,7 +106,7 @@ enum URL private (
    *   a new [[URL]] with the new path appended
    */
   @targetName("append")
-  infix def /(other: String): URL = this / URL(other)
+  infix def /(other: String): URL = this / URL.Absolute(protocol, host, port, other, queryParams, fragment)
 
 
 
@@ -123,7 +125,7 @@ enum URL private (
         protocol,
         host,
         port,
-        path.withoutTrailingSlashes + "/" + other.withoutLeadingSlashes,
+        path.withoutTrailingSlashes + "/" + other.path.withoutLeadingSlashes,
         Map.empty,
         Option.empty
       )
@@ -131,16 +133,35 @@ enum URL private (
         fragment)
       case URL.Invalid() => this
       
-      
-  def asAbsolute(root: URL): URL = this match
+  private def resolveRelative(root: URL, relative: URL): URL =
+    import utility.http.URL.toAbsolute
+    println(root)
+    println(relative)
+    relative.path match
+    case x if x.isEmpty => Invalid()
+    case _ =>
+      Try:
+        new net.URI(root.toString).resolve(new URI(relative.toString)).toURL.toAbsolute
+      .getOrElse(Invalid())
+
+
+  def asAbsolute(root: URL): URL =
+    this match
     case x: Absolute => this
-    case x: Relative => root / x
+    case x: Relative => resolveRelative(root, x)
     case x: Invalid => x
     
   def isValid: Boolean = this match
     case Invalid() => false
     case _ => true
     
+  def isRelative: Boolean = this match
+    case _ : Relative => true
+    case _ => false
+
+  def isAbsolute: Boolean = this match
+    case _ : Absolute => true
+    case _ => false
 
   /**
    * Gets the port string (e.g. if a URL has port 4000, it returns ":4000"). 
@@ -163,9 +184,32 @@ enum URL private (
   def fragmentString: String = fragment.map("#" + _).getOrElse("")
 
   override def toString: String =
-    s"$protocol://$host$portString$path$queryString$fragmentString"
+    val protocolPrefix = if protocol.nonEmpty then s"$protocol://" else ""
+    s"$protocolPrefix$host$portString$path$queryString$fragmentString"
 
 object URL:
+
+  private def parseQueryParams(queryString: Option[String]): Map[String, String] =
+    queryString.fold(Map.empty[String, String]) {
+      _.drop(1)
+        .split("&")
+        .filter(_.contains("="))
+        .map(_.split("="))
+        .filter(_.length == 2)
+        .collect:
+          case Array(key, value) =>
+            key -> value
+        .toMap
+    }
+
+  extension (x: java.net.URL)
+    private def toAbsolute: URL =
+      Absolute(x.getProtocol, x.getHost, x.getPort match { case -1 => None; case port => Some(port) },
+        x.getPath, parseQueryParams(Option(x.getQuery)), Option(x.getRef))
+
+  extension (x: java.net.URI)
+    private def toRelative: URL =
+      Relative(x.getPath, Option(x.getFragment))
   /**
    * Entry point for instantiating a URL. It parses the provided [[String]].
    * @param url
@@ -174,34 +218,17 @@ object URL:
    *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
    */
   def apply(url: String): URL =
-    def parseQueryParams(queryString: String): Map[String, String] =
-      if queryString.isEmpty then
-        Map.empty[String, String]
-      else
-        queryString
-          .drop(1)
-          .split("&")
-          .filter(_.contains("="))
-          .map(_.split("="))
-          .filter(_.length == 2)
-          .collect:
-            case Array(key, value) =>
-              key -> value
-          .toMap
 
+    val delegateTry = Try(new java.net.URI(url))
+    delegateTry match
+      case Failure(_) => Invalid()
+      case Success(delegate) =>
+        delegate match
+          case x if x.isAbsolute =>
+            x.toURL.toAbsolute
+          case x =>
+            x.toRelative
 
-    """^(https?)://([^:/?#]+)(:\d+)?([^?#]*)(\?[^#]*)?(#.*)?$""".r
-      .findFirstMatchIn(url)
-      .fold(Invalid())((matches: Regex.Match) =>
-        val protocol = matches.group(1)
-        val host = matches.group(2)
-        val port = Option(matches.group(3)).map(_.drop(1).toInt)
-        val path = Option(matches.group(4)).getOrElse("")
-        val queryString = Option(matches.group(5)).getOrElse("")
-        val fragment = Option(matches.group(6)).map(_.drop(1))
-
-        Absolute(protocol, host, port, path, parseQueryParams(queryString), fragment)
-      )
 
   extension(string: String)
     /**

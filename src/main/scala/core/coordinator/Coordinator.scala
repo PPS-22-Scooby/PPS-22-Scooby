@@ -111,13 +111,13 @@ class Coordinator(
         Behaviors.same
         
       case CheckPages(pages, replyTo) =>
-        val checkResult = pages.filter(page => urlPolicy.executeOn(page, crawledPages))
+        val checkResult = pages.filter(_.isAbsolute).filter(page => urlPolicy.executeOn(page, crawledPages))
         val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
         idle(crawledPages ++ checkResult.toSet, blackList)
 
       case SetCrawledPages(pages) =>
-        val validPages = pages.toSet.filterNot(_ == URL.empty)
+        val validPages = pages.toSet.filter(_.isAbsolute)
           .diff(crawledPages)
           .filterNot(el => crawledPages.map(_.withoutProtocol).contains(el.withoutProtocol))
         idle(crawledPages ++ validPages, blackList)
