@@ -16,9 +16,9 @@ trait RegExpExplorer extends Document:
    * @param regExp
    *   the regular expression to match
    * @return
-   *   a sequence of all matches
+   *   an iterable of all matches
    */
-  def find(regExp: String): Seq[String] =
+  def find(regExp: String): Iterable[String] =
     group(regExp.r.findAllMatchIn(content))
 
   /**
@@ -42,7 +42,7 @@ trait LinkExplorer extends RegExpExplorer:
    * @return
    *   a sequence of all links
    */
-  def frontier: Seq[String] = find("""<a\b[^>]*href="([^#][^"]*)""")
+  def frontier: Iterable[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).asAbsolute(url)).filter(_.isValid)
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
 
