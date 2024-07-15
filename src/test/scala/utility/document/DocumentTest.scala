@@ -16,13 +16,12 @@ class DocumentTest extends AnyFlatSpec with should.Matchers:
                     "</head>" +
                   "<body></body>" +
                 "</html>"
-      val urlEither = URL("http://www.example.com")
-      assert(urlEither.isRight)
-      urlEither.fold(_ => fail("Illegal URL"), url =>
-        val document = Document(html, url)
-        document.content should be (html)
-        document.url should be (url)
-      )
+      val url = URL("http://www.example.com")
+      assert(url.isValid)
+      val document = Document(html, url)
+      document.content should be (html)
+      document.url should be (url)
+      
       
 
 

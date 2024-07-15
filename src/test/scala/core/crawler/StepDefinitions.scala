@@ -20,17 +20,17 @@ class StepDefinitions extends ScalaDsl with EN :
   val testKit = ActorTestKit()
   val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
   val exporterProbe = testKit.createTestProbe[ExporterCommands]()
-  val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref, exporterProbe.ref, _.content, 
-    _.frontier.map(URL(_).getOrElse(URL.empty)), 3))
+  val behaviorTestKit = BehaviorTestKit(Crawler(coordinatorProbe.ref, exporterProbe.ref, _.content,
+    ExplorationPolicies.allLinks, 3))
 
   var url: URL = URL.empty
 
   Given("""an URL of an offline website"""):
-    () => url = URL("http://localhost:23111").getOrElse(URL.empty)
+    () => url = URL("http://localhost:23111")
 
   Given("""a user Fred that want to crawl a video url"""):
     () =>
-      url = URL("https://dl6.webmfiles.org/big-buck-bunny_trailer.webm").getOrElse(URL.empty)
+      url = URL("https://dl6.webmfiles.org/big-buck-bunny_trailer.webm")
 
   Given("""a crawler with a Breadth First Search strategy"""):
     () => throw new io.cucumber.scala.PendingException()
