@@ -111,21 +111,21 @@ object Exporter:
      */
     def writeOnFile[A](filePath: Path, format: FormattingBehavior[A] = Formats.string): ExportingBehavior[A] =
       (result: Result[A]) =>
-      Try :
-        val writer = Files.newBufferedWriter(
-          filePath,
-          StandardCharsets.UTF_8,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.APPEND
-        )
-        val content = format(result)
-        (writer, content)
+        Try :
+          val writer = Files.newBufferedWriter(
+            filePath,
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND
+          )
+          val content = format(result)
+          (writer, content)
 
-      .toEither match
-        case Left(exception) => println(f"Error while writing to file: $exception")
-        case Right(writer, content) =>
-          writer.write(content)
-          writer.close()
+        .toEither match
+          case Left(exception) => println(f"Error while writing to file: $exception")
+          case Right(writer, content) =>
+            writer.write(content)
+            writer.close()
 
     /**
      * Creates an exporting behavior that writes results to the console.
@@ -161,4 +161,16 @@ object Exporter:
      */
     def string[A]: FormattingBehavior[A] = (result: Result[A]) => result.data.toString() + System.lineSeparator()
 
-    def json[A]: FormattingBehavior[A] = (result: Result[A]) => JsonConverter.toJsonString(result.data.toString())
+
+    /**
+     * Converts a `Result[A]` to a JSON string representation.
+     * This function uses an implicit `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
+     * The `Writes` typeclass is provided by Play Framework's JSON library and must be available in the scope
+     * where this function is used. This allows for flexible and type-safe JSON serialization of various data types.
+     *
+     * @tparam A The type of data contained in the `Result`.
+     * @param writer Implicit parameter, a `Writes[Iterable[A]]` instance for converting `Result`'s data to JSON.
+     * @return A string representing the JSON serialization of the `Result`'s data.
+     */
+    def json[A](using writer: Writes[Iterable[A]]): FormattingBehavior[A] = (result: Result[A]) =>
+      writer.writes(result.data).toString

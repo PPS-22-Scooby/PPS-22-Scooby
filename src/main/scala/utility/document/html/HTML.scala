@@ -94,6 +94,28 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
   def tag: String = htmlElement.tagName()
 
   /**
+   * Extracts the attributes of the HTML element as a Map.
+   * This method converts the Jsoup Element's attributes into a Scala Map where each
+   * key-value pair represents an attribute name and its corresponding value.
+   *
+   * @return A Map[String, String] containing the attribute names and values.
+   */
+  def attributes: Map[String, String] =
+    htmlElement.attributes().asList().toArray.map: attr =>
+      val attribute = attr.asInstanceOf[org.jsoup.nodes.Attribute]
+      attribute.getKey -> attribute.getValue
+    .toMap
+
+  /**
+   * Retrieves the children of the HTML element as a sequence of HTMLElements.
+   * This method iterates over the Jsoup Element's children, converting each to an HTMLElement,
+   * allowing for Scala-friendly manipulation and access to the HTML structure.
+   *
+   * @return A Seq[HTMLElement] representing the children of the element.
+   */
+  def children: Seq[HTMLElement] = htmlElement.children().iterator().asScala.map(HTMLElement(_)).toSeq
+
+  /**
    * Gets the outer HTML of the HTML element.
    *
    * @return
