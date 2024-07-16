@@ -289,16 +289,15 @@ object URL:
         Relative(x.getPath, Option(x.getFragment))
   /**
    * Entry point for instantiating a URL. It parses the provided [[String]] and produces a [[Absolute]],
-   * [[Relative]] or [[Invalid]] based on the [[https://www.ietf.org/rfc/rfc2396.txt RFC 2396]] grammar 
+   * [[Relative]] or [[Invalid]] based on the [[https://www.ietf.org/rfc/rfc2396.txt RFC 2396]] grammar
    * for URLs (considering also the deviations specified in the [[java.net.URI]] documentation).
    * @param url
    *   String parsed as URL
    * @return
-   *   an [[Absolute]] if [[url]] represents an absolute url, a [[Relative]] if it represents a relative url, 
+   *   an [[Absolute]] if [[url]] represents an absolute url, a [[Relative]] if it represents a relative url,
    *   an [[Invalid]] otherwise (e.g. malformed urls)
    */
   def apply(url: String): URL =
-
     val delegateTry = Try(new java.net.URI(url))
     delegateTry match
       case Failure(_) => Invalid()
@@ -310,6 +309,31 @@ object URL:
             .getOrElse(Invalid())
           case x =>
             x.toRelative
+
+  /**
+   * Old version of [[URL.apply]]: parses a URL string.
+   * @param url the URL string
+   * @return a [[Right]] of [[URL]] if url represents an absolute or a relative URL, a [[Left]] of [[HttpError]]
+   *         otherwise
+   */
+  def parse(url: String): Either[HttpError, URL] =
+    URL(url) match
+      case x: Absolute => Right(x)
+      case x: Relative => Right(x)
+      case URL.Invalid() => Left("Invalid URL".asHttpError)
+
+  /**
+   * Like [[parse]] but returns a [[Right]] of [[Absolute]] if the url string represents an absolute url and a
+   * [[Left]] of [[HttpError]] otherwise (i.g. relative paths represents errors)
+   * @param url the URL string
+   * @return a [[Right]] of [[Absolute]] if the url string represents an absolute url,
+   *         a [[Left]] of [[HttpError]] otherwise
+   */
+  def parseAbsolute(url: String): Either[HttpError, Absolute] =
+    parse(url).flatMap:
+      case x: Absolute => Right(x)
+      case _ => Left("Invalid or Relative URL".asHttpError)
+
 
 
   extension(string: String)
