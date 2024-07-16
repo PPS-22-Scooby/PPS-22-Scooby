@@ -6,7 +6,9 @@ import org.scalatest.matchers.should
 
 class RelativeUrlsTest extends AnyFlatSpec with should.Matchers:
 
-  private val invalidUrls: Seq[String] = Seq("htp://example.com",
+  private val invalidUrls: Seq[String] = Seq(
+    "",
+    "htp://example.com",
     "http:\\example.com",
     "http://",
     "http:// example.com",

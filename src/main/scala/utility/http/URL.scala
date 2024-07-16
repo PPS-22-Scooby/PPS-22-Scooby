@@ -298,17 +298,18 @@ object URL:
    *   an [[Invalid]] otherwise (e.g. malformed urls)
    */
   def apply(url: String): URL =
-    val delegateTry = Try(new java.net.URI(url))
-    delegateTry match
-      case Failure(_) => Invalid()
-      case Success(delegate) =>
-        delegate match
-          case x if x.isAbsolute =>
-            Try:
-              x.toURL.toAbsolute
-            .getOrElse(Invalid())
-          case x =>
-            x.toRelative
+    if url.isEmpty then Invalid() else
+      val delegateTry = Try(new java.net.URI(url))
+      delegateTry match
+        case Failure(_) => Invalid()
+        case Success(delegate) =>
+          delegate match
+            case x if x.isAbsolute =>
+              Try:
+                x.toURL.toAbsolute
+              .getOrElse(Invalid())
+            case x =>
+              x.toRelative
 
   /**
    * Old version of [[URL.apply]]: parses a URL string.
