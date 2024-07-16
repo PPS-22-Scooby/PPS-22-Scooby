@@ -43,7 +43,7 @@ trait LinkExplorer extends RegExpExplorer:
    * @return
    *   a sequence of all links
    */
-  def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).asAbsolute(url)).filter(_.isValid).toSeq
+  def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).resolve(url)).filter(_.isValid).toSeq
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
 
