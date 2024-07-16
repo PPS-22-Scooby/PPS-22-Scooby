@@ -26,7 +26,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
-  "StreamExporter" should "receive Export message and call exporting function" in:
+  "StreamExporter" should "receive Export message and call exporting function" in :
     val filePath = path.resolve("test.txt")
     val testKit = BehaviorTestKit(stream(ExportingBehaviors.writeOnFile(filePath)))
     testKit.run(Export(Result((1 to 5).toList)))
@@ -34,7 +34,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5)"
 
-  "BatchExporter" should "receive Export messages and export only on SignalEnd" in:
+  "BatchExporter" should "receive Export messages and export only on SignalEnd" in :
     val filePath = path.resolve("test.txt")
     val testKit = BehaviorTestKit(batch(ExportingBehaviors.writeOnFile(filePath))(AggregationBehaviors.default))
     testKit.run(Export(Result((1 to 5).toList)))
@@ -46,3 +46,46 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     testKit.run(SignalEnd())
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"
+
+  "BatchExporter" should "receive Export messages and export Json" in :
+    val filePath = path.resolve("test.txt")
+    val htmlStrings = List("<div><p>Text 1</p></div>", "<div><p>Text 2</p></div>")
+    val testKit = BehaviorTestKit(batch(ExportingBehaviors.writeOnFile(filePath, Formats.json))(AggregationBehaviors.default))
+    testKit.run(Export(Result(htmlStrings)))
+    Files.exists(filePath) shouldBe false
+
+    testKit.run(SignalEnd())
+    Files.exists(filePath) shouldBe true
+    Files.readAllLines(filePath).toString should contain
+    """{
+      |   "tag":"body",
+      |   "attributes":{},
+      |   "children":[
+      |      {
+      |         "tag":"div",
+      |         "attributes":{},
+      |         "children":[
+      |            {
+      |               "tag":"p",
+      |               "attributes":{},
+      |               "children":[
+      |                  "Text 1"
+      |               ]
+      |            }
+      |         ]
+      |      },
+      |      {
+      |         "tag":"div",
+      |         "attributes":{},
+      |         "children":[
+      |            {
+      |               "tag":"p",
+      |               "attributes":{},
+      |               "children":[
+      |                  "Text 2"
+      |               ]
+      |            }
+      |         ]
+      |      }
+      |   ]
+      |}""".stripMargin

@@ -4,6 +4,7 @@ import core.scraper.{DataResult, Result}
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import play.api.libs.json.Writes
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, StandardOpenOption}
@@ -34,12 +35,12 @@ enum ExporterCommands:
    * @tparam A The type of data in the result.
    * @param result The result to be exported.
    */
-  case Export[A](result: Result[A]) 
+  case Export[A](result: Result[A])
   /**
    * Command to signal the end of computation, indicating that no more results will be sent.
    */
   case SignalEnd()
-  
+
 /**
  * Companion object for the `Exporter` actor, providing factory methods for creating different types of exporting behaviors.
  */
@@ -94,7 +95,7 @@ object Exporter:
   def batch[A](exportingFunction: ExportingBehavior[A])
               (aggregation: AggregationBehavior[A]): Behavior[ExporterCommands] =
     fold(Result.empty[A])(exportingFunction)(aggregation)
-  
+
   /**
    * Contains predefined exporting behaviors.
    */
@@ -159,3 +160,5 @@ object Exporter:
      * @return A formatting behavior.
      */
     def string[A]: FormattingBehavior[A] = (result: Result[A]) => result.data.toString() + System.lineSeparator()
+
+    def json[A]: FormattingBehavior[A] = (result: Result[A]) => JsonConverter.toJsonString(result.data.toString())
