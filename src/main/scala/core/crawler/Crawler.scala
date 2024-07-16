@@ -7,7 +7,7 @@ import core.exporter.ExporterCommands
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Scraper, ScraperCommands}
 
-import utility.document.{CrawlDocument, Document, ScrapeDocument}
+import utility.document.{CrawlDocument, ScrapeDocument}
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Configuration.ClientConfiguration
 import utility.http.api.Calls.GET
@@ -42,8 +42,9 @@ enum CrawlerCommand:
   case ChildTerminated()
 
 object Crawler:
+
   /**
-   * Creates a new Crawler actor.
+   * Creates a new Crawler actor with no [[SimpleHttpClient]] set up.
    *
    * @param coordinator
    *   the ActorRef of the coordinator to communicate with
@@ -65,10 +66,41 @@ object Crawler:
                                maxDepth: Int,
                                networkConfiguration: ClientConfiguration = Configuration.default
                              ): Behavior[CrawlerCommand] =
+    Crawler[T](coordinator, exporter, scrapeRule, explorationPolicy,
+      maxDepth, SimpleHttpClient(networkConfiguration))
+
+  /**
+   * Creates a new Crawler actor with an already set up [[SimpleHttpClient]].
+   *
+   * @param coordinator
+   *    the ActorRef of the coordinator to communicate with
+   * @param exporter
+   *    the ActorRef of the exporter to communicate with
+   * @param scrapeRule
+   *    scraping rule for the [[Scraper]]s spawned by this Crawler
+   * @param explorationPolicy
+   *    policy that specifies what links to explore inside the [[CrawlDocument]]
+   * @param maxDepth
+   *    max recursion depth for crawlers (maximum depth of the tree of crawlers)
+   * @param httpClient
+   *    the http client already set up
+   * @tparam T type of [[Result]]s that get exported
+   * @return
+   *    the behavior of the Crawler actor
+   */
+  def apply[T](
+              coordinator: ActorRef[CoordinatorCommand],
+              exporter: ActorRef[ExporterCommands],
+              scrapeRule: ScraperPolicy[T],
+              explorationPolicy: ExplorationPolicy,
+              maxDepth: Int,
+              httpClient: SimpleHttpClient): Behavior[CrawlerCommand] =
+    println(httpClient)
     Behaviors.withStash(50): buffer =>
       Behaviors.setup:
-        context => new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
-          maxDepth, networkConfiguration, buffer).idle()
+        context =>
+          new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
+            maxDepth, buffer)(using httpClient).idle()
 
   /**
    * Obtains a simple identifier for a crawler given its URL
@@ -83,9 +115,12 @@ object Crawler:
  * Type that specifies a function that, given a [[CrawlDocument]], returns the links that need to be explored inside it
  */
 type ExplorationPolicy = CrawlDocument => Iterable[URL]
+
 /**
  * Class representing a Crawler actor.
  *
+ * @param context
+ *   the system context
  * @param coordinator
  *   the ActorRef of the coordinator to communicate with
  * @param exporter
@@ -93,7 +128,9 @@ type ExplorationPolicy = CrawlDocument => Iterable[URL]
  * @param scrapeRule scraping rule for the [[Scraper]]s spawned by this Crawler
  * @param explorationPolicy policy that specifies what links to explore inside the [[CrawlDocument]]
  * @param maxDepth max recursion depth for crawlers (maximum depth of the tree of crawlers)
- * @param networkConfiguration network configuration for the HTTP client
+ * @param httpClient client used
+ * @param buffer
+ *   the buffer used to stash messages
  * @tparam T type of [[Result]]s that get exported
  */
 class Crawler[T](context: ActorContext[CrawlerCommand],
@@ -102,16 +139,9 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
                                 scrapeRule: ScraperPolicy[T],
                                 explorationPolicy: ExplorationPolicy,
                                 maxDepth: Int,
-                                networkConfiguration: ClientConfiguration,
                                 buffer: StashBuffer[CrawlerCommand]
-                               ):
+                               )(using httpClient: SimpleHttpClient):
   import CrawlerCommand.*
-
-  /**
-   * Client used for HTTP requests
-   * @return the client used
-   */
-  given httpClient: SimpleHttpClient = SimpleHttpClient(networkConfiguration)
 
   /**
    * The behavior of the Crawler actor.
