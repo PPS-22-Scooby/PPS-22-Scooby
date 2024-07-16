@@ -143,7 +143,7 @@ enum URL private (
       .getOrElse(Invalid())
 
 
-  def asAbsolute(root: URL): URL =
+  def resolve(root: URL): URL =
     this match
     case x: Absolute => this
     case x: Relative => resolveRelative(root, x)
@@ -223,7 +223,9 @@ object URL:
       case Success(delegate) =>
         delegate match
           case x if x.isAbsolute =>
-            x.toURL.toAbsolute
+            Try:
+              x.toURL.toAbsolute
+            .getOrElse(Invalid())
           case x =>
             x.toRelative
 
