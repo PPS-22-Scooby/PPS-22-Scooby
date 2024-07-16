@@ -135,8 +135,6 @@ enum URL private (
       
   private def resolveRelative(root: URL, relative: URL): URL =
     import utility.http.URL.toAbsolute
-    println(root)
-    println(relative)
     relative.path match
     case x if x.isEmpty => Invalid()
     case _ =>
