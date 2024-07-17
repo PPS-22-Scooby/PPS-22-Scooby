@@ -68,15 +68,6 @@ enum URL private (
      */
     private def withoutTrailingSlashes: String = path.replaceAll("/+$", "")
 
-    /**
-     * Appends another string to this string with the slash between them
-     * (e.g. `"/example/" / "/path/"` -> `"/example/path/"`)
-     * @param otherPath the other string
-     * @return the resulting string with the second string appended with a slash
-     */
-    @targetName("appendPath")
-    infix def /(otherPath: String): String = path.withoutTrailingSlashes + "/" + otherPath.withoutLeadingSlashes
-
 
   /**
    * Gets the URL without the protocol (e.g. "http://www.example.com/example" => "www.example.com/example")
@@ -155,8 +146,8 @@ enum URL private (
         Map.empty,
         Option.empty
       )
-      case URL.Relative(path, fragment) => Relative(path.withoutTrailingSlashes + "/" + other.withoutLeadingSlashes, 
-        fragment)
+      case URL.Relative(path, fragment) => Relative(
+        path.withoutTrailingSlashes + "/" + other.path.withoutLeadingSlashes, fragment)
       case URL.Invalid() => this
 
   /**
@@ -236,7 +227,25 @@ enum URL private (
   def fragmentString: String = fragment.map("#" + _).getOrElse("")
 
   /**
+   * FlatMap method for URL. Enables it to be used inside for-comprehensions. Returns f(URL) as long as URL is valid
+   * @param f function to be applied to this URL
+   * @return a valid URL if this is valid, [[Invalid]] otherwise
+   */
+  def flatMap(f: URL => URL): URL = this match
+    case URL.Absolute(protocol, host, port, path, queryParams, fragment) => f(this)
+    case URL.Relative(path, fragment) => f(this)
+    case URL.Invalid() => Invalid()
+
+  /**
+   * Map method for URL. Enables it to be used inside for-comprehensions. Returns f(URL) as long as URL is valid
+   * @param f function to be applied to this URL
+   * @return a valid URL if this is valid, [[Invalid]] otherwise
+   */
+  def map(f: URL => URL): URL = flatMap(f)
+
+  /**
    * Generates a string representation of this URL. If this URL is invalid it produces an empty string.
+   *
    * @return a string representation of this URL, empty string if the URL is invalid
    */
   override def toString: String =
