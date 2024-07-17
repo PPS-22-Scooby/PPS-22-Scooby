@@ -6,8 +6,7 @@ import core.exporter.{AggregationBehavior, ExportingBehavior}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.document.Document
-import utility.http.Configuration.ClientConfiguration
-import utility.http.URL
+import utility.http.{ClientConfiguration, URL}
 
 /**
  * Single Exporting option. Configures one single Exporter
@@ -32,7 +31,6 @@ enum SingleExporting[A](behavior: ExportingBehavior[A]):
  * @param crawlerConfiguration configuration for the crawler
  * @param scraperConfiguration configuration for the scraper
  * @param exporterConfiguration configuration for the exporter
- * @tparam D type of [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
  * @tparam T type of [[Result]] that will be exported
  */
 case class Configuration[T](crawlerConfiguration: CrawlerConfiguration,
@@ -55,7 +53,6 @@ object Configuration:
   /**
    * Configuration class for the Scraper
    * @param scrapePolicy policy that specifies what to scrape inside a Document
-   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
    * @tparam T type of [[Result]] that will be exported
    */
   case class ScraperConfiguration[T](scrapePolicy: ScraperPolicy[T])

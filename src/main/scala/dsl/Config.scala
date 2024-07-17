@@ -1,18 +1,19 @@
 package org.unibo.scooby
 package dsl
-import utility.http.Configuration.{ClientConfiguration, Property}
-import utility.http.Configuration
 
-import DSL.ConfigurationBuilder
+import dsl.DSL.ConfigurationBuilder
+import utility.http.ClientConfiguration
+
 import monocle.syntax.all.*
 
+import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
 object Config:
 
   case class ConfigContext(
-                            options: ConfigOptions,
-                            clientConfiguration: ClientConfiguration
+                            var options: ConfigOptions,
+                            var clientConfiguration: ClientConfiguration
                           )
 
   case class ConfigOptions(
@@ -20,32 +21,39 @@ object Config:
                             maxLinks: Int = 200
                           )
 
-  case class ClientConfigurationBuilder(var config: ClientConfiguration)
+  case class NetworkConfigurationContext(var config: ClientConfiguration)
 
 
-  trait PropertyBuilder[T <: Property[R], R]:
-    infix def ->(propertyValue: R)(using builder: ClientConfigurationBuilder): Unit =
-      builder.config = builder.config.focus(_.properties).modify(_ :+ instantiateProperty(propertyValue))
-      
-    def instantiateProperty(value: R): T 
+  trait PropertyBuilder[R]:
+    @targetName("setValue")
+    infix def -->(propertyValue: R)(using builder: NetworkConfigurationContext): Unit =
+      builder.config = modify(builder.config, propertyValue)
 
+    def modify(previousConfig: ClientConfiguration, value: R): ClientConfiguration
 
 
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
-    given context: ConfigContext = ConfigContext(ConfigOptions(), Configuration.default)
+    given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
     init
     builder.configuration = builder.configuration.focus(_.crawlerConfiguration.networkOptions)
       .replace(context.clientConfiguration)
 
 
-  val Timeout: PropertyBuilder[Property.NetworkTimeout, FiniteDuration] = 
-    (value: FiniteDuration) => Property.NetworkTimeout(value)
-    
+  def Timeout: PropertyBuilder[FiniteDuration] =
+    (previousConfig, value) => previousConfig.focus(_.networkTimeout).replace(value)
+
+  def MaxRequests: PropertyBuilder[Int] =
+    (previousConfig, value) => previousConfig.focus(_.maxRequests).replace(value)
+
+
   object NetworkConfiguration:
-    def network(init: ClientConfiguration ?=> Unit)(using context: ConfigContext): Unit = ???
+    def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+      given builder: NetworkConfigurationContext = NetworkConfigurationContext(ClientConfiguration.default)
+      init
+      context.clientConfiguration = builder.config
 
 
 
   object CrawlerGlobalConfiguration:
-    def option(init: ConfigOptions ?=> Unit)(using context: ConfigContext): Unit = ???
+    def option(init: ConfigOptions ?=> Unit)(using context: ConfigContext): Unit = println()
 

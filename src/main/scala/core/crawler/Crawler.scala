@@ -9,9 +9,9 @@ import core.scraper.{Scraper, ScraperCommands}
 
 import utility.document.{CrawlDocument, Document, ScrapeDocument}
 import utility.http.Clients.SimpleHttpClient
-import utility.http.Configuration.ClientConfiguration
+import utility.http.ClientConfiguration
 import utility.http.api.Calls.GET
-import utility.http.{Configuration, HttpError, HttpErrorType, URL}
+import utility.http.{HttpError, HttpErrorType, URL}
 import utility.http.URL.*
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer}
@@ -63,7 +63,7 @@ object Crawler:
                                scrapeRule: ScraperPolicy[T],
                                explorationPolicy: ExplorationPolicy,
                                maxDepth: Int,
-                               networkConfiguration: ClientConfiguration = Configuration.default
+                               networkConfiguration: ClientConfiguration = ClientConfiguration.default
                              ): Behavior[CrawlerCommand] =
     Behaviors.withStash(50): buffer =>
       Behaviors.setup:

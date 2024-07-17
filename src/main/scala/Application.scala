@@ -6,13 +6,14 @@ import dsl.ScoobyEmbeddable
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
-class Application extends ScoobyEmbeddable:
+object Application extends ScoobyEmbeddable with App:
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val app = scooby:
     config:
       network:
-        Timeout -> 5.seconds
+        Timeout --> 100.seconds
+        MaxRequests --> 1
       option:
         ???
 

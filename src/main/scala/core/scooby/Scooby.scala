@@ -10,7 +10,7 @@ import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, S
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.ScraperPolicies
 import utility.document.Document
-import utility.http.URL
+import utility.http.{ClientConfiguration, URL}
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
@@ -107,7 +107,7 @@ object Main:
           URL("https://www.example.com").getOrElse(URL.empty),
           _.frontier.map(URL(_).getOrElse(URL.empty)),
           2,
-          utility.http.Configuration.default
+          ClientConfiguration.default
         ),
         ScraperConfiguration(ScraperPolicies.scraperRule(Seq("link"), "tag")),
         ExporterConfiguration(Seq(
