@@ -10,6 +10,8 @@ object DSL:
   export Export.*
 
 
-  class ConfigurationBuilder[T]():
+  class ConfigurationBuilder[T](var configuration: Configuration[T]):
+    
+    def build: Configuration[T] = configuration
 
-    def build: Configuration[T] = ???
+    

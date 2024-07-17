@@ -14,7 +14,7 @@ object Config:
                           )
 
 
-  def config(): Unit = ???
+  def config(using ConfigurationBuilder[T]): Unit = ???
 
   object NetworkConfiguration
   object CrawlerGlobalConfiguration

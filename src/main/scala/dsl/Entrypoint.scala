@@ -13,15 +13,18 @@ trait ScoobyApplication extends App:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): Unit =
     given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    init
     Scooby.run(builder.build)
 
 
 trait ScoobyEmbeddable:
   export DSL.*
-  def scooby[T](init: => Configuration[T]): ScoobyRunnable[T] =
-    ScoobyRunnable(init)
-    
-    
+  def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): ScoobyRunnable[T] =
+    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    init
+    ScoobyRunnable(builder.build)
+
+
 class ScoobyRunnable[T](config: Configuration[T]):
   def run(): Future[Result[T]] =
     val promise = Promise[Result[T]]()
