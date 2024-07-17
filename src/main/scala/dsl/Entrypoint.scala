@@ -12,7 +12,7 @@ import scala.concurrent.{Future, Promise}
 trait ScoobyApplication extends App:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): Unit =
-    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(null)
     init
     Scooby.run(builder.build)
 
@@ -20,7 +20,7 @@ trait ScoobyApplication extends App:
 trait ScoobyEmbeddable:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): ScoobyRunnable[T] =
-    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(null)
     init
     ScoobyRunnable(builder.build)
 

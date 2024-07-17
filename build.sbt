@@ -23,7 +23,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.5.6",
-  "org.typelevel" %% "cats-core" % "2.12.0",
   "io.cucumber" %% "cucumber-scala" % "8.23.0" % Test,
   "io.cucumber" % "cucumber-junit" % "7.18.0" % Test,
   "com.github.sbt" % "junit-interface" % "0.13.3" % Test,
@@ -34,7 +33,9 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.13.2" % Test,
   "com.typesafe.play" %% "play-json" % "2.10.5" % Test,
   "org.jsoup" % "jsoup" % "1.17.2",
-  "com.softwaremill.sttp.client3" %% "core" % "3.9.7"
+  "com.softwaremill.sttp.client3" %% "core" % "3.9.7",
+  "dev.optics" %% "monocle-core"  % "3.2.0",
+  "dev.optics" %% "monocle-macro" % "3.2.0",
 )
 
 Test / parallelExecution := false

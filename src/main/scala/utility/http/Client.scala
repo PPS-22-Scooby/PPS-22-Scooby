@@ -78,7 +78,7 @@ object Configuration:
    * @param properties [[Seq]] of [[Property]] that globally represent the collection of settings for this [[Client]].
    *                   One type of [[Property]] is meant to be added only once inside this collection.
    */
-  class ClientConfiguration(properties: Seq[Property[?]]):
+  case class ClientConfiguration(properties: Seq[Property[?]]):
     /**
      * Returns the value of the [[Property]] requested.
      * @param tag [[ClassTag]] to prevent type erasure for type [[T]], representing the [[Property]] requested
@@ -95,16 +95,9 @@ object Configuration:
   /**
    * Companion object for the [[ClientConfiguration]] that contains its `apply` method
    */
-  object ClientConfiguration:
-    /**
-     * Useful instantiation method for [[ClientConfiguration]] providing a variable-length argument
-     * @param properties variable-length argument for [[Property]]
-     * @return a [[ClientConfiguration]] with those [[Property]]
-     */
-    def apply(properties: Property[?]*): ClientConfiguration = new ClientConfiguration(properties.toSeq)
-
+  object ClientConfiguration
   /**
    * Configuration used by default by the [[Client]]s
    * @return the default [[ClientConfiguration]]
    */
-  def default: ClientConfiguration = ClientConfiguration(NetworkTimeout(5.seconds))
+  def default: ClientConfiguration = ClientConfiguration(Seq(NetworkTimeout(5.seconds)))

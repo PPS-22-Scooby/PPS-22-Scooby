@@ -12,6 +12,10 @@ scooby:
       MaxLinks -> 10
 
 
+    network:
+      - NetworkTimeout(5.seconds)
+      - MaxRequests(5)
+
   crawl:
     url:
       "https://www.prova.it"
