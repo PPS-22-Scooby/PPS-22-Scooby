@@ -3,6 +3,7 @@ package utility.http
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.unibo.scooby.utility.http.URL.url
 
 class RelativeUrlsTest extends AnyFlatSpec with should.Matchers:
 
@@ -69,6 +70,31 @@ class RelativeUrlsTest extends AnyFlatSpec with should.Matchers:
       "https://validurl.com/index.html",
       "https://validurl.com/test/www.google.com/team/profile"
     )
+
+
     relativeUrls.map(URL(_).resolve(absolutePath)).zipWithIndex.foreach:
       (url, index) =>
       url shouldBe resolved(index).toUrl
+
+  "URL built using a for comprehension" should "be invalid if one is invalid" in:
+    val test = for
+      url <- URL(":")
+      appended <- url / "test"
+      appendedAgain <- url / appended
+    yield
+      appended
+
+    test shouldBe a[URL.Invalid]
+
+  "URL built using a for comprehension" should "be constructed following the chain" in :
+    val test = for
+      url <- URL("nice")
+      appended <- url / "test"
+      appendedAgain <- appended / url
+      lastly <- url"https://www.example.com" / appendedAgain
+    yield
+      lastly
+
+    test shouldBe a[URL.Absolute]
+    test shouldBe URL("https://www.example.com/nice/test/nice")
+
