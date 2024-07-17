@@ -1,8 +1,7 @@
 package org.unibo.scooby
 
-import dsl.Config.CrawlerGlobalConfiguration.option
-import dsl.Config.NetworkConfiguration.network
 import dsl.ScoobyEmbeddable
+import dsl.DSL.*
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 

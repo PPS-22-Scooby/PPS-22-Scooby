@@ -10,6 +10,9 @@ import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
 object Config:
+  export PropertyBuilder.*
+  export NetworkConfiguration.*
+  export CrawlerGlobalConfiguration.*
 
   case class ConfigContext(
                             var options: ConfigOptions,
@@ -23,13 +26,20 @@ object Config:
 
   case class NetworkConfigurationContext(var config: ClientConfiguration)
 
+  private type Modify[V] = (ClientConfiguration, V) => ClientConfiguration
 
-  trait PropertyBuilder[R]:
+  enum PropertyBuilder[V](modify: Modify[V]):
+
+    case Timeout extends PropertyBuilder[FiniteDuration](
+      (previousConfig, value) => previousConfig.focus(_.networkTimeout).replace(value)
+    )
+    case MaxRequests extends PropertyBuilder[Int](
+      (previousConfig, value) => previousConfig.focus(_.maxRequests).replace(value)
+    )
+
     @targetName("setValue")
-    infix def -->(propertyValue: R)(using builder: NetworkConfigurationContext): Unit =
+    infix def -->(propertyValue: V)(using builder: NetworkConfigurationContext): Unit =
       builder.config = modify(builder.config, propertyValue)
-
-    def modify(previousConfig: ClientConfiguration, value: R): ClientConfiguration
 
 
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
@@ -37,14 +47,6 @@ object Config:
     init
     builder.configuration = builder.configuration.focus(_.crawlerConfiguration.networkOptions)
       .replace(context.clientConfiguration)
-
-
-  def Timeout: PropertyBuilder[FiniteDuration] =
-    (previousConfig, value) => previousConfig.focus(_.networkTimeout).replace(value)
-
-  def MaxRequests: PropertyBuilder[Int] =
-    (previousConfig, value) => previousConfig.focus(_.maxRequests).replace(value)
-
 
   object NetworkConfiguration:
     def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
