@@ -30,6 +30,7 @@ trait ScoobyEmbeddable:
 
 class ScoobyRunnable[T](config: Configuration[T]):
   def run(): Future[Result[T]] =
+    println(config)
     val promise = Promise[Result[T]]()
     val promiseConfig = config.copy(exporterConfiguration =
       config.exporterConfiguration.copy(exportingStrategies = Seq(

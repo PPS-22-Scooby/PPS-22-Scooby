@@ -21,29 +21,47 @@ object Config:
                             var clientConfiguration: ClientConfiguration
                           )
 
-  case class ConfigOptions(
-                            maxDepth: Int = 3,
-                            maxLinks: Int = 200
-                          )
+  case class ConfigOptions(maxDepth: Int = 3, maxLinks: Int = 200)
+
+  trait ConfigurationContext[T]:
+    var config: T
 
   case class NetworkConfigurationContext(var config: ClientConfiguration)
+    extends ConfigurationContext[ClientConfiguration]
+  case class OptionConfigurationContext(var config: ConfigOptions)
+    extends ConfigurationContext[ConfigOptions]
 
-  private type AccessProperty[V] = Lens[ClientConfiguration, V]
-  
-  enum PropertyBuilder[V](property: AccessProperty[V]):
+  private type AccessProperty[T,V] = Lens[T, V]
 
-    case Timeout extends PropertyBuilder[FiniteDuration](GenLens[ClientConfiguration](_.networkTimeout))
-    case MaxRequests extends PropertyBuilder[Int](GenLens[ClientConfiguration](_.maxRequests))
+  enum PropertyBuilder[T, C <: ConfigurationContext[T], V](property: AccessProperty[T,V]):
 
-    infix def is(propertyValue: V)(using builder: NetworkConfigurationContext): Unit =
+    case Timeout extends PropertyBuilder[ClientConfiguration, NetworkConfigurationContext, FiniteDuration] (
+      GenLens[ClientConfiguration](_.networkTimeout)
+    )
+    case MaxRequests extends PropertyBuilder[ClientConfiguration, NetworkConfigurationContext, Int] (
+      GenLens[ClientConfiguration](_.maxRequests)
+    )
+
+    case MaxDepth extends PropertyBuilder[ConfigOptions, OptionConfigurationContext, Int] (
+      GenLens[ConfigOptions](_.maxDepth)
+    )
+
+    case MaxLinks extends PropertyBuilder[ConfigOptions, OptionConfigurationContext, Int](
+      GenLens[ConfigOptions](_.maxLinks)
+    )
+
+
+    infix def is(propertyValue: V)(using builder: C): Unit =
       builder.config = property.replace(propertyValue)(builder.config)
 
 
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
     given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
     init
-    builder.configuration = builder.configuration.focus(_.crawlerConfiguration.networkOptions)
-      .replace(context.clientConfiguration)
+    builder.configuration = builder.configuration
+      .focus(_.crawlerConfiguration.networkOptions)     .replace(context.clientConfiguration)
+      .focus(_.crawlerConfiguration.maxDepth)           .replace(context.options.maxDepth)
+      // TODO .focus(_.coordinatorConfiguration.maxLinks)       .replace(context.options.maxLinks)
 
   object NetworkConfiguration:
     def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
@@ -51,8 +69,10 @@ object Config:
       init
       context.clientConfiguration = builder.config
 
-
-
   object CrawlerGlobalConfiguration:
-    def option(init: ConfigOptions ?=> Unit)(using context: ConfigContext): Unit = println()
+    def option(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+      given builder: OptionConfigurationContext = OptionConfigurationContext(ConfigOptions())
+      init
+      context.options = builder.config
+
 

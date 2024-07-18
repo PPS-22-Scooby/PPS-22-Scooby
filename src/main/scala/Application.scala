@@ -14,7 +14,8 @@ object Application extends ScoobyEmbeddable with App:
         Timeout is 100.seconds
         MaxRequests is 5
       option:
-        ???
+        MaxDepth is 3
+        MaxLinks is 100
 
   val future = app.run()
   
