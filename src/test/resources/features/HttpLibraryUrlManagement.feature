@@ -8,7 +8,7 @@ Feature: simple URL creation and management
     Then it should return a valid URL with depth 0
 
   Scenario: invalid URL
-    Given the string "//www.example.com/"
+    Given the string ":www.example.com/"
     When i convert it to URL
     Then it should result in a Malformed URL error
 
@@ -18,7 +18,7 @@ Feature: simple URL creation and management
     Then it should return the URL "https://www.example.com/example"
 
   Scenario: appending one URL and a string
-    Given two URLs "https://www.example.com/" and a string "/example"
+    Given a URL "https://www.example.com/" and a string "/example"
     When i append the string to the url
     Then it should return the URL "https://www.example.com/example"
 

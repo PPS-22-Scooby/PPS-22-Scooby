@@ -1,9 +1,11 @@
 package org.unibo.scooby
 package utility.http
 
+import java.net
+import java.net.URI
 import scala.annotation.targetName
 import scala.math.Ordered
-import scala.util.matching.Regex
+import scala.util.{Failure, Success, Try}
 
 /**
  * Class that represents a URL used for HTTP calls.
@@ -20,14 +22,52 @@ import scala.util.matching.Regex
  * @param fragment
  *   fragment of the URL. [[Some]] containing the fragment (e.g. "#section") or [[None]] if there is no fragment
  */
-final case class URL private (
-  protocol: String,
+enum URL private (
+  val protocol: String,
   private val host: String,
   private val port: Option[Int],
-  path: String,
-  queryParams: Map[String, String],
-  fragment: Option[String]
+  val path: String,
+  val queryParams: Map[String, String],
+  val fragment: Option[String]
 ) extends Ordered[URL]:
+
+  /**
+   * Represents an absolute URL. Absolute URLs syntax is specified in the
+   * [[https://www.ietf.org/rfc/rfc2396.txt RFC 2396]] grammar.
+   */
+  case Absolute(override val protocol: String,
+                private val host: String,
+                private val port: Option[Int],
+                override val path: String,
+                override val queryParams: Map[String, String],
+                override val fragment: Option[String]) extends URL(protocol, host, port, path, queryParams, fragment)
+
+  /**
+   * Represents a relative URL. Relative URLs syntax is specified in the
+   * [[https://www.ietf.org/rfc/rfc2396.txt RFC 2396]] grammar.
+   */
+  case Relative(override val path: String, override val fragment: Option[String]) 
+    extends URL("", "", Option.empty, path, Map.empty, fragment)
+
+  /**
+   * Represents an invalid URL. Invalid URLs are provided when the parsed URL string was invalid or when used as
+   * placeholders.
+   */
+  case Invalid() extends URL("", "", Option.empty, "", Map.empty, Option.empty)
+
+
+  extension(path: String)
+    /**
+     * Removes the leading slashes (e.g. "/example" -> "example")
+     * @return the string without leading slashes
+     */
+    private def withoutLeadingSlashes: String = path.replaceAll("^/+", "")
+    /**
+     * Removes the trailing slashes (e.g. "example/path/" -> "example/path")
+     * @return the string without trailing slashes
+     */
+    private def withoutTrailingSlashes: String = path.replaceAll("/+$", "")
+
 
   /**
    * Gets the URL without the protocol (e.g. "http://www.example.com/example" => "www.example.com/example")
@@ -36,7 +76,7 @@ final case class URL private (
   def withoutProtocol: String = domain + path + queryString + fragmentString
 
   /**
-   * Gets the domain from the URL
+   * Gets the domain from the URL (e.g. "http://www.example.com/example" => "www.example.com")
    * @return
    *   a [[String]] containing the domain
    */
@@ -47,7 +87,14 @@ final case class URL private (
    * @return
    *   the parent [[URL]] of this URL.
    */
-  def parent: URL = URL(protocol, host, port, path.split("/").dropRight(1).mkString("/") + "/", Map.empty, Option.empty)
+  def parent: URL =
+    def dropLast(path: String) = path.split("/").dropRight(1).mkString("/") + "/"
+
+    this match
+      case Absolute(protocol, host, port, path, queryParams, fragment) => Absolute(protocol, host, port,
+        dropLast(path), Map.empty, Option.empty)
+      case Relative(path, fragment) => Relative(dropLast(path), Option.empty)
+      case Invalid() => Invalid()
 
   /**
    * Gets the "depth" of this URL's path. For example a URL `https://www.example.com` has depth 0 and
@@ -76,12 +123,13 @@ final case class URL private (
    *   a new [[URL]] with the new path appended
    */
   @targetName("append")
-  infix def /(other: String): URL =
-    this / URL(protocol, host, port, path + other, Map.empty, Option.empty)
+  infix def /(other: String): URL = this / URL.Absolute(protocol, host, port, other, queryParams, fragment)
+
+
 
   /**
-   * Utility method that appends an another [[URL]] to this URL, with the same protocol, host and post, placing the
-   * trailing backslashes correctly
+   * Utility method that appends an another [[URL]] to this URL, maintaining the same protocol, host and post,
+   * placing the trailing backslashes correctly
    * @param other
    *   URL to be appended
    * @return
@@ -89,24 +137,78 @@ final case class URL private (
    */
   @targetName("append")
   infix def /(other: URL): URL =
-    def removeLeadingTrailingSlashes(input: String): String =
-      input.replaceAll("^/+", "").replaceAll("/+$", "")
-
-    if other.protocol == protocol && other.host == host && other.port == port then
-      // warning: not giving info about malformed URLs -> just returning itself if fails
-      URL.apply(URL(
+    this match
+      case URL.Absolute(protocol, host, port, path, queryParams, fragment) => Absolute(
         protocol,
         host,
         port,
-        removeLeadingTrailingSlashes(path) + "/" + removeLeadingTrailingSlashes(other.path),
+        path.withoutTrailingSlashes + "/" + other.path.withoutLeadingSlashes,
         Map.empty,
         Option.empty
-      ).toString).getOrElse(this)
-    else
-      this
+      )
+      case URL.Relative(path, fragment) => Relative(
+        path.withoutTrailingSlashes + "/" + other.path.withoutLeadingSlashes, fragment)
+      case URL.Invalid() => this
 
   /**
-   * Gets the port string (e.g. if a URL has port 4000, it returns ":4000"). 
+   * Resolves a relative URL given the current root URL reference. An example of how relative URLs are resolved can
+   * be seen [[https://www.w3.org/TR/WD-html40-970917/htmlweb.html#h-5.1.2 here]].
+   * @param root reference for this resolve. Must be an [[Absolute]] or else will produce an [[Invalid]].
+   *             Example: if root is `"https://www.absolute.com/path"` and the this is `"./relative"` the result is
+   *             `"https://www.absolute.com/path/relative`)
+   * @return an [[Absolute]] if correctly resolved, an [[Invalid]] otherwise
+   */
+  private def resolveWith(root: URL): URL =
+    import utility.http.URL.toAbsolute
+    this.path match
+      case x if x.isEmpty || !root.isAbsolute => Invalid()
+      case _ =>
+        Try:
+          new net.URI(root.toString).resolve(new URI(this.toString)).toURL.toAbsolute
+        .getOrElse(Invalid())
+
+  /**
+   * Resolves a URL if it's a [[Relative]] given the current root URL reference, returns itself otherwise.
+   * An example of how relative URLs are resolved can
+   * be seen [[https://www.w3.org/TR/WD-html40-970917/htmlweb.html#h-5.1.2 here]].
+   * @param root reference for this resolve. Must be an [[Absolute]] or else will produce an [[Invalid]].
+   *             Example: if root is `"https://www.absolute.com/path"` and the this is `"./relative"` the result is
+   *             `"https://www.absolute.com/path/relative`)
+   * @return an [[Absolute]] if correctly resolved or if the starting URL was already an [[Absolute]], an [[Invalid]]
+   *         otherwise
+   */
+  def resolve(root: URL): URL =
+    this match
+      case x: Absolute => this
+      case x: Relative => this.resolveWith(root)
+      case x: Invalid => x
+
+  /**
+   * Checks if this URL is <b>not</b> [[Invalid]] (in other words if it's [[Absolute]] or [[Relative]])
+   * @return `true` if it's valid, `false` otherwise
+   */
+  def isValid: Boolean = this match
+    case Invalid() => false
+    case _ => true
+
+  /**
+   * Checks if this URL is [[Relative]].
+   * @return `true` if it's a relative URL, `false` otherwise
+   */
+  def isRelative: Boolean = this match
+    case _ : Relative => true
+    case _ => false
+
+  /**
+   * Checks if this URL is [[Absolute]].
+   * @return `true` if it's an absolute URL, `false` otherwise
+   */
+  def isAbsolute: Boolean = this match
+    case _ : Absolute => true
+    case _ => false
+
+  /**
+   * Gets the port string (e.g. if a URL has port 4000, it returns ":4000").
    * @return the port string <b>or</b> empty string if the URL has no port
    */
   def portString: String = port.map(":" + _).getOrElse("")
@@ -124,46 +226,125 @@ final case class URL private (
    */
   def fragmentString: String = fragment.map("#" + _).getOrElse("")
 
+  /**
+   * FlatMap method for URL. Enables it to be used inside for-comprehensions. Returns f(URL) as long as URL is valid
+   * @param f function to be applied to this URL
+   * @return a valid URL if this is valid, [[Invalid]] otherwise
+   */
+  def flatMap(f: URL => URL): URL = this match
+    case URL.Absolute(protocol, host, port, path, queryParams, fragment) => f(this)
+    case URL.Relative(path, fragment) => f(this)
+    case URL.Invalid() => Invalid()
+
+  /**
+   * Map method for URL. Enables it to be used inside for-comprehensions. Returns f(URL) as long as URL is valid
+   * @param f function to be applied to this URL
+   * @return a valid URL if this is valid, [[Invalid]] otherwise
+   */
+  def map(f: URL => URL): URL = flatMap(f)
+
+  /**
+   * Generates a string representation of this URL. If this URL is invalid it produces an empty string.
+   *
+   * @return a string representation of this URL, empty string if the URL is invalid
+   */
   override def toString: String =
-    s"$protocol://$host$portString$path$queryString$fragmentString"
+    val protocolPrefix = if protocol.nonEmpty then s"$protocol://" else ""
+    s"$protocolPrefix$host$portString$path$queryString$fragmentString"
 
 object URL:
   /**
-   * Entry point for instantiating a URL. It parses the provided [[String]].
+   * Parses a query string, generating a [[Map]] with the key-value pairs correctly parsed. It ignores query params with
+   * no "=".
+   * @param queryString the query string starting with "?" (e.g. "?key1=value1&key2=value2")
+   * @return a [[Map]] of [[(String, String)]] containing the key-value pairs parsed from the query string.
+   */
+  private def parseQueryParams(queryString: Option[String]): Map[String, String] =
+    queryString.fold(Map.empty[String, String]) {
+      _.drop(1)
+        .split("&")
+        .filter(_.contains("="))
+        .map(_.split("="))
+        .filter(_.length == 2)
+        .collect:
+          case Array(key, value) =>
+            key -> value
+        .toMap
+    }
+
+  extension (x: java.net.URL)
+    /**
+     * Utility method to convert a [[java.net.URL]] to an Absolute URL. This can't produce an [[Invalid]].
+     * Note: [[java.net.URL]] can't be relative URLs.
+     * @return a [[URL]] converted from the [[java.net.URL]]
+     */
+    private def toAbsolute: URL =
+      Absolute(x.getProtocol, x.getHost, x.getPort match { case -1 => None; case port => Some(port) },
+        x.getPath, parseQueryParams(Option(x.getQuery)), Option(x.getRef))
+
+  extension (x: java.net.URI)
+    /**
+     * Utility method to convert a [[java.net.URI]] to a [[URL]]. If the URI is <b>relative</b> it does what expected.
+     * If, instead, the URI is <b>absolute</b> it firstly tries to convert it to a [[java.net.URL]] an then to an
+     * [[Absolute]]: if something goes wrong, it produces an [[Invalid]]
+     * @return a [[Relative]] if [[x]] is a relative URI, a [[Absolute]] or [[Invalid]] otherwise
+     */
+    private def toRelative: URL =
+      if x.isAbsolute then
+        Try:
+          x.toURL.toAbsolute
+        .getOrElse(Invalid())
+      else
+        Relative(x.getPath, Option(x.getFragment))
+  /**
+   * Entry point for instantiating a URL. It parses the provided [[String]] and produces a [[Absolute]],
+   * [[Relative]] or [[Invalid]] based on the [[https://www.ietf.org/rfc/rfc2396.txt RFC 2396]] grammar
+   * for URLs (considering also the deviations specified in the [[java.net.URI]] documentation).
    * @param url
    *   String parsed as URL
    * @return
-   *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
+   *   an [[Absolute]] if [[url]] represents an absolute url, a [[Relative]] if it represents a relative url,
+   *   an [[Invalid]] otherwise (e.g. malformed urls)
    */
-  def apply(url: String): Either[String, URL] =
-    def parseQueryParams(queryString: String): Map[String, String] =
-      if queryString.isEmpty then
-        Map.empty[String, String]
-      else
-        queryString
-          .drop(1)
-          .split("&")
-          .filter(_.contains("="))
-          .map(_.split("="))
-          .filter(_.length == 2)
-          .collect:
-            case Array(key, value) =>
-              key -> value
-          .toMap
+  def apply(url: String): URL =
+    if url.isEmpty then Invalid() else
+      val delegateTry = Try(new java.net.URI(url))
+      delegateTry match
+        case Failure(_) => Invalid()
+        case Success(delegate) =>
+          delegate match
+            case x if x.isAbsolute =>
+              Try:
+                x.toURL.toAbsolute
+              .getOrElse(Invalid())
+            case x =>
+              x.toRelative
+
+  /**
+   * Old version of [[URL.apply]]: parses a URL string.
+   * @param url the URL string
+   * @return a [[Right]] of [[URL]] if url represents an absolute or a relative URL, a [[Left]] of [[HttpError]]
+   *         otherwise
+   */
+  def parse(url: String): Either[HttpError, URL] =
+    URL(url) match
+      case x: Absolute => Right(x)
+      case x: Relative => Right(x)
+      case URL.Invalid() => Left("Invalid URL".asHttpError)
+
+  /**
+   * Like [[parse]] but returns a [[Right]] of [[Absolute]] if the url string represents an absolute url and a
+   * [[Left]] of [[HttpError]] otherwise (i.g. relative paths represents errors)
+   * @param url the URL string
+   * @return a [[Right]] of [[Absolute]] if the url string represents an absolute url,
+   *         a [[Left]] of [[HttpError]] otherwise
+   */
+  def parseAbsolute(url: String): Either[HttpError, Absolute] =
+    parse(url).flatMap:
+      case x: Absolute => Right(x)
+      case _ => Left("Invalid or Relative URL".asHttpError)
 
 
-    """^(https?)://([^:/?#]+)(:\d+)?([^?#]*)(\?[^#]*)?(#.*)?$""".r
-      .findFirstMatchIn(url)
-      .fold(Left("Invalid URL"))((matches: Regex.Match) =>
-        val protocol = matches.group(1)
-        val host = matches.group(2)
-        val port = Option(matches.group(3)).map(_.drop(1).toInt)
-        val path = Option(matches.group(4)).getOrElse("")
-        val queryString = Option(matches.group(5)).getOrElse("")
-        val fragment = Option(matches.group(6)).map(_.drop(1))
-
-        Right(new URL(protocol, host, port, path, parseQueryParams(queryString), fragment))
-      )
 
   extension(string: String)
     /**
@@ -171,7 +352,7 @@ object URL:
      * @return
      *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
      */
-    def toUrl: Either[String, URL] = URL(string)
+    def toUrl: URL = URL(string)
 
   extension(string: StringContext)
     /**
@@ -179,11 +360,11 @@ object URL:
      * @return
      *   a [[Either]] with a String representing an error or a [[URL]] if the parsing was successful
      */
-    def url(args: Any*): Either[String, URL] = URL(string.s(args*))
+    def url(args: Any*): URL = URL(string.s(args*))
 
   /**
    * Used to generate an empty URL, mainly as placeholder or for testing purposes.
    * @return
    *   an empty URL
    */
-  def empty: URL = new URL("", "", Option.empty, "", Map.empty, Option.empty)
+  def empty: URL = Invalid()

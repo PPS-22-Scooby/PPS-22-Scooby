@@ -21,7 +21,7 @@ object Robots:
    */
   def fetchRobotsTxt(siteUrl: String): String =
     val httpClient: SimpleHttpClient = SimpleHttpClient()
-    val parsedUrl = URL(siteUrl).getOrElse(URL.empty)
+    val parsedUrl = URL(siteUrl)
     // TODO: change 'https' to a method within URLs that allows the protocol
     val robotsUrl = s"${parsedUrl.toString}/robots.txt"
     Request.builder.get().at(robotsUrl).build match
@@ -76,5 +76,5 @@ object Robots:
    *   `true` if the URL is allowed to be visited, `false` otherwise.
    */
   def canVisit(url: String, disallowRules: Set[String]): Boolean =
-    val parsedUrl = URL(url).getOrElse(URL.empty).toString
+    val parsedUrl = URL(url).toString
     !disallowRules.exists(rule => parsedUrl.contains(rule))

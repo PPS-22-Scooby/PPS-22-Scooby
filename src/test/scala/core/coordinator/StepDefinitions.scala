@@ -18,7 +18,7 @@ class StepDefinitions extends ScalaDsl with EN :
 
   Given("""I have a list of already crawled pages (.*)$""") :
     (crawledPages: String) =>
-      val pages = crawledPages.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
+      val pages = crawledPages.split(",").map(_.trim.toUrl).toList
       coordinator ! SetCrawledPages(pages)
 
   Given("""I have an empty list of already crawled pages""") :
@@ -27,14 +27,14 @@ class StepDefinitions extends ScalaDsl with EN :
   When("""I check if (.*) is already crawled$""") :
     (page: String) =>
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
-      val convPage = page.toUrl.getOrElse(URL.empty)
+      val convPage = page.toUrl
       coordinator ! CheckPages(List(convPage), probe.ref)
       val retrievedPage = probe.receiveMessage().result
-      this.isCrawled = !retrievedPage.contains(page.toUrl.getOrElse(URL.empty))
+      this.isCrawled = !retrievedPage.contains(page.toUrl)
 
   When("""I add (.*) to the crawled list$""") :
     (newPages: String) =>
-      val pages = newPages.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
+      val pages = newPages.split(",").map(_.trim.toUrl).toList
       coordinator ! SetCrawledPages(pages)
 
   Then("""The coordinator response result should be true$""") :
@@ -47,7 +47,7 @@ class StepDefinitions extends ScalaDsl with EN :
     (updatedList: String) =>
       val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl).toList
       assertEquals(expectedList, probe.receiveMessage())
 
 
@@ -55,7 +55,7 @@ class StepDefinitions extends ScalaDsl with EN :
     (updatedList: String) =>
       val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl).toList
       assertEquals(expectedList, probe.receiveMessage())
 
 
@@ -63,5 +63,5 @@ class StepDefinitions extends ScalaDsl with EN :
     (updatedList: String) =>
       val probe = testKit.createTestProbe[List[URL]]()
       coordinator ! GetCrawledPages(probe.ref)
-      val expectedList = updatedList.split(",").map(_.trim.toUrl.getOrElse(URL.empty)).toList
+      val expectedList = updatedList.split(",").map(_.trim.toUrl).toList
       assertEquals(expectedList, probe.receiveMessage().distinct)

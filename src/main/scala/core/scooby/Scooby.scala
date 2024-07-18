@@ -2,7 +2,7 @@ package org.unibo.scooby
 package core.scooby
 
 import core.coordinator.Coordinator
-import core.crawler.{Crawler, CrawlerCommand}
+import core.crawler.{Crawler, CrawlerCommand, ExplorationPolicies}
 import core.exporter.Exporter.*
 import core.exporter.ExporterCommands.SignalEnd
 import core.exporter.{Exporter, ExporterCommands}
@@ -104,8 +104,8 @@ object Main:
     Scooby.run(
       Configuration(
         CrawlerConfiguration(
-          URL("https://www.example.com").getOrElse(URL.empty),
-          _.frontier.map(URL(_).getOrElse(URL.empty)),
+          URL("https://www.example.com"),
+          ExplorationPolicies.allLinks,
           2,
           ClientConfiguration.default
         ),

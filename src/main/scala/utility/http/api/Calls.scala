@@ -38,7 +38,7 @@ object Calls:
    *   a [[PartialCall]] representing the request to be sent.
    */
   def GET[T, R: Client](url: String): PartialCall[T, R] =
-    new PartialCall[T, R](URL(url).getOrElse(URL.empty), HttpMethod.GET)
+    new PartialCall[T, R](URL(url), HttpMethod.GET)
 
   /**
    * Builds a HTTP GET request using a DSL-like fashion
@@ -80,7 +80,7 @@ object Calls:
    * a [[PartialCall]] representing the request to be sent.
    */
   def POST[T, R: Client](url: String): PartialCall[T, R] =
-    new PartialCall[T, R](URL(url).getOrElse(URL.empty), HttpMethod.POST)
+    new PartialCall[T, R](URL(url), HttpMethod.POST)
 
 
   /**
@@ -91,7 +91,6 @@ object Calls:
    *   a [[RequestBuilderMutable]] in the scope
    */
   def Body(init: => String)(using mutableBuilder: RequestBuilderMutable): Unit =
-    val mutableBuilder = summon[RequestBuilderMutable]
     mutableBuilder.builder = mutableBuilder.builder.body(init)
 
   /**
