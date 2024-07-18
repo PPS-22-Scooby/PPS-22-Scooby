@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">networkConfiguration</span>: <a href="../../utility/http/Configuration$$ClientConfiguration.html" t="t">ClientConfiguration</a>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>])
+  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">client</span>: <a href="../../utility/http/Clients$$SimpleHttpClient.html" t="t">SimpleHttpClient</a>)
  </div>
 </div>
 <div class="cover">
@@ -29,6 +29,24 @@
   </dl>
   <h2 class="h500">Value parameters</h2>
   <dl class="attributes">
+   <dt class="body-small">
+    buffer
+   </dt>
+   <dd class="body-medium">
+    <p>the buffer used to stash messages</p>
+   </dd>
+   <dt class="body-small">
+    client
+   </dt>
+   <dd class="body-medium">
+    <p>client used</p>
+   </dd>
+   <dt class="body-small">
+    context
+   </dt>
+   <dd class="body-medium">
+    <p>the system context</p>
+   </dd>
    <dt class="body-small">
     coordinator
    </dt>
@@ -52,12 +70,6 @@
    </dt>
    <dd class="body-medium">
     <p>max recursion depth for crawlers (maximum depth of the tree of crawlers)</p>
-   </dd>
-   <dt class="body-small">
-    networkConfiguration
-   </dt>
-   <dd class="body-medium">
-    <p>network configuration for the HTTP client</p>
    </dd>
    <dt class="body-small">
     scrapeRule
@@ -187,35 +199,9 @@ node3 -> node2;
         </div>
         <div class="documentableElement" id="httpClient-0">
          <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">given </span></span><a href="Crawler.html#httpClient-0" t="n" class="documentableName ">httpClient</a>: <a href="../../utility/http/Clients$$SimpleHttpClient.html" t="t">SimpleHttpClient</a>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Client used for HTTP requests</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Client used for HTTP requests</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>the client used</p>
-              </dd>
-             </dl>
-            </div>
            </div>
           </div>
          </div>
