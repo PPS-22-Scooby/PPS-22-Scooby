@@ -50,12 +50,30 @@ object Configuration:
                                   maxDepth: Int,
                                   networkOptions: ClientConfiguration)
 
+  object CrawlerConfiguration:
+
+    /**
+     * Represent the default configuration of the crawler.
+     * @return
+     */
+    def empty: CrawlerConfiguration =
+      CrawlerConfiguration(
+        URL.empty,
+        _ => Iterable.empty, +
+          0,
+        ClientConfiguration.default
+      )
+
+
   /**
    * Configuration class for the Scraper
    * @param scrapePolicy policy that specifies what to scrape inside a Document
    * @tparam T type of [[Result]] that will be exported
    */
   case class ScraperConfiguration[T](scrapePolicy: ScraperPolicy[T])
+
+  object ScraperConfiguration:
+    def empty[T]: ScraperConfiguration[T] = ScraperConfiguration(_ => Iterable.empty)
 
   /**
    * Configuration class for the exporter
@@ -65,5 +83,11 @@ object Configuration:
    */
   case class ExporterConfiguration[T](exportingStrategies: Seq[SingleExporting[T]])
 
+  object ExporterConfiguration:
+    def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty)
+
 
   case class CoordinatorConfiguration()
+
+  def empty[T]: Configuration[T] = Configuration(CrawlerConfiguration.empty, ScraperConfiguration.empty[T],
+    ExporterConfiguration.empty[T])

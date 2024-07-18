@@ -11,8 +11,8 @@ object Application extends ScoobyEmbeddable with App:
   val app = scooby:
     config:
       network:
-        Timeout --> 100.seconds
-        MaxRequests --> 1
+        Timeout is 100.seconds
+        MaxRequests is 5
       option:
         ???
 

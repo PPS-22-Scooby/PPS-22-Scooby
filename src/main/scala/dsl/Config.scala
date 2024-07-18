@@ -35,8 +35,7 @@ object Config:
     case Timeout extends PropertyBuilder[FiniteDuration](GenLens[ClientConfiguration](_.networkTimeout))
     case MaxRequests extends PropertyBuilder[Int](GenLens[ClientConfiguration](_.maxRequests))
 
-    @targetName("setValue")
-    infix def -->(propertyValue: V)(using builder: NetworkConfigurationContext): Unit =
+    infix def is(propertyValue: V)(using builder: NetworkConfigurationContext): Unit =
       builder.config = property.replace(propertyValue)(builder.config)
 
 
