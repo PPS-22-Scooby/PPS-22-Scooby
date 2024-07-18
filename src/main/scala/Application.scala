@@ -1,17 +1,13 @@
 package org.unibo.scooby
 
-import dsl.ScoobyEmbeddable
-import dsl.DSL.*
-
-import org.unibo.scooby.utility.http.URL
+import Application.scooby
+import dsl.ScoobyApplication
 
 import scala.concurrent.duration.DurationInt
-import scala.util.{Failure, Success}
 
-object Application extends ScoobyEmbeddable with App:
-  import scala.concurrent.ExecutionContext.Implicits.global
+object Application extends ScoobyApplication:
 
-  val app = scooby:
+  scooby:
     config:
       network:
         Timeout is 100.seconds
@@ -22,16 +18,8 @@ object Application extends ScoobyEmbeddable with App:
 
     crawl:
       url:
-        "https://www.example.com"
+        "https://docs.scala-lang.org/overviews/core/custom-collections.html"
       policy:
-        links
+        links.filter(_.toString.contains("/community/"))
 
-
-
-
-  val future = app.run()
-
-  future.onComplete:
-    case Failure(exception) => println(exception)
-    case Success(value) => println(value)
 

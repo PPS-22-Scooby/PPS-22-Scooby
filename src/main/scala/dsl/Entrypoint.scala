@@ -1,21 +1,26 @@
 package org.unibo.scooby
 package dsl
-import core.scooby.{Configuration, Scooby}
-import core.scraper.{Result, ScraperPolicies}
-import core.scooby.SingleExporting.BatchExporting
-
-import scala.util.Success
 import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
+import core.scooby.Configuration.ExporterConfiguration
+import core.scooby.SingleExporting.BatchExporting
+import core.scooby.{Configuration, Scooby}
+import core.scraper.Result
+import utility.http.URL
 
-import org.unibo.scooby.core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
-import org.unibo.scooby.utility.http.{ClientConfiguration, URL}
+import monocle.syntax.all.*
 
 import scala.concurrent.{Future, Promise}
+import scala.util.Success
 
 trait ScoobyApplication extends App:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): Unit =
     given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(Configuration.empty)
+    // TODO currently having the write on console as default export, consider to leave or remove it
+    builder.configuration = builder.configuration
+      .focus(_.exporterConfiguration.exportingStrategies)     .replace(Seq(
+        BatchExporting(ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
+    ))
     init
     Scooby.run(builder.build)
 
@@ -32,11 +37,10 @@ class ScoobyRunnable[T](config: Configuration[T]):
   def run(): Future[Result[T]] =
     println(config)
     val promise = Promise[Result[T]]()
-    val promiseConfig = config.copy(exporterConfiguration =
-      config.exporterConfiguration.copy(exportingStrategies = Seq(
+    val promiseConfig = config
+      .focus(_.exporterConfiguration.exportingStrategies)     .replace(Seq(
         BatchExporting((result: Result[T]) =>
-          promise.complete(Success(result)), AggregationBehaviors.default))
-      )
-    )
+          promise.complete(Success(result)), AggregationBehaviors.default)
+    ))
     Scooby.run(promiseConfig)
     promise.future

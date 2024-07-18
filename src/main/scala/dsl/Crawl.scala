@@ -11,23 +11,31 @@ import monocle.syntax.all.*
 object Crawl:
   case class CrawlContext(var url: String, var policy: ExplorationPolicy)
 
-  case class CrawlDocumentContext(var document: CrawlDocument)
+  case class CrawlDocumentContext(var provider: ExplorationPolicy)
 
   def crawl[T](init: CrawlContext ?=> Unit)(using context: ConfigurationBuilder[T]): Unit =
     given builder: CrawlContext = CrawlContext("", context.configuration.crawlerConfiguration.explorationPolicy)
     init
     context.configuration = context.configuration
-      // TODO apply new URL
-      .focus(_.crawlerConfiguration.url)      .replace(URL(builder.url).getOrElse(URL.empty))
+      .focus(_.crawlerConfiguration.url)                 .replace(URL(builder.url))
+      .focus(_.crawlerConfiguration.explorationPolicy)   .replace(builder.policy)
 
   def url(init: => String)(using builder: CrawlContext): Unit =
     builder.url = init
 
-  def policy(init: CrawlDocumentContext ?=> Iterable[URL])(using builder: CrawlContext): Unit =
-    given documentContext: CrawlDocumentContext = CrawlDocumentContext(CrawlDocument("", URL.empty))
-    // TODO find a way to implement links such as it brings the input document's links into the scope
-    builder.policy = null
+  def policy(init: CrawlDocument ?=> Iterable[URL])(using builder: CrawlContext): Unit =
+    builder.policy = doc =>
+      given CrawlDocument = doc
+      init
 
-  def links(using builder: CrawlDocumentContext): Iterable[URL] =
-    builder.document.frontier.map(URL(_).getOrElse(URL.empty))
+  def links(using crawlDocumentContext: CrawlDocument): Iterable[URL] = crawlDocumentContext.frontier
+
+
+
+
+
+
+
+
+
 
