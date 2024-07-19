@@ -11,6 +11,7 @@ import monocle.syntax.all.*
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Success
+import org.unibo.scooby.core.scooby.SingleExporting
 
 trait ScoobyApplication extends App:
   export DSL.*
@@ -22,7 +23,6 @@ trait ScoobyApplication extends App:
         BatchExporting(ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
     ))
     init
-    println(builder.configuration.crawlerConfiguration)
     Scooby.run(builder.build)
 
 
@@ -36,10 +36,9 @@ trait ScoobyEmbeddable:
 
 class ScoobyRunnable[T](config: Configuration[T]):
   def run(): Future[Result[T]] =
-    println(config)
     val promise = Promise[Result[T]]()
     val promiseConfig = config
-      .focus(_.exporterConfiguration.exportingStrategies)     .replace(Seq(
+      .focus(_.exporterConfiguration.exportingStrategies)     .modify(_ ++ Seq(
         BatchExporting((result: Result[T]) =>
           promise.complete(Success(result)), AggregationBehaviors.default)
     ))

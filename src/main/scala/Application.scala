@@ -1,13 +1,14 @@
 package org.unibo.scooby
 
-import Application.scooby
-import dsl.{ScoobyApplication, ScoobyEmbeddable}
-
+import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-object Application extends ScoobyApplication:
+import Application.scooby
+import dsl.ScoobyEmbeddable
 
-  scooby:
+object Application extends ScoobyEmbeddable with App:
+
+  val app = scooby:
     config:
       network:
         Timeout is 5.seconds
@@ -19,57 +20,15 @@ object Application extends ScoobyApplication:
     crawl:
       url:
         "https://www.example.com"
+      policy:
+        links
 
     scrape:
-      Iterable(
-        document.url
-      )
+      document.getElementByClass("navigation") :+ document.getElementById("logo").get
 
     exports as:
-      println(results.map(_ / "ciao"))
+      println(results.groupBy(_.tag).mapValues(_.size).toMap)
 
 
-
-
-//  scrape {
-//
-//  } exports:
-
-//  scrape:
-//    ...
-//  .exports:
-
-//  scrape:
-//    ...
-//  >> exports:
-//    ...
-
-//    crawl:
-//      url:
-//        "https://docs.scala-lang.org/overviews/core/custom-collections.html"
-//      policy:
-//        links filter (_.toString.contains("/community/"))
-
-//    scrape:
-//      Iterable(s"${document.content.head}")
-//
-//
-//      batch:
-//
-//      stream:
-
-
-
-
-//    export:
-//      batch:
-//        policy: // la policy di esportazione
-//        aggregate:
-//
-//      batch:
-//        policy: // la policy di esportazione
-//        aggregate:
-//
-//      stream:
-//        policy:
-
+  val result = Await.result(app.run(), 10.seconds)
+  println(result)
