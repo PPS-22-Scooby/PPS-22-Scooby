@@ -14,6 +14,7 @@ import utility.http.{ClientConfiguration, URL}
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
+import org.unibo.scooby.core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Main commands to be used inside Scooby
@@ -114,7 +115,8 @@ object Main:
           BatchExporting(
             ExportingBehaviors.writeOnConsole(Formats.string),
             AggregationBehaviors.default
-          )))
+          ))),
+        CoordinatorConfiguration(100)
       )
     )
 

@@ -61,7 +61,7 @@ object Config:
     builder.configuration = builder.configuration
       .focus(_.crawlerConfiguration.networkOptions)     .replace(context.clientConfiguration)
       .focus(_.crawlerConfiguration.maxDepth)           .replace(context.options.maxDepth)
-      // TODO .focus(_.coordinatorConfiguration.maxLinks)       .replace(context.options.maxLinks)
+      .focus(_.coordinatorConfiguration.maxLinks)       .replace(context.options.maxLinks)
 
   object NetworkConfiguration:
     def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =

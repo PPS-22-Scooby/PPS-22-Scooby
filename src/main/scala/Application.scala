@@ -15,7 +15,7 @@ object Application extends ScoobyEmbeddable with App:
         MaxRequests is 5
       option:
         MaxDepth is 1
-        MaxLinks is 100
+        MaxLinks is 20
 
     crawl:
       url:
@@ -24,7 +24,7 @@ object Application extends ScoobyEmbeddable with App:
         links
 
     scrape:
-      document.getElementByClass("navigation") :+ document.getElementById("logo").get
+      document.getElementByClass("navigation")
 
     exports as:
       println(results.groupBy(_.tag).mapValues(_.size).toMap)

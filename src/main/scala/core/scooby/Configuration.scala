@@ -7,6 +7,7 @@ import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, S
 import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.document.Document
 import utility.http.{ClientConfiguration, URL}
+import org.unibo.scooby.core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Single Exporting option. Configures one single Exporter
@@ -35,7 +36,8 @@ enum SingleExporting[A](behavior: ExportingBehavior[A]):
  */
 case class Configuration[T](crawlerConfiguration: CrawlerConfiguration,
                                            scraperConfiguration: ScraperConfiguration[T],
-                                           exporterConfiguration: ExporterConfiguration[T])
+                                           exporterConfiguration: ExporterConfiguration[T],
+                                           coordinatorConfiguration: CoordinatorConfiguration)
 
 object Configuration:
   /**
@@ -87,7 +89,7 @@ object Configuration:
     def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty[SingleExporting[T]])
 
 
-  case class CoordinatorConfiguration()
+  case class CoordinatorConfiguration(maxLinks: Int)
 
   def empty[T]: Configuration[T] = Configuration(CrawlerConfiguration.empty, ScraperConfiguration.empty[T],
-    ExporterConfiguration.empty[T])
+    ExporterConfiguration.empty[T], CoordinatorConfiguration(100))
