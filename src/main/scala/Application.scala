@@ -13,13 +13,56 @@ object Application extends ScoobyApplication:
         Timeout is 100.seconds
         MaxRequests is 5
       option:
-        MaxDepth is 3
+        MaxDepth is 1
         MaxLinks is 100
 
-    crawl:
-      url:
-        "https://docs.scala-lang.org/overviews/core/custom-collections.html"
-      policy:
-        links.filter(_.toString.contains("/community/"))
+    scrape:
+      Iterable(
+        (document.content.head, document.content.length)
+      )
+    | exports:
+      ???
 
+
+//  scrape {
+//
+//  } exports:
+
+//  scrape:
+//    ...
+//  .exports:
+
+//  scrape:
+//    ...
+//  >> exports:
+//    ...
+
+//    crawl:
+//      url:
+//        "https://docs.scala-lang.org/overviews/core/custom-collections.html"
+//      policy:
+//        links filter (_.toString.contains("/community/"))
+
+//    scrape:
+//      Iterable(s"${document.content.head}")
+//
+//
+//      batch:
+//
+//      stream:
+
+
+
+
+//    export:
+//      batch:
+//        policy: // la policy di esportazione
+//        aggregate:
+//
+//      batch:
+//        policy: // la policy di esportazione
+//        aggregate:
+//
+//      stream:
+//        policy:
 

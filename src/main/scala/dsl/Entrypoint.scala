@@ -22,6 +22,7 @@ trait ScoobyApplication extends App:
         BatchExporting(ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
     ))
     init
+    println(builder.configuration.crawlerConfiguration)
     Scooby.run(builder.build)
 
 
