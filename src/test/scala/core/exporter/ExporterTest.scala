@@ -12,7 +12,6 @@ import core.exporter.Exporter.*
 import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
 
-
 class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
 
   var path: Path = uninitialized
