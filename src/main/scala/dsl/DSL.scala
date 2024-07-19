@@ -13,10 +13,7 @@ object DSL:
   export Export.*
 
 
-  class ConfigurationBuilder[T]():
-    var configuration: Configuration[T] = uninitialized
-    var exportContext: ExportContext[T] = uninitialized
-
+  class ConfigurationBuilder[T](var configuration: Configuration[T], var exportContext: ExportContext[T]):
     def build: Configuration[T] = configuration
 
     

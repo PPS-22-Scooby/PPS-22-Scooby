@@ -15,7 +15,7 @@ import scala.util.Success
 trait ScoobyApplication extends App:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): Unit =
-    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(Configuration.empty[T], ExportContext[T]())
     // TODO currently having the write on console as default export, consider to leave or remove it
     builder.configuration = builder.configuration
       .focus(_.exporterConfiguration.exportingStrategies)     .replace(Seq(
@@ -29,7 +29,7 @@ trait ScoobyApplication extends App:
 trait ScoobyEmbeddable:
   export DSL.*
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): ScoobyRunnable[T] =
-    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder()
+    given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(Configuration.empty[T], ExportContext[T]())
     init
     ScoobyRunnable(builder.build)
 

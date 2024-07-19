@@ -1,7 +1,7 @@
 package org.unibo.scooby
 
 import Application.scooby
-import dsl.ScoobyApplication
+import dsl.{ScoobyApplication, ScoobyEmbeddable}
 
 import scala.concurrent.duration.DurationInt
 
@@ -10,19 +10,25 @@ object Application extends ScoobyApplication:
   scooby:
     config:
       network:
-        Timeout is 100.seconds
+        Timeout is 5.seconds
         MaxRequests is 5
       option:
         MaxDepth is 1
         MaxLinks is 100
 
+    crawl:
+      url:
+        "https://www.example.com"
+
     scrape:
       Iterable(
-        (document.content.head, document.content.length)
+        document.url
       )
 
     exports as:
-      results.foreach(println(_))
+      println(results.map(_ / "ciao"))
+
+
 
 
 //  scrape {
