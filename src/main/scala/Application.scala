@@ -20,8 +20,9 @@ object Application extends ScoobyApplication:
       Iterable(
         (document.content.head, document.content.length)
       )
-    | exports:
-      ???
+
+    exports as:
+      results.foreach(println(_))
 
 
 //  scrape {

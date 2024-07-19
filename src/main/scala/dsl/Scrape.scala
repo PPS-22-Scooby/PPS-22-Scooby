@@ -12,15 +12,12 @@ import monocle.syntax.all.*
 
 object Scrape:
 
-  case class PartialScrape[T]():
-    infix def |(context: ExportContext[T]): PartialScrape[T] = this
-
-  def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): PartialScrape[T] =
+  def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
     builder.configuration = builder.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
       doc =>
         given ScrapeDocument = doc
         init
-    PartialScrape[T]()
+    builder.exportContext = ExportContext[T]()
 
 
   def document(using scrapeDocumentContext: ScrapeDocument): ScrapeDocument = scrapeDocumentContext

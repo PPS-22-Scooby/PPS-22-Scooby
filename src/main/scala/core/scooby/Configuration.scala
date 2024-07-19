@@ -84,7 +84,7 @@ object Configuration:
   case class ExporterConfiguration[T](exportingStrategies: Seq[SingleExporting[T]])
 
   object ExporterConfiguration:
-    def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty)
+    def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty[SingleExporting[T]])
 
 
   case class CoordinatorConfiguration()
