@@ -49,13 +49,16 @@ scooby:
         }
 
     }
-  exports:
-    Batch as:
-      results.toJson() -> File()
-    Batch as:
+  exports as:
+    batch:
+      strategy:
+        results.toJson() -> File()
+      aggregation:
+
+    batch:
       results.toCSV()
 
-    Stream as:
+    stream:
       results.map(_.toString)
 
 */

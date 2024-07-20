@@ -5,6 +5,10 @@ import scala.concurrent.duration.DurationInt
 
 import Application.scooby
 import dsl.ScoobyEmbeddable
+import org.unibo.scooby.core.exporter.Exporter.batch
+import org.unibo.scooby.dsl.Export.strategy
+import org.unibo.scooby.utility.document.html.HTMLElement
+import javax.swing.text.html.HTML
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -22,13 +26,13 @@ object Application extends ScoobyEmbeddable with App:
         "https://www.example.com"
       policy:
         links
-
     scrape:
       document.getElementByClass("navigation")
 
-    exports as:
-      println(results.groupBy(_.tag).mapValues(_.size).toMap)
 
+    exports as:
+      stream:
+        println(results[HTMLElement].groupBy(_.tag == "div").mapValues(_.size).toMap)
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)

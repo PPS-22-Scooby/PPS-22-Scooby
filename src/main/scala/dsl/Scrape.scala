@@ -5,10 +5,10 @@ import core.exporter.Exporter.AggregationBehaviors
 import core.scooby.SingleExporting
 import core.scraper.ScraperPolicies.ScraperPolicy
 import dsl.DSL.ConfigurationBuilder
-import dsl.Export.ExportContext
 import utility.document.ScrapeDocument
 
 import monocle.syntax.all.*
+import org.unibo.scooby.dsl.DSL.ScrapingResultSetting
 
 object Scrape:
 
@@ -17,7 +17,7 @@ object Scrape:
       doc =>
         given ScrapeDocument = doc
         init
-    builder.exportContext = ExportContext[T]()
+    builder.scrapingResultSetting = ScrapingResultSetting[T]()
 
 
   def document(using scrapeDocumentContext: ScrapeDocument): ScrapeDocument = scrapeDocumentContext

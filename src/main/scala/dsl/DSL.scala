@@ -1,7 +1,6 @@
 package org.unibo.scooby
 package dsl
 import core.scooby.Configuration
-import dsl.Export.ExportContext
 
 import scala.compiletime.uninitialized
 
@@ -12,8 +11,9 @@ object DSL:
   export Scrape.*
   export Export.*
 
+  case class ScrapingResultSetting[T]()
 
-  class ConfigurationBuilder[T](var configuration: Configuration[T], var exportContext: ExportContext[T]):
+  class ConfigurationBuilder[T](var configuration: Configuration[T], var scrapingResultSetting: ScrapingResultSetting[T]):
     def build: Configuration[T] = configuration
 
     

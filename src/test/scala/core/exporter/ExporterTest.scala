@@ -26,6 +26,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
+
   "StreamExporter" should "receive Export message and call exporting function" in:
     val filePath = path.resolve("test.txt")
     val testKit = BehaviorTestKit(stream(ExportingBehaviors.writeOnFile(filePath)))
