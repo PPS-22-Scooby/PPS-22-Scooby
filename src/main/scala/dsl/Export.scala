@@ -17,7 +17,7 @@ object Export:
 
   case class ExportationContext[T](builder: ConfigurationBuilder[T]):
     given ConfigurationBuilder[T] = builder
-    infix def as(init: ExportationOpContext[T] ?=> Unit)(using ConfigurationBuilder[T]): Unit =
+    infix def apply(init: ExportationOpContext[T] ?=> Unit)(using ConfigurationBuilder[T]): Unit =
       given context: ExportationOpContext[T] = ExportationOpContext[T](Seq.empty[SingleExporting[T]])
       init
       builder.configuration = builder.configuration
@@ -31,35 +31,46 @@ object Export:
 
 
   case class ExportationOpContext[T](var exportingStrategies: Seq[SingleExporting[T]])
+  
+  
+  case class BatchContext[T](var policy: Result[T] => Unit, var aggregation: (Result[T], Result[T]) => Result[T])
+
+  case class BatchStrategyContext[T]():
+    infix def apply(init: Iterable[T] ?=> Unit)(using context: BatchContext[T]): Unit = 
+      context.policy = (res: Result[T]) => 
+        given Iterable[T] = res.data
+        init
+
+  case class BatchAggregateContext[T]():
+    infix def apply(init: (Iterable[T], Iterable[T]) => Iterable[T])(using context: BatchContext[T]): Unit = 
+      context.aggregation = (res1: Result[T], res2: Result[T]) => Result(init(res1.data, res2.data))
+        
+  def strategy[T](using BatchContext[T]): BatchStrategyContext[T] = 
+    BatchStrategyContext[T]() 
     
-  def stream[T](init: Iterable[T] ?=> Unit)
-    (using builder: ExportationOpContext[T]): Unit =
-    builder.exportingStrategies = builder.exportingStrategies :+ StreamExporting[T](
+  def aggregate[T](using BatchContext[T]): BatchAggregateContext[T] = BatchAggregateContext[T]()
+
+    
+  case class BatchExportationContext[T]():
+    infix def apply(init: BatchContext[T] ?=> Unit)(using builder: ExportationOpContext[T]): Unit =
+      given context: BatchContext[T] = BatchContext[T](
+      (res: Result[T]) => println(res), AggregationBehaviors.default)
+      init
+    
+      builder.exportingStrategies = Seq(BatchExporting(
+        context.policy,
+        context.aggregation
+      ))
+
+  case class StreamExportationContext[T]():
+    infix def apply(init: Iterable[T] ?=> Unit)(using builder: ExportationOpContext[T]): Unit =
+      builder.exportingStrategies = builder.exportingStrategies :+ StreamExporting[T](
       (res: Result[T]) => 
         given Iterable[T] = res.data
         init
       )
-  
-  case class BatchContext[T](var policy: Result[T] => Unit, var aggregation: (Result[T], Result[T]) => Result[T])
 
-  def aggregation[T](init: (Iterable[T], Iterable[T]) => Iterable[T])(using context: BatchContext[T]): Unit = 
-    context.aggregation = (res1: Result[T], res2: Result[T]) => Result(init(res1.data, res2.data))
+  def Streaming[T](using ExportationOpContext[T]): StreamExportationContext[T] = StreamExportationContext[T]()    
+  def Batch[T](using ExportationOpContext[T]): BatchExportationContext[T] = BatchExportationContext[T]()
     
-        
-  def strategy[T](init: Iterable[T] ?=> Unit)(using context: BatchContext[T]): Unit = 
-    context.policy = (res: Result[T]) => 
-      given Iterable[T] = res.data
-      init
-    
-    
-  def batch[T](init: BatchContext[T] ?=> Unit)(using builder: ExportationOpContext[T]): Unit =
-    given context: BatchContext[T] = BatchContext[T](
-      (res: Result[T]) => println(res), (res1: Result[T], res2: Result[T]) => Result(Iterable.empty[T])
-    )
-    init
-    
-    builder.exportingStrategies = builder.exportingStrategies :+ BatchExporting(
-      context.policy,
-      context.aggregation
-    )
     
