@@ -34,6 +34,9 @@ object Application extends ScoobyEmbeddable with App:
           println(results.groupBy(_.tag).mapValues(_.size).toMap)
         aggregate:
           _ ++ _
+          
+      Streaming:
+        println(results)
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)
