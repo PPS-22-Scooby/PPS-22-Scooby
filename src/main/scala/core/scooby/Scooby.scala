@@ -5,7 +5,7 @@ import core.coordinator.Coordinator
 import core.crawler.{Crawler, CrawlerCommand, ExplorationPolicies}
 import core.exporter.Exporter.*
 import core.exporter.ExporterCommands.SignalEnd
-import core.exporter.{Exporter, ExporterCommands}
+import core.exporter.{Exporter, ExporterCommands, ExporterRouter}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.ScraperPolicies
@@ -54,7 +54,7 @@ object ScoobyActor:
           // 1. Spawn a coordinator
           val coordinator = context.spawn(Coordinator(), "Coordinator")
 
-          // 2. Spawn an exporter
+          // 2. Handle exporting
           val exporters = configuration.exporterConfiguration.exportingStrategies.zipWithIndex.map {
             case (SingleExporting.StreamExporting(behavior), index) =>
               context.spawn(Exporter.stream(behavior), s"Exporter${index}-Stream")
@@ -62,10 +62,13 @@ object ScoobyActor:
               context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter${index}-Batch")
           }
 
+          val exporterRouter = context.spawn(ExporterRouter(exporters), "ExporterRouter")
+
+
           // 3. Spawn a crawler
           val crawler = context.spawn(Crawler(
             coordinator,
-            exporters.head, // TODO fix crawler and scraper to take multiple exporters
+            exporterRouter,
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
             configuration.crawlerConfiguration.maxDepth
@@ -114,7 +117,12 @@ object Main:
           BatchExporting(
             ExportingBehaviors.writeOnConsole(Formats.string),
             AggregationBehaviors.default
-          )))
+          ),
+          BatchExporting(
+            ExportingBehaviors.writeOnConsole(Formats.string),
+            AggregationBehaviors.default
+          )
+        ))
       )
     )
 
