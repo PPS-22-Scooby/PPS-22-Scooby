@@ -18,7 +18,7 @@ import akka.actor.typed.scaladsl.Behaviors
  * val routerActor: ActorRef[ExporterCommands] = context.spawn(routerBehavior, "exporterRouter")
  * }}}
  *
- * @constructor Creates an instance of [[[ExporterRouter]]].
+ * @constructor Creates an instance of [[ExporterRouter]].
  */
 object ExporterRouter:
   /**
