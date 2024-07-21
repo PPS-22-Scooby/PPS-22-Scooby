@@ -63,6 +63,4 @@ class ExporterRouterTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
 
     probe1.expectMessage(command)
     probe3.expectMessage(command)
-
-
-
+    
