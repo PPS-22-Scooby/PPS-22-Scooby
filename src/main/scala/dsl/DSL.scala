@@ -19,5 +19,3 @@ object DSL:
 
 
   def document[T <: Document](using document: T): T = document
-
-    

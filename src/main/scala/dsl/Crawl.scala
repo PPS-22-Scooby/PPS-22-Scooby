@@ -7,7 +7,6 @@ import utility.document.CrawlDocument
 import utility.http.URL
 
 import monocle.syntax.all.*
-import org.unibo.scooby.utility.document.Document
 
 object Crawl:
   case class CrawlContext(var url: String, var policy: ExplorationPolicy)
@@ -35,13 +34,9 @@ object Crawl:
   def allLinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
     crawlDocumentContext.allLinks
 
+  extension (x: Iterable[URL])
+    infix def not(pred: URL => Boolean): Iterable[URL] = 
+      x.filterNot(pred)
 
-
-
-
-
-
-
-
-
-
+  def external(using document: CrawlDocument): URL => Boolean =
+    _.domain != document.url.domain

@@ -7,6 +7,7 @@ import scala.concurrent.duration.DurationInt
 
 import Application.scooby
 import dsl.ScoobyEmbeddable
+import org.unibo.scooby.dsl.Crawl.not
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -16,22 +17,22 @@ object Application extends ScoobyEmbeddable with App:
         Timeout is 5.seconds
         MaxRequests is 5
       option:
-        MaxDepth is 1
+        MaxDepth is 2
         MaxLinks is 20
 
     crawl:
       url:
-        "https://www.example.com"
+        "https://www.example.it"
       policy:
-        document.allLinks
+        hyperlinks not external
     scrape:
-      document.getElementByClass("navigation")
+      document.getElementByClass("a-price-whole")
 
 
     exports:
       Batch:
         strategy:
-          println(results.groupBy(_.tag).mapValues(_.size).toMap)
+          println(results.map(_.text))
         aggregate:
           _ ++ _
           

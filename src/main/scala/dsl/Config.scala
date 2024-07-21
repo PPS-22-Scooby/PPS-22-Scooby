@@ -55,6 +55,7 @@ object Config:
       builder.config = property.replace(propertyValue)(builder.config)
 
 
+
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
     given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
     init
@@ -69,10 +70,13 @@ object Config:
       init
       context.clientConfiguration = builder.config
 
+
   object CrawlerGlobalConfiguration:
     def option(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
       given builder: OptionConfigurationContext = OptionConfigurationContext(ConfigOptions())
       init
       context.options = builder.config
+
+
 
 
