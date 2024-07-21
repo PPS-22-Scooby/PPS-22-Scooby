@@ -60,6 +60,15 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
   def getElementByClass(className: String): Seq[HTMLElement] =
     htmlDocument.getElementsByClass(className).asScala.map(HTMLElement(_)).toSeq
 
+  /**
+    * Gets all the HTML elements from the DOM
+    *
+    * @return a [[Seq]] containing all the elements of the DOM
+    */
+  def allElements: Seq[HTMLElement] =
+    // #root is a special node inserted by Jsoup, we ignore it
+    htmlDocument.getAllElements().asScala.map(HTMLElement(_)).filterNot(_.tag == "#root").toSeq
+
 /**
  * Represents an HTML element.
  *
@@ -86,6 +95,21 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
   def attr(attribute: String): String = htmlElement.attr(attribute)
 
   /**
+    * Gets the class names of this element
+    *
+    * @return a [[Set]] containing the class names
+    */
+  def classes: Set[String] = htmlElement.classNames().asScala.toSet
+
+  /**
+    * Gets the attributes of this elements
+    *
+    * @return a [[Map]] with the names of the attributes as keys and their values as values
+    */
+  def attributes: Map[String, String] = htmlElement.attributes().asScala
+    .map(attr => (attr.getKey(), attr.getValue())).toMap
+
+  /**
    * Gets the tag name of the HTML element.
    *
    * @return
@@ -100,6 +124,13 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
    *   the outer HTML of the element
    */
   def outerHtml: String = htmlElement.outerHtml()
+
+  /**
+    * Gets the id of this HTML element
+    *
+    * @return a [[String]] corresponding to the id
+    */
+  def id: String = htmlElement.id()
 
 object HTMLDom:
   private[html] def apply(htmlDocument: org.jsoup.nodes.Document): HTMLDom =

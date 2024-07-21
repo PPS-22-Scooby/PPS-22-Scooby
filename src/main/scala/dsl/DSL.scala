@@ -8,7 +8,8 @@ object DSL:
 
   export Config.*
   export Crawl.*
-  export Scrape.*
+  export Scrape.{scrape, document, matchesOf, select, elements, tag, classes, attributes, get, and, id,
+                haveClass, haveId, haveTag, that, dont, including, or}
   export Export.*
 
   case class ScrapingResultSetting[T]()

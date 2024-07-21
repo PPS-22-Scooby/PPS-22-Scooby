@@ -7,6 +7,9 @@ import scala.concurrent.duration.DurationInt
 
 import Application.scooby
 import dsl.ScoobyEmbeddable
+import org.unibo.scooby.dsl.Scrape.haveAttribute
+import org.unibo.scooby.dsl.Scrape.haveAttributeValue
+import cats.syntax.group
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -16,24 +19,24 @@ object Application extends ScoobyEmbeddable with App:
         Timeout is 5.seconds
         MaxRequests is 5
       option:
-        MaxDepth is 1
+        MaxDepth is 0
         MaxLinks is 20
 
     crawl:
       url:
-        "https://www.example.com"
+        "https://www.iana.org/help/example-domains"
       policy:
         links
     scrape:
-      document.getElementByClass("navigation")
-
+      elements that (haveAttribute("href") and dont(
+        haveAttributeValue("href", "/domains/reserved") or
+        haveAttributeValue("href", "/about")
+      ))
 
     exports:
       Batch:
         strategy:
-          println(results.groupBy(_.tag).mapValues(_.size).toMap)
-        aggregate:
-          _ ++ _
+          println(results get(_.attr("href")))
           
       Streaming:
         println(results)

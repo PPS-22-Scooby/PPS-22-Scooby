@@ -88,9 +88,9 @@ class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll:
   "Scraper" should "process a document and send the result to exporter" in:
     val expectedById: Result[String] = idSelector.map(document.getElementById).map(_.fold(Result.empty[String])(el => Result.fromData(el.outerHtml)))
       .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-    val expectedByTag: Result[String] = tagSelector.flatMap(document.getElementByTag).map(_.outerHtml).map(elem => Result.fromData(elem))
+    val expectedByTag: Result[String] = tagSelector.flatMap(document.getElementsByTag).map(_.outerHtml).map(elem => Result.fromData(elem))
       .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
-    val expectedByClass: Result[String] = classSelector.flatMap(document.getElementByClass).map(_.outerHtml).map(elem => Result.fromData(elem))
+    val expectedByClass: Result[String] = classSelector.flatMap(document.getElementsByClass).map(_.outerHtml).map(elem => Result.fromData(elem))
       .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
     val expectedByCss: Result[String] = cssSelector.flatMap(sel => document.select(sel)).map(_.outerHtml).map(elem => Result.fromData(elem))
       .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
