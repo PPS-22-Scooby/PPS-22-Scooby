@@ -23,7 +23,7 @@ object Application extends ScoobyEmbeddable with App:
       url:
         "https://www.example.com"
       policy:
-        links
+        document.allLinks
     scrape:
       document.getElementByClass("navigation")
 

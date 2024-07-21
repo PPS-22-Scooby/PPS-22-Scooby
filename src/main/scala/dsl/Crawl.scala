@@ -7,6 +7,7 @@ import utility.document.CrawlDocument
 import utility.http.URL
 
 import monocle.syntax.all.*
+import org.unibo.scooby.utility.document.Document
 
 object Crawl:
   case class CrawlContext(var url: String, var policy: ExplorationPolicy)
@@ -28,7 +29,12 @@ object Crawl:
       given CrawlDocument = doc
       init
 
-  def links(using crawlDocumentContext: CrawlDocument): Iterable[URL] = crawlDocumentContext.frontier
+  def hyperlinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
+    crawlDocumentContext.frontier
+
+  def allLinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
+    crawlDocumentContext.allLinks
+
 
 
 

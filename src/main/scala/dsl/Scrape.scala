@@ -9,6 +9,7 @@ import utility.document.ScrapeDocument
 
 import monocle.syntax.all.*
 import org.unibo.scooby.dsl.DSL.ScrapingResultSetting
+import org.unibo.scooby.utility.document.Document
 
 object Scrape:
 
@@ -18,6 +19,3 @@ object Scrape:
         given ScrapeDocument = doc
         init
     builder.scrapingResultSetting = ScrapingResultSetting[T]()
-
-
-  def document(using scrapeDocumentContext: ScrapeDocument): ScrapeDocument = scrapeDocumentContext

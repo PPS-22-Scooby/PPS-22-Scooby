@@ -35,10 +35,10 @@ trait RegExpExplorer extends Document:
 /**
  * Trait that provides functionality to explore links in a document.
  */
-trait LinkExplorer extends RegExpExplorer:
+trait LinkExplorer extends RegExpExplorer, HtmlExplorer:
 
   /**
-   * Finds all links in the document's content.
+   * Finds all links in "href" attribute in the document's content.
    *
    * @return
    *   a sequence of all links
@@ -46,6 +46,14 @@ trait LinkExplorer extends RegExpExplorer:
   def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).resolve(url)).filter(_.isValid).toSeq
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
+
+  /**
+   * Retrieves all the links from the HTML document.
+   *
+   * @return a sequence of URLs representing the links in the document.
+   */
+  def allLinks: Seq[URL] = htmlDocument.getAllLinkOccurrences()
+
 
 /**
  * Trait that provides functionality to explore an HTML document.
