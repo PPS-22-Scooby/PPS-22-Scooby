@@ -10,6 +10,7 @@ import scala.Seq
 class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
   val html = """<html>
+                |<head></head>
                 |<body>
                 | <p id="test">Test</p>
                 | <p>Test2</p>
@@ -63,4 +64,10 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
     document.getElementByClass("link2").map(_.tag) should be(Seq("a"))
     document.getElementByClass("link2").map(_.outerHtml) should be(Seq("""<a id="link2" class="link2" href="file.html">Pong</a>"""))
 
-    
+  "A document with HtmlExplorer" should "return all the HTML elements present in it" in:
+    val document = new Document(html, url) with CommonHTMLExplorer
+    val expectedTags = Seq("html", "head", "body", "p", "p","a","a","a","a","body","html")
+
+    document.getAllElements.map(_.tag).zipWithIndex.foreach{
+      case (outer, index) => outer shouldBe expectedTags(index)
+    }

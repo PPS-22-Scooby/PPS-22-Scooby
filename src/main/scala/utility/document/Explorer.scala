@@ -116,6 +116,13 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    */
   def getElementByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
 
+  /**
+    * Gets all the elements from the HTML document
+    *
+    * @return a sequence containing all the HTML elements of the document
+    */
+  def getAllElements: Seq[HTMLElement] = htmlDocument.allElements
+
 class CrawlDocument(content: String, url: URL) extends Document(content, url)
       with LinkExplorer
 

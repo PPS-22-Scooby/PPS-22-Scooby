@@ -60,6 +60,15 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
   def getElementByClass(className: String): Seq[HTMLElement] =
     htmlDocument.getElementsByClass(className).asScala.map(HTMLElement(_)).toSeq
 
+  /**
+    * Gets all the HTML elements from the DOM
+    *
+    * @return a [[Seq]] containing all the elements of the DOM
+    */
+  def allElements: Seq[HTMLElement] =
+    // #root is a special node inserted by Jsoup, we ignore it
+    htmlDocument.getAllElements().asScala.map(HTMLElement(_)).filterNot(_.tag == "#root").toSeq
+
 /**
  * Represents an HTML element.
  *
