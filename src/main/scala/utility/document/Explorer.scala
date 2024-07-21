@@ -104,7 +104,7 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    * @return
    *   a sequence of elements with the given tag name
    */
-  def getElementByTag(tag: String): Seq[HTMLElement] = htmlDocument.getElementByTag(tag)
+  def getElementsByTag(tag: String): Seq[HTMLElement] = htmlDocument.getElementByTag(tag)
 
   /**
    * Gets elements from the HTML document by their class name.
@@ -114,7 +114,7 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    * @return
    *   a sequence of elements with the given class name
    */
-  def getElementByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
+  def getElementsByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
 
   /**
     * Gets all the elements from the HTML document
