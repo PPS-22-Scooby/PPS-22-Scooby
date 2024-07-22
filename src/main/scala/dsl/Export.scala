@@ -54,7 +54,7 @@ object Export:
       case Json
     
     extension [T](x: Iterable[T])
-      infix def to: ExportToContext[T] = ExportToContext[T](x)
+      infix def outputTo: ExportToContext[T] = ExportToContext[T](x)
       infix def get[A](f: T => A): Iterable[A] = x.map(f)
       @targetName("export")
       infix inline def >>(f: Iterable[T] => Unit): Unit = f(x)
@@ -85,7 +85,7 @@ object Export:
 
     case class ExportStrategyContext[T]()
       
-    class ExportToContext[T](it: Iterable[T]):
+    case class ExportToContext[T](it: Iterable[T]):
       def apply(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit =
         given ExportStrategyContext[T] = ExportStrategyContext[T]()
         f(it)
