@@ -1,10 +1,9 @@
 package org.unibo.scooby
 
-import org.unibo.scooby.utility.document.html.HTMLElement
+import utility.document.html.HTMLElement
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-
 import Application.scooby
 import dsl.ScoobyEmbeddable
 
@@ -31,7 +30,10 @@ object Application extends ScoobyEmbeddable with App:
     exports:
       Batch:
         strategy:
-          println(results.groupBy(_.tag).mapValues(_.size).toMap)
+          results get tag to:
+            File("myPath") asStrategy Text
+
+          // println(results.groupBy(_.tag).mapValues(_.size).toMap)
         aggregate:
           _ ++ _
           
