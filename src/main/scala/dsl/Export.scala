@@ -10,13 +10,8 @@ import dsl.DSL.ConfigurationBuilder
 import core.scooby.SingleExporting
 import utility.document.html.HTMLElement
 
-import org.unibo.scooby.core.exporter.FormattingBehavior
-
-import java.io.BufferedWriter
 import scala.annotation.targetName
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, StandardOpenOption}
-import scala.util.Try
+import java.nio.file.Path
 
 object Export:
   import Context.*
@@ -46,15 +41,25 @@ object Export:
     def outerText: HTMLElement => String = _.outerHtml
     def attr: String => HTMLElement => String = attribute => _.attr(attribute)
 
-    infix def File[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnFileOutput[T] =
-      WriteOnFileOutput[T](exporter, path)
+    enum ExportSupport:
+      case Console
+      case File(path: String)
+
+    infix def File[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      WriteOnOutput[T](exporter, ExportSupport.File(path))
+
+    infix def Console[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      WriteOnOutput[T](exporter, ExportSupport.Console)
 
     enum Strategy:
       case Text
       case Json
     
     extension [T](x: Iterable[T])
-      infix def outputTo: ExportToContext[T] = ExportToContext[T](x)
+      infix def outputTo(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+        given ExportStrategyContext[T] = ExportStrategyContext[T]()
+        f(x)
+
       infix def get[A](f: T => A): Iterable[A] = x.map(f)
       @targetName("export")
       infix inline def >>(f: Iterable[T] => Unit): Unit = f(x)
@@ -71,9 +76,9 @@ object Export:
 
     case class StrategiesContext[T](var exportingStrategies: Seq[SingleExporting[T]])
 
-    case class WriteOnFileOutput[T](context: ExportStrategyContext[T], path: String):
+    import ExportOps.ExportSupport
 
-      import ExportOps.Strategy
+    case class WriteOnOutput[T](context: ExportStrategyContext[T], support: ExportSupport):
 
       infix def asStrategy(strategy: Strategy): Iterable[T] => Unit =
         (it: Iterable[T]) =>
@@ -81,7 +86,11 @@ object Export:
             case Strategy.Text => Formats.string
             case Strategy.Json => Formats.string // TODO once implemented Json export, parse it
 
-          ExportingBehaviors.writeOnFile(Path.of(path), format)(Result(it))
+          support match
+            case ExportSupport.File(path: String) =>
+              ExportingBehaviors.writeOnFile(Path.of(path), format)(Result(it))
+            case ExportSupport.Console =>
+              println(it.mkString("\n"))
 
     case class ExportStrategyContext[T]()
       

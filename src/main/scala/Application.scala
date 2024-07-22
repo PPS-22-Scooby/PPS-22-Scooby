@@ -6,7 +6,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import Application.scooby
 import dsl.ScoobyEmbeddable
-import dsl.Export.Context.ExportToContext
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -33,13 +32,12 @@ object Application extends ScoobyEmbeddable with App:
           results get attr("myAttr") outputTo:
             File("prova") asStrategy Text
 
-          // println(results.groupBy(_.tag).mapValues(_.size).toMap)
         aggregate:
           _ ++ _
           
       Streaming:
-        results.groupBy(_.tag).mapValues(_.size).toMap outputTo:
-          File("prova") asStrategy Json
+        results.groupBy(_.tag).view.mapValues(_.size).toMap outputTo:
+          Console asStrategy Json
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)
