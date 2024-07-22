@@ -101,9 +101,8 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
    * @return A Map[String, String] containing the attribute names and values.
    */
   def attributes: Map[String, String] =
-    htmlElement.attributes().asList().toArray.map: attr =>
-      val attribute = attr.asInstanceOf[org.jsoup.nodes.Attribute]
-      attribute.getKey -> attribute.getValue
+    htmlElement.attributes().asScala.map: attr =>
+      attr.getKey -> attr.getValue
     .toMap
 
   /**
@@ -113,7 +112,7 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
    *
    * @return A Seq[HTMLElement] representing the children of the element.
    */
-  def children: Seq[HTMLElement] = htmlElement.children().iterator().asScala.map(HTMLElement(_)).toSeq
+  def children: Seq[HTMLElement] = htmlElement.children().asScala.map(HTMLElement(_)).toSeq
 
   /**
    * Gets the outer HTML of the HTML element.

@@ -16,11 +16,13 @@ import play.api.libs.json.Writes._
  */
 object JsonConverter:
 
-  // Defines how to write an `HTMLElement` to JSON.
-  // The `Writes` instance specifies how to convert the various fields of an `HTMLElement`
-  // into a JSON representation. This includes the tag name, attributes map, optional text content,
-  // and children elements. The children elements are handled recursively using `lazyWrite`
-  // to support nested structures without running into issues with infinite recursion.
+  /**
+   * Defines how to write an `HTMLElement` to JSON.
+   * The `Writes` instance specifies how to convert the various fields of an `HTMLElement`
+   * into a JSON representation. This includes the tag name, attributes map, optional text content,
+   * and children elements. The children elements are handled recursively using `lazyWrite`
+   * to support nested structures without running into issues with infinite recursion.
+   */
   given htmlElementWrites: Writes[HTMLElement] = (
     (JsPath \ "tag").write[String] and
       (JsPath \ "attributes").write[Map[String, String]] and
