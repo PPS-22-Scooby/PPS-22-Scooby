@@ -57,6 +57,7 @@ object Config:
     infix def is(propertyValue: V)(using builder: C): Unit =
       builder.config = property.replace(propertyValue)(builder.config)
 
+
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
     given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
     init
@@ -70,6 +71,7 @@ object Config:
       given builder: NetworkConfigurationContext = NetworkConfigurationContext(ClientConfiguration.default)
       init
       context.clientConfiguration = builder.config
+
 
     extension(x: String)
       infix def to(value: String)(using context: HeadersContext): Unit = context.headers =

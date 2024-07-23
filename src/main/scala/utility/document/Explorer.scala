@@ -5,6 +5,8 @@ import utility.document.html.*
 import utility.http.URL
 
 import scala.util.matching.Regex
+import utility.http.URL
+import utility.http.URL.toUrl
 
 /**
  * Trait that provides functionality to explore a document using regular expressions.
@@ -35,10 +37,10 @@ trait RegExpExplorer extends Document:
 /**
  * Trait that provides functionality to explore links in a document.
  */
-trait LinkExplorer extends RegExpExplorer:
+trait LinkExplorer extends RegExpExplorer, HtmlExplorer:
 
   /**
-   * Finds all links in the document's content.
+   * Finds all links in "href" attribute in the document's content.
    *
    * @return
    *   a sequence of all links
@@ -46,6 +48,20 @@ trait LinkExplorer extends RegExpExplorer:
   def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).resolve(url)).filter(_.isValid).toSeq
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
+
+trait EnhancedLinkExplorer extends HtmlExplorer:
+  /**
+   * Retrieves all the links from the HTML document.
+   *
+   * @return a sequence of URLs representing the links in the document.
+   */
+  def getAllLinkOccurrences: Seq[URL] =
+    val hrefLinks = htmlDocument.select("[href]").map(_.attr("href")).map(_.toUrl)
+    val srcLinks = htmlDocument.select("[src]").map(_.attr("src")).map(_.toUrl)
+    val urlPattern: Regex = "(https?://\\S+|http://\\S+|www\\.\\S+)".r
+    val textLinks = urlPattern.findAllIn(htmlDocument.select("body").map(_.text).mkString(" ")).map(_.toUrl)
+    hrefLinks ++ srcLinks ++ textLinks
+
 
 /**
  * Trait that provides functionality to explore an HTML document.
@@ -125,6 +141,7 @@ trait CommonHTMLExplorer extends HtmlExplorer:
 
 class CrawlDocument(content: String, url: URL) extends Document(content, url)
       with LinkExplorer
+      with EnhancedLinkExplorer
 
 class ScrapeDocument(content: String, url: URL) extends Document(content, url)
       with SelectorExplorer

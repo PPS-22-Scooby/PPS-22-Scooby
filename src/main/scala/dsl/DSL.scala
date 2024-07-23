@@ -5,13 +5,14 @@ import core.scooby.Configuration
 import org.unibo.scooby.utility.document.html.HTMLElement
 
 import scala.compiletime.uninitialized
+import org.unibo.scooby.utility.document.{CommonHTMLExplorer, Document}
 
 object DSL:
 
   export Config.*
   export Crawl.*
-  export Scrape.{scrape, document, matchesOf, select, elements, classes, attributes, and, id,
-                haveClass, haveId, haveTag, that, dont, including, or}
+  export Scrape.{scrape, matchesOf, select, elements, tag, classes, attributes, get, and, id,
+                haveClass, haveId, haveTag, that, dont, including, or, rule}
   export Export.*
   export Utils.*
 
@@ -26,3 +27,5 @@ object DSL:
     extension [T](x: Iterable[T])
       infix def get[A](f: T => A): Iterable[A] = x.map(f)
     
+
+  def document[T <: Document & CommonHTMLExplorer](using document: T): T = document
