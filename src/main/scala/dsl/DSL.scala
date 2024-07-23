@@ -3,13 +3,13 @@ package dsl
 import core.scooby.Configuration
 
 import scala.compiletime.uninitialized
-import org.unibo.scooby.utility.document.Document
+import org.unibo.scooby.utility.document.{CommonHTMLExplorer, Document}
 
 object DSL:
 
   export Config.*
   export Crawl.*
-  export Scrape.{scrape, document, matchesOf, select, elements, tag, classes, attributes, get, and, id,
+  export Scrape.{scrape, matchesOf, select, elements, tag, classes, attributes, get, and, id,
                 haveClass, haveId, haveTag, that, dont, including, or}
   export Export.*
 
@@ -19,4 +19,4 @@ object DSL:
     def build: Configuration[T] = configuration
 
 
-  def document[T <: Document](using document: T): T = document
+  def document[T <: Document & CommonHTMLExplorer](using document: T): T = document
