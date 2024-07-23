@@ -36,7 +36,7 @@ object Export:
 
     def results[T](using context: Iterable[T]): Iterable[T] = context
 
-    def tag: HTMLElement => String = _.tag
+    // def tag: HTMLElement => String = _.tag
     def text: HTMLElement => String = _.text
     def outerText: HTMLElement => String = _.outerHtml
     def attr: String => HTMLElement => String = attribute => _.attr(attribute)
@@ -60,7 +60,7 @@ object Export:
         given ExportStrategyContext[T] = ExportStrategyContext[T]()
         f(x)
 
-      infix def get[A](f: T => A): Iterable[A] = x.map(f)
+      // infix def get[A](f: T => A): Iterable[A] = x.map(f)
       @targetName("export")
       infix inline def >>(f: Iterable[T] => Unit): Unit = f(x)
 

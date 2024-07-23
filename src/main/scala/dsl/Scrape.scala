@@ -36,7 +36,7 @@ object Scrape:
   def select[T <: Document & SelectorExplorer](selectors: String*)(using documentContext: T): Iterable[HTMLElement] =
     documentContext.select(selectors*)
 
-  def tag: HTMLElement => String = _.tag 
+  // def tag: HTMLElement => String = _.tag 
   def classes: HTMLElement => Iterable[String] = _.classes
   def attributes: HTMLElement => Iterable[(String, String)] = _.attributes
   def id: HTMLElement => String = _.id

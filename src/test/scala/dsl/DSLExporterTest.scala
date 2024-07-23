@@ -40,7 +40,7 @@ class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAnd
   var fileExporter: String = "exporterTest.txt"
 
   val testClass: String = "myClass"
-  val scrapePolicy: ScraperPolicy[String] = doc => doc.getElementByClass(testClass).map(_.outerHtml)
+  val scrapePolicy: ScraperPolicy[String] = doc => doc.getElementsByClass(testClass).map(_.outerHtml)
   val format: FormatType = Text
 
   val content: String = scala.io.Source.fromResource("Resources.html").mkString("")
