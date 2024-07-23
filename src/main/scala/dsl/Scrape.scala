@@ -1,8 +1,6 @@
 package org.unibo.scooby
 package dsl
 
-import core.exporter.Exporter.AggregationBehaviors
-import core.scooby.SingleExporting
 import core.scraper.ScraperPolicies.ScraperPolicy
 import dsl.DSL.ConfigurationBuilder
 import utility.document.ScrapeDocument
@@ -16,13 +14,23 @@ import org.unibo.scooby.utility.document.RegExpExplorer
 import org.unibo.scooby.utility.document.SelectorExplorer
 
 object Scrape:
+  export SafeOps.*
 
-  def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
-    builder.configuration = builder.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
-      doc =>
-        given ScrapeDocument = doc
-        init
-    builder.scrapingResultSetting = ScrapingResultSetting[T]()
+  object SafeOps:
+    import UnsafeOps.*
+    import _root_.dsl.syntax.catchRecursiveCtx
+
+    inline def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
+      catchRecursiveCtx[ScrapeDocument]("scrape")
+      scrapeOp(init)
+
+  private[Scrape] object UnsafeOps:
+    def scrapeOp[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
+      builder.configuration = builder.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
+        doc =>
+          given ScrapeDocument = doc
+          init
+      builder.scrapingResultSetting = ScrapingResultSetting[T]()
 
 
   def document[T <: Document & CommonHTMLExplorer](using documentContext: T): T = documentContext
