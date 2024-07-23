@@ -56,7 +56,7 @@ object Export:
       case Json
     
     extension [T](x: Iterable[T])
-      infix def outputTo(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+      infix def output(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
         given ExportStrategyContext[T] = ExportStrategyContext[T]()
         f(x)
 

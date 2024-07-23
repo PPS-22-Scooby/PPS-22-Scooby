@@ -29,16 +29,16 @@ object Application extends ScoobyEmbeddable with App:
     exports:
       Batch:
         strategy:
-          results get tag outputTo:
+          results get tag output:
             ToConsole withFormat Text
-            // ToFile("prova") withFormat Text
+            ToFile("prova") withFormat Text
 
         aggregate:
           _ ++ _
           
-//      Streaming:
-//        results.groupBy(_.tag).view.mapValues(_.size).toMap outputTo:
-//          Console asStrategy Json
+      Streaming:
+        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
+          ToConsole withFormat Text
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)

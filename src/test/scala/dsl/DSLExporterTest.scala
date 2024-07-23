@@ -73,8 +73,9 @@ class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAnd
       exports:
         Batch:
           strategy:
-            results outputTo:
-              ToFile(pathDSL.toString + "/" + fileDSL) withFormat format
+            results output:
+              // ToFile(pathDSL.toString + "/" + fileDSL) withFormat format
+              ToConsole withFormat format
 
           aggregate:
             _ ++ _
