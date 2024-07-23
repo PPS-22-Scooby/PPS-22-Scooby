@@ -43,7 +43,7 @@ class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAnd
   val scrapePolicy: ScraperPolicy[String] = doc => doc.getElementsByClass(testClass).map(_.outerHtml)
   val format: FormatType = Text
 
-  val content: String = scala.io.Source.fromResource("Resources.html").mkString("")
+  val content: String = scala.io.Source.fromResource("html/Resources.html").mkString("")
 
   val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
 
