@@ -1,6 +1,6 @@
 package org.unibo.scooby
 
-import org.unibo.scooby.utility.document.html.HTMLElement
+import utility.document.html.HTMLElement
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -38,10 +38,16 @@ object Application extends ScoobyEmbeddable with App:
     exports:
       Batch:
         strategy:
-          println(results get(_.attr("href")))
+          results get tag output:
+            ToConsole withFormat Text
+            ToFile("prova") withFormat Text
+
+        aggregate:
+          _ ++ _
           
       Streaming:
-        println(results)
+        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
+          ToConsole withFormat Text
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)

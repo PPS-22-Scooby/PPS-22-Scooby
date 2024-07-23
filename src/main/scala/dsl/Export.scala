@@ -2,19 +2,23 @@ package org.unibo.scooby
 package dsl
 
 import monocle.syntax.all.*
-import org.unibo.scooby.core.exporter.Exporter.AggregationBehaviors
-
+import core.exporter.FormattingBehavior
+import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
 import core.scooby.SingleExporting
-import org.unibo.scooby.core.exporter.Exporter.{ExportingBehaviors, Formats}
+import utility.document.html.HTMLElement
+
+import scala.annotation.targetName
+import java.nio.file.Path
 
 object Export:
   import Context.*
   import Context.Batch.* 
   import Context.Stream.*
   export ExportOps.*
+  export ExportOps.FormatType.*
 
   object ExportOps:
     def exports[T](using builder: ConfigurationBuilder[T]): ExportContext[T] =
@@ -30,8 +34,35 @@ object Export:
     def aggregate[T](using context: BatchSettingContext[T]): BatchAggregateContext[T] = 
       BatchAggregateContext[T](context)
 
-    def results[T](using context: Iterable[T]): Iterable[T] = context.asInstanceOf[Iterable[T]]
+    def results[T](using context: Iterable[T]): Iterable[T] = context
 
+    // def tag: HTMLElement => String = _.tag
+    def text: HTMLElement => String = _.text
+    def outerText: HTMLElement => String = _.outerHtml
+    def attr: String => HTMLElement => String = attribute => _.attr(attribute)
+
+    enum ExportSupport:
+      case Console
+      case File(path: String)
+
+    infix def ToFile[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      WriteOnOutput[T](exporter, ExportSupport.File(path))
+
+    infix def ToConsole[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      WriteOnOutput[T](exporter, ExportSupport.Console)
+
+    enum FormatType:
+      case Text
+      case Json
+    
+    extension [T](x: Iterable[T])
+      infix def output(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+        given ExportStrategyContext[T] = ExportStrategyContext[T]()
+        f(x)
+
+      // infix def get[A](f: T => A): Iterable[A] = x.map(f)
+      @targetName("export")
+      infix inline def >>(f: Iterable[T] => Unit): Unit = f(x)
 
   object Context:
 
@@ -44,6 +75,29 @@ object Export:
 
 
     case class StrategiesContext[T](var exportingStrategies: Seq[SingleExporting[T]])
+
+    import ExportOps.ExportSupport
+
+    case class WriteOnOutput[T](context: ExportStrategyContext[T], support: ExportSupport):
+
+      infix def withFormat(strategy: FormatType): Iterable[T] => Unit =
+        (it: Iterable[T]) =>
+          val format: FormattingBehavior[T] = strategy match
+            case FormatType.Text => Formats.string
+            case FormatType.Json => Formats.string // TODO once implemented Json export, parse it
+
+          support match
+            case ExportSupport.File(path: String) =>
+              ExportingBehaviors.writeOnFile(Path.of(path), format)(Result(it))
+            case ExportSupport.Console =>
+              println(it.mkString("\n"))
+
+    case class ExportStrategyContext[T]()
+      
+    case class ExportToContext[T](it: Iterable[T]):
+      def apply(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit =
+        given ExportStrategyContext[T] = ExportStrategyContext[T]()
+        f(it)
 
     object Batch:
       case class BatchExportationContext[T](context: StrategiesContext[T]):
@@ -62,7 +116,7 @@ object Export:
         var aggregation: (Result[T], Result[T]) => Result[T])
 
       case class BatchStrategyContext[T](context: BatchSettingContext[T]):
-        infix def apply(init: Iterable[T] ?=> Unit): Unit = 
+        infix def apply(init: Iterable[T] ?=> Unit): Unit =
           context.policy = (res: Result[T]) => 
             given Iterable[T] = res.data
             init

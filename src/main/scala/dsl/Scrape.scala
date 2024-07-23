@@ -35,7 +35,8 @@ object Scrape:
   def select[T <: Document & SelectorExplorer](selectors: String*)(using documentContext: T): Iterable[HTMLElement] =
     documentContext.select(selectors*)
 
-  def tag: HTMLElement => String = _.tag
+  // def tag: HTMLElement => String = _.tag 
+
   def classes: HTMLElement => Iterable[String] = _.classes
   def attributes: HTMLElement => Iterable[(String, String)] = _.attributes
   def id: HTMLElement => String = _.id
@@ -61,10 +62,6 @@ object Scrape:
     infix inline def including[S >: T](y: Iterable[S]): Iterable[S] = x concat y
 
     infix inline def that(predicate: T => Boolean): Iterable[T] = x filter predicate
-
-  extension[T](x: Iterable[T])
-    infix def get[A](f: T => A): Iterable[A] = x.map(f)
-
   
 
   extension[T] (x: T => Boolean)
