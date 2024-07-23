@@ -11,38 +11,61 @@ import monocle.syntax.all.*
 import scala.concurrent.duration.FiniteDuration
 
 object Config:
-  export ConfigOps.*
+  export ConfigOps.SafeOps.*
   export ConfigOps.PropertyBuilder.*
   import ConfigContexts.*
 
   object ConfigOps:
+    import _root_.dsl.syntax.{catchRecursiveCtx, catchInvalidCtx}
 
-    def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
-      given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
-      init
-      builder.configuration = builder.configuration
-        .focus(_.crawlerConfiguration.networkOptions)     .replace(context.clientConfiguration)
-        .focus(_.crawlerConfiguration.maxDepth)           .replace(context.options.maxDepth)
-        .focus(_.coordinatorConfiguration.maxLinks)       .replace(context.options.maxLinks)
+    object SafeOps:
+      import UnsafeOps.* 
 
-    def headers(init: HeadersContext ?=> Unit)(using context: NetworkConfigurationContext): Unit =
-      given builder: HeadersContext = HeadersContext(Map.empty)
-      init
-      context.config = context.config.focus(_.headers).replace(builder.headers)
+      inline def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
+        catchRecursiveCtx[ConfigContext]("config")
+        catchInvalidCtx[ConfigurationBuilder[T]]("\"config\" must be used under \"scooby\" keyword")
+        configOp(init)
 
-    def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
-        given builder: NetworkConfigurationContext = NetworkConfigurationContext(ClientConfiguration.default)
+      inline def headers(init: HeadersContext ?=> Unit)(using context: NetworkConfigurationContext): Unit =
+        catchRecursiveCtx[HeadersContext]("headers")
+        headersOp(init)
+
+      inline def network(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+        catchRecursiveCtx[NetworkConfigurationContext]("network")
+        networkOp(init)
+
+      inline def option(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+        catchRecursiveCtx[OptionConfigurationContext]("option")
+        optionOp(init)
+
+      extension(x: String)
+        infix def to(value: String)(using context: HeadersContext): Unit = context.headers =
+          context.headers + (x -> value)
+
+
+    private[Config] object UnsafeOps:
+      def configOp[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
+        given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
         init
-        context.clientConfiguration = builder.config
+        builder.configuration = builder.configuration
+          .focus(_.crawlerConfiguration.networkOptions)     .replace(context.clientConfiguration)
+          .focus(_.crawlerConfiguration.maxDepth)           .replace(context.options.maxDepth)
+          .focus(_.coordinatorConfiguration.maxLinks)       .replace(context.options.maxLinks)
 
-    extension(x: String)
-      infix def to(value: String)(using context: HeadersContext): Unit = context.headers =
-        context.headers + (x -> value)
+      def headersOp(init: HeadersContext ?=> Unit)(using context: NetworkConfigurationContext): Unit =
+          given builder: HeadersContext = HeadersContext(Map.empty)
+          init
+          context.config = context.config.focus(_.headers).replace(builder.headers)
 
-    def option(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
-        given builder: OptionConfigurationContext = OptionConfigurationContext(ConfigOptions())
-        init
-        context.options = builder.config
+      def networkOp(init: NetworkConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+          given builder: NetworkConfigurationContext = NetworkConfigurationContext(ClientConfiguration.default)
+          init
+          context.clientConfiguration = builder.config
+
+      def optionOp(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
+          given builder: OptionConfigurationContext = OptionConfigurationContext(ConfigOptions())
+          init
+          context.options = builder.config
 
 
     private type AccessProperty[T,V] = Lens[T, V]
@@ -69,7 +92,7 @@ object Config:
 
     
 
-  object ConfigContexts:
+  private[Config] object ConfigContexts:
 
     case class ConfigContext(
                               var options: ConfigOptions,
