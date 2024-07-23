@@ -18,7 +18,7 @@ object Export:
   import Context.Batch.* 
   import Context.Stream.*
   export ExportOps.*
-  export ExportOps.Strategy.*
+  export ExportOps.FormatType.*
 
   object ExportOps:
     def exports[T](using builder: ConfigurationBuilder[T]): ExportContext[T] =
@@ -45,13 +45,13 @@ object Export:
       case Console
       case File(path: String)
 
-    infix def File[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+    infix def ToFile[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
       WriteOnOutput[T](exporter, ExportSupport.File(path))
 
-    infix def Console[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+    infix def ToConsole[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
       WriteOnOutput[T](exporter, ExportSupport.Console)
 
-    enum Strategy:
+    enum FormatType:
       case Text
       case Json
     
@@ -80,11 +80,11 @@ object Export:
 
     case class WriteOnOutput[T](context: ExportStrategyContext[T], support: ExportSupport):
 
-      infix def asStrategy(strategy: Strategy): Iterable[T] => Unit =
+      infix def withFormat(strategy: FormatType): Iterable[T] => Unit =
         (it: Iterable[T]) =>
           val format: FormattingBehavior[T] = strategy match
-            case Strategy.Text => Formats.string
-            case Strategy.Json => Formats.string // TODO once implemented Json export, parse it
+            case FormatType.Text => Formats.string
+            case FormatType.Json => Formats.string // TODO once implemented Json export, parse it
 
           support match
             case ExportSupport.File(path: String) =>

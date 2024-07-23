@@ -15,7 +15,7 @@ object Application extends ScoobyEmbeddable with App:
         Timeout is 5.seconds
         MaxRequests is 5
       option:
-        MaxDepth is 1
+        MaxDepth is 2
         MaxLinks is 20
 
     crawl:
@@ -29,15 +29,16 @@ object Application extends ScoobyEmbeddable with App:
     exports:
       Batch:
         strategy:
-          results get attr("myAttr") outputTo:
-            File("prova") asStrategy Text
+          results get tag outputTo:
+            ToConsole withFormat Text
+            // ToFile("prova") withFormat Text
 
         aggregate:
           _ ++ _
           
-      Streaming:
-        results.groupBy(_.tag).view.mapValues(_.size).toMap outputTo:
-          Console asStrategy Json
+//      Streaming:
+//        results.groupBy(_.tag).view.mapValues(_.size).toMap outputTo:
+//          Console asStrategy Json
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)

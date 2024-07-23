@@ -68,23 +68,6 @@ class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll:
   val scraperMultiPolicies: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelector, "id").concat(ScraperPolicies.scraperRule(Seq(regEx), "regex"))))
   val scraperNoMatch: ActorRef[ScraperCommands] = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelectorNoMatch, "id")))
 
-  override def beforeAll(): Unit =
-    // system = ActorSystem("ScraperTestSystem")
-
-  "Scraper" should "process Messages.Scrape message correctly" in:
-
-      scraperId ! ScraperCommands.Scrape(document)
-      scraperTag ! ScraperCommands.Scrape(document)
-      scraperClass ! ScraperCommands.Scrape(document)
-      scraperCss ! ScraperCommands.Scrape(document)
-      scraperRegEx ! ScraperCommands.Scrape(document)
-
-      scraperId ! ScraperCommands.Scrape(document)
-      scraperTag ! ScraperCommands.Scrape(document)
-      scraperClass ! ScraperCommands.Scrape(document)
-      scraperCss ! ScraperCommands.Scrape(document)
-      scraperRegEx ! ScraperCommands.Scrape(document)
-
   "Scraper" should "process a document and send the result to exporter" in:
     val expectedById: Result[String] = idSelector.map(document.getElementById).map(_.fold(Result.empty[String])(el => Result.fromData(el.outerHtml)))
       .reduceOption((res1, res2) => res1.aggregate(res2)).getOrElse(Result.empty[String])
