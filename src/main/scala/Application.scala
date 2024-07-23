@@ -4,11 +4,10 @@ import org.unibo.scooby.utility.document.html.HTMLElement
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-
 import Application.scooby
 import dsl.ScoobyEmbeddable
-import org.unibo.scooby.dsl.Scrape.haveAttribute
-import org.unibo.scooby.dsl.Scrape.haveAttributeValue
+
+import org.unibo.scooby.dsl.Scrape.{element, haveAttribute, haveAttributeValue, rule}
 import cats.syntax.group
 
 object Application extends ScoobyEmbeddable with App:
@@ -28,11 +27,12 @@ object Application extends ScoobyEmbeddable with App:
       policy:
         links
     scrape:
-      elements that (haveAttribute("href") and dont(
-        haveAttributeValue("href", "/domains/reserved") or
-        haveAttributeValue("href", "/about")
-      ))
-
+      elements that :
+        haveAttribute("href") and dont:
+          haveAttributeValue("href", "/domains/reserved") or
+          haveAttributeValue("href", "/about")
+        .and:
+          rule { element.tag == "a" } and rule { element.tag == "div" }
     exports:
       Batch:
         strategy:
