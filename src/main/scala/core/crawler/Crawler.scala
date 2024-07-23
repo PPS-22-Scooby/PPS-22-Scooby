@@ -122,8 +122,8 @@ type ExplorationPolicy = CrawlDocument => Iterable[URL]
  *   the system context
  * @param coordinator
  *   the ActorRef of the coordinator to communicate with
- * @param exporter
- *   the ActorRef of the exporter to communicate with
+ * @param exporterRouter
+ *   the ActorRef of the exporter router to communicate with
  * @param scrapeRule scraping rule for the [[Scraper]]s spawned by this Crawler
  * @param explorationPolicy policy that specifies what links to explore inside the [[CrawlDocument]]
  * @param maxDepth max recursion depth for crawlers (maximum depth of the tree of crawlers)
@@ -133,12 +133,12 @@ type ExplorationPolicy = CrawlDocument => Iterable[URL]
  * @tparam T type of [[Result]]s that get exported
  */
 class Crawler[T](context: ActorContext[CrawlerCommand],
-                coordinator: ActorRef[CoordinatorCommand],
-                exporter: ActorRef[ExporterCommands],
-                scrapeRule: ScraperPolicy[T],
-                explorationPolicy: ExplorationPolicy,
-                maxDepth: Int,
-                buffer: StashBuffer[CrawlerCommand],
+                 coordinator: ActorRef[CoordinatorCommand],
+                 exporterRouter: ActorRef[ExporterCommands],
+                 scrapeRule: ScraperPolicy[T],
+                 explorationPolicy: ExplorationPolicy,
+                 maxDepth: Int,
+                 buffer: StashBuffer[CrawlerCommand],
                  client: SimpleHttpClient):
   import CrawlerCommand.*
 
@@ -177,7 +177,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
        * @param document document obtained by fetching the URL
        */
       def scrape(document: CrawlDocument): Unit =
-        val scraper = context.spawn(Scraper(exporter, scrapeRule), s"scraper-${getCrawlerName(url)}")
+        val scraper = context.spawn(Scraper(exporterRouter, scrapeRule), s"scraper-${getCrawlerName(url)}")
         context.watchWith(scraper, ChildTerminated())
         scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
@@ -213,7 +213,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
         url <- Some(returnedUrl)
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler.buildWithClient(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1, httpClient),
+        val child = context.spawn(Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient),
           s"crawler-${getCrawlerName(url)}")
         context.watchWith(child, ChildTerminated())
         child ! Crawl(url)
