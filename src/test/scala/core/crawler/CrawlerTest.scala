@@ -1,30 +1,23 @@
 package org.unibo.scooby
 package core.crawler
 
+import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.Effect.*
+import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import org.slf4j.event.Level
+import org.unibo.scooby.utility.ScalaTestWithMockServer
+
+import scala.language.implicitConversions
+import scala.language.postfixOps
+
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.CoordinatorCommand
 import utility.http.URL
 import utility.http.URL.*
-import utility.MockServer
-
-import akka.actor.testkit.typed.CapturedLogEvent
-import akka.actor.testkit.typed.Effect.*
-import org.scalatest.BeforeAndAfterAll
-
-import scala.concurrent.Await
-import scala.concurrent.duration.*
-import akka.actor.typed.scaladsl.AskPattern.*
-import akka.util.Timeout
-import org.slf4j.event.Level
 import core.exporter.ExporterCommands
-import utility.document.ScrapeDocument
-
-import scala.language.{implicitConversions, postfixOps}
-import org.unibo.scooby.utility.ScalaTestWithMockServer
 
 class CrawlerTest extends ScalaTestWithMockServer:
 
