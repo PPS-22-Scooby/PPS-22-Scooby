@@ -7,8 +7,6 @@ import org.jsoup.Jsoup
 
 import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
-import org.unibo.scooby.utility.http.URL
-import org.unibo.scooby.utility.http.URL.toUrl
 
 /**
  * Represents a HTML Document Object Model (DOM).
@@ -62,18 +60,6 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
    */
   def getElementByClass(className: String): Seq[HTMLElement] =
     htmlDocument.getElementsByClass(className).asScala.map(HTMLElement(_)).toSeq
-
-  /**
-   * Retrieves all occurrences of URLs in the HTML document.
-   *
-   * @return a sequence of URLs representing the occurrences found.
-   */
-  def getAllLinkOccurrences: Seq[URL] =
-    val hrefLinks = htmlDocument.select("[href]").eachAttr("href").asScala.toSeq.map(_.toUrl)
-    val srcLinks = htmlDocument.select("[src]").eachAttr("src").asScala.toSeq.map(_.toUrl)
-    val urlPattern: Regex = "(https?://\\S+|http://\\S+|www\\.\\S+)".r
-    val textLinks = urlPattern.findAllIn(htmlDocument.body().text()).toSeq.map(_.toUrl)
-    hrefLinks ++ srcLinks ++ textLinks
 
   /**
     * Gets all the HTML elements from the DOM
