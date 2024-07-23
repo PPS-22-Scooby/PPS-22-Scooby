@@ -32,7 +32,7 @@ object Crawl:
     crawlDocumentContext.frontier
 
   def allLinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
-    crawlDocumentContext.allLinks
+    crawlDocumentContext.getAllLinkOccurrences
 
   extension (x: Iterable[URL])
     infix def not(pred: URL => Boolean): Iterable[URL] = 

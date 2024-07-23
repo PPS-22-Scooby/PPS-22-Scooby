@@ -47,12 +47,13 @@ trait LinkExplorer extends RegExpExplorer, HtmlExplorer:
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
 
+trait EnhancedLinkExplorer extends HtmlExplorer:
   /**
    * Retrieves all the links from the HTML document.
    *
    * @return a sequence of URLs representing the links in the document.
    */
-  def allLinks: Seq[URL] = htmlDocument.getAllLinkOccurrences
+  def getAllLinkOccurrences: Seq[URL] = htmlDocument.getAllLinkOccurrences
 
 
 /**
@@ -133,6 +134,7 @@ trait CommonHTMLExplorer extends HtmlExplorer:
 
 class CrawlDocument(content: String, url: URL) extends Document(content, url)
       with LinkExplorer
+      with EnhancedLinkExplorer
 
 class ScrapeDocument(content: String, url: URL) extends Document(content, url)
       with SelectorExplorer
