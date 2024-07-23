@@ -7,9 +7,6 @@ import scala.concurrent.duration.DurationInt
 
 import Application.scooby
 import dsl.ScoobyEmbeddable
-import org.unibo.scooby.dsl.Scrape.haveAttribute
-import org.unibo.scooby.dsl.Scrape.haveAttributeValue
-import cats.syntax.group
 
 object Application extends ScoobyEmbeddable with App:
 
