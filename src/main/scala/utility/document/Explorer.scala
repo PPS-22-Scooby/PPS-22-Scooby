@@ -52,7 +52,7 @@ trait LinkExplorer extends RegExpExplorer, HtmlExplorer:
    *
    * @return a sequence of URLs representing the links in the document.
    */
-  def allLinks: Seq[URL] = htmlDocument.getAllLinkOccurrences()
+  def allLinks: Seq[URL] = htmlDocument.getAllLinkOccurrences
 
 
 /**

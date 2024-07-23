@@ -68,10 +68,10 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
    *
    * @return a sequence of URLs representing the occurrences found.
    */
-  def getAllLinkOccurrences(): Seq[URL] = 
+  def getAllLinkOccurrences: Seq[URL] =
     val hrefLinks = htmlDocument.select("[href]").eachAttr("href").asScala.toSeq.map(_.toUrl)
     val srcLinks = htmlDocument.select("[src]").eachAttr("src").asScala.toSeq.map(_.toUrl)
-    val urlPattern: Regex = new Regex("(https?://\\S+|http://\\S+|www\\.\\S+)")
+    val urlPattern: Regex = "(https?://\\S+|http://\\S+|www\\.\\S+)".r
     val textLinks = urlPattern.findAllIn(htmlDocument.body().text()).toSeq.map(_.toUrl)
     hrefLinks ++ srcLinks ++ textLinks
 
