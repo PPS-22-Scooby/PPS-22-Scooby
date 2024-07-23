@@ -23,10 +23,7 @@ object Scrape:
         given ScrapeDocument = doc
         init
     builder.scrapingResultSetting = ScrapingResultSetting[T]()
-
-
-  def document[T <: Document & CommonHTMLExplorer](using documentContext: T): T = documentContext
-
+    
   def elements[T <: Document & CommonHTMLExplorer](using documentContext: T): Iterable[HTMLElement] =
     documentContext.getAllElements
   

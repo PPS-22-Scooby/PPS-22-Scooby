@@ -6,9 +6,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import Application.scooby
 import dsl.ScoobyEmbeddable
-
+import org.unibo.scooby.dsl.Crawl.not
 import org.unibo.scooby.dsl.Scrape.{element, haveAttribute, haveAttributeValue, rule}
-import cats.syntax.group
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -21,14 +20,14 @@ object Application extends ScoobyEmbeddable with App:
           "Authorization" to "prova"
           "Agent" to "gr"
       option:
-        MaxDepth is 0
+        MaxDepth is 2
         MaxLinks is 20
 
     crawl:
       url:
-        "https://www.iana.org/help/example-domains"
+        "https://www.example.it"
       policy:
-        links
+        hyperlinks not external
     scrape:
       elements that :
         haveAttribute("href") and dont:
