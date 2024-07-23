@@ -72,7 +72,8 @@ object ScoobyActor:
             exporterRouter,
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
-            configuration.crawlerConfiguration.maxDepth
+            configuration.crawlerConfiguration.maxDepth,
+            configuration.crawlerConfiguration.networkOptions
           ), s"RootCrawler-${Crawler.getCrawlerName(configuration.crawlerConfiguration.url)}")
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 

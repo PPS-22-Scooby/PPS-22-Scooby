@@ -10,6 +10,7 @@ import scala.Seq
 class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
   val html = """<html>
+                |<head></head>
                 |<body>
                 | <p id="test">Test</p>
                 | <p>Test2</p>
@@ -51,16 +52,35 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
   "A document with HtmlExplorer" should "create an HTML document and extract elements by tag" in:
     val document = new Document(html, url) with CommonHTMLExplorer
-    document.getElementByTag("p").length should be(2)
-    document.getElementByTag("p").map(_.text) should be(Seq("Test", "Test2"))
+    document.getElementsByTag("p").length should be(2)
+    document.getElementsByTag("p").map(_.text) should be(Seq("Test", "Test2"))
 
   "A document with HtmlExplorer" should "create an HTML document and extract elements by class" in:
     val document = new Document(html, url) with CommonHTMLExplorer
-    document.getElementByClass("test").length should be(0)
-    document.getElementByClass("link2").length should be(1)
-    document.getElementByClass("link2").map(_.text) should be(Seq("Pong"))
-    document.getElementByClass("link2").map(_.attr("href")) should be(Seq("file.html"))
-    document.getElementByClass("link2").map(_.tag) should be(Seq("a"))
-    document.getElementByClass("link2").map(_.outerHtml) should be(Seq("""<a id="link2" class="link2" href="file.html">Pong</a>"""))
+    document.getElementsByClass("test").length should be(0)
+    document.getElementsByClass("link2").length should be(1)
+    document.getElementsByClass("link2").map(_.text) should be(Seq("Pong"))
+    document.getElementsByClass("link2").map(_.attr("href")) should be(Seq("file.html"))
+    document.getElementsByClass("link2").map(_.tag) should be(Seq("a"))
+    document.getElementsByClass("link2").map(_.outerHtml) should be(Seq("""<a id="link2" class="link2" href="file.html">Pong</a>"""))
 
-    
+  "A document with HtmlExplorer" should "return all the HTML elements present in it" in:
+    val document = new Document(html, url) with CommonHTMLExplorer
+    val expectedTags = Seq("html", "head", "body", "p", "p","a","a","a","a","body","html")
+
+    document.getAllElements.map(_.tag).zipWithIndex.foreach:
+      case (outer, index) => outer shouldBe expectedTags(index)
+  
+
+  "A document with SelectorExplorer" should "return all the selected HTML elements" in:
+    val document = new Document(html, url) with SelectorExplorer
+    val expectedOuter = """<a id="link2" class="link2" href="file.html">Pong</a>"""
+
+    val elements = document.select("#link2", ".link2")
+
+    elements.map(_.outerHtml) shouldBe Seq(expectedOuter)
+    elements.size shouldBe 1
+
+    val elem = elements.head
+    elem.classes should contain("link2")
+    elem.attributes should contain(("href", "file.html"))
