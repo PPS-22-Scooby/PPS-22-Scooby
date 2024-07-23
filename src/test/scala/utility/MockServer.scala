@@ -161,6 +161,12 @@ object MockServer:
       
       index ~ extUrl ~ robotsTxt ~ json ~ echo ~ notFound
 
+    def staticHtmlRoutes: Route =
+      pathSingleSlash:
+        getFromResource("html/index.html")
+      ~
+      getFromResourceDirectory("html")
+
   def apply(port: Int = 8080, routes: Route = Routes.defaultTestingRoutes): Behavior[Command] = 
     Behaviors.setup: context =>
       implicit val system: ActorSystem[_] = context.system
@@ -207,4 +213,15 @@ object MockServer:
 
         case _ => Behaviors.same
       
-    
+  object Debug extends App:
+    def run(port: Int = 8080, routes: Route = Routes.defaultTestingRoutes): Unit =
+      implicit val timeout: Timeout = 30.seconds
+      val testKit: ActorTestKit = ActorTestKit()
+      implicit val system: ActorSystem[Nothing] = testKit.system
+      val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(port, routes), "WebServerSystem")
+
+      webServerSystem.ask[MockServer.Command](ref => Start(ref))(timeout, system.scheduler)
+
+    @main
+    def main(): Unit =
+      run(routes = Routes.staticHtmlRoutes)
