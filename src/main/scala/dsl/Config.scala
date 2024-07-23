@@ -21,6 +21,10 @@ object Config:
                             var clientConfiguration: ClientConfiguration
                           )
 
+  case class HeadersContext(
+                           var headers: Map[String, String]
+                           )
+
   case class ConfigOptions(maxDepth: Int = 3, maxLinks: Int = 200)
 
   trait ConfigurationContext[T]:
@@ -50,10 +54,8 @@ object Config:
       GenLens[ConfigOptions](_.maxLinks)
     )
 
-
     infix def is(propertyValue: V)(using builder: C): Unit =
       builder.config = property.replace(propertyValue)(builder.config)
-
 
 
   def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
@@ -71,12 +73,17 @@ object Config:
       context.clientConfiguration = builder.config
 
 
+    extension(x: String)
+      infix def to(value: String)(using context: HeadersContext): Unit = context.headers =
+        context.headers + (x -> value)
+
+    def headers(init: HeadersContext ?=> Unit)(using context: NetworkConfigurationContext): Unit =
+      given builder: HeadersContext = HeadersContext(Map.empty)
+      init
+      context.config = context.config.focus(_.headers).replace(builder.headers)
+
   object CrawlerGlobalConfiguration:
     def option(init: OptionConfigurationContext ?=> Unit)(using context: ConfigContext): Unit =
       given builder: OptionConfigurationContext = OptionConfigurationContext(ConfigOptions())
       init
       context.options = builder.config
-
-
-
-

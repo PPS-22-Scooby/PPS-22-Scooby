@@ -55,7 +55,8 @@ type Client[R] = HttpClient & Backend[R]
  * @param maxRequests maximum number of requests allowed for this client
  */
 case class ClientConfiguration(networkTimeout: FiniteDuration = 5.seconds,
-                               maxRequests: Int = Int.MaxValue)
+                               maxRequests: Int = Int.MaxValue,
+                               headers: Headers = Map.empty)
   
 /**
  * Companion object for the [[ClientConfiguration]] that contains its `apply` method

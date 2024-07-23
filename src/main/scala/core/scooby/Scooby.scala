@@ -69,7 +69,8 @@ object ScoobyActor:
             exporters.head, // TODO fix crawler and scraper to take multiple exporters
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
-            configuration.crawlerConfiguration.maxDepth
+            configuration.crawlerConfiguration.maxDepth,
+            configuration.crawlerConfiguration.networkOptions
           ), s"RootCrawler-${Crawler.getCrawlerName(configuration.crawlerConfiguration.url)}")
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 

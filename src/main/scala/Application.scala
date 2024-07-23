@@ -8,14 +8,20 @@ import scala.concurrent.duration.DurationInt
 import Application.scooby
 import dsl.ScoobyEmbeddable
 import org.unibo.scooby.dsl.Crawl.not
+import org.unibo.scooby.dsl.Scrape.haveAttribute
+import org.unibo.scooby.dsl.Scrape.haveAttributeValue
+import cats.syntax.group
 
 object Application extends ScoobyEmbeddable with App:
 
   val app = scooby:
     config:
       network:
-        Timeout is 5.seconds
+        Timeout is 9.seconds
         MaxRequests is 5
+        headers:
+          "Authorization" to "prova"
+          "Agent" to "gr"
       option:
         MaxDepth is 2
         MaxLinks is 20
@@ -26,15 +32,15 @@ object Application extends ScoobyEmbeddable with App:
       policy:
         hyperlinks not external
     scrape:
-      document.getElementByClass("a-price-whole")
-
+      elements that (haveAttribute("href") and dont(
+        haveAttributeValue("href", "/domains/reserved") or
+        haveAttributeValue("href", "/about")
+      ))
 
     exports:
       Batch:
         strategy:
-          println(results.map(_.text))
-        aggregate:
-          _ ++ _
+          println(results get(_.attr("href")))
           
       Streaming:
         println(results)

@@ -53,7 +53,10 @@ trait SttpSyncBackend extends Backend[Response]:
         case POST => basicRequest.post(originalRequest.url.asSttpURI)
         case PUT => basicRequest.put(originalRequest.url.asSttpURI)
         case DELETE => basicRequest.delete(originalRequest.url.asSttpURI)
-      request.headers(originalRequest.headers).body(originalRequest.body.getOrElse("")).response(asString)
+      request
+        .headers(originalRequest.headers)
+        .headers(configuration.headers)
+        .body(originalRequest.body.getOrElse("")).response(asString)
 
   /**
    * Simple extension to convert a [[RequestMetadata]] (obtained from inside the sttp Response) to a [[Request]].
