@@ -62,10 +62,6 @@ object Scrape:
     infix inline def including[S >: T](y: Iterable[S]): Iterable[S] = x concat y
 
     infix inline def that(predicate: T => Boolean): Iterable[T] = x filter predicate
-
-  extension[T](x: Iterable[T])
-    infix def get[A](f: T => A): Iterable[A] = x.map(f)
-
   
 
   extension[T] (x: T => Boolean)

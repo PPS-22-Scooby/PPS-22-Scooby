@@ -11,7 +11,7 @@ object DSL:
 
   export Config.*
   export Crawl.*
-  export Scrape.{scrape, matchesOf, select, elements, tag, classes, attributes, get, and, id,
+  export Scrape.{scrape, matchesOf, select, elements, classes, attributes, and, id,
                 haveClass, haveId, haveTag, that, dont, including, or, rule}
   export Export.*
   export Utils.*
