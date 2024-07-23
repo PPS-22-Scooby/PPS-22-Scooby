@@ -16,14 +16,13 @@ object Config:
   import ConfigContexts.*
 
   object ConfigOps:
-    import _root_.dsl.syntax.{catchRecursiveCtx, catchInvalidCtx}
+    import _root_.dsl.syntax.catchRecursiveCtx
 
     object SafeOps:
       import UnsafeOps.* 
 
       inline def config[T](init: ConfigContext ?=> Unit)(using builder: ConfigurationBuilder[T]): Unit =
         catchRecursiveCtx[ConfigContext]("config")
-        catchInvalidCtx[ConfigurationBuilder[T]]("\"config\" must be used under \"scooby\" keyword")
         configOp(init)
 
       inline def headers(init: HeadersContext ?=> Unit)(using context: NetworkConfigurationContext): Unit =
