@@ -2,8 +2,6 @@ package org.unibo.scooby
 package dsl
 import core.scooby.Configuration
 
-import scala.compiletime.uninitialized
-
 object DSL:
 
   export Config.*
