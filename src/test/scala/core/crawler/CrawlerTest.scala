@@ -24,25 +24,9 @@ import core.exporter.ExporterCommands
 import utility.document.ScrapeDocument
 
 import scala.language.{implicitConversions, postfixOps}
+import org.unibo.scooby.utility.ScalaTestWithMockServer
 
-class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
-  implicit val timeout: Timeout = 30.seconds
-
-  val testKit: ActorTestKit = ActorTestKit()
-
-  implicit val system: ActorSystem[Nothing] = testKit.system
-  val crawlerProbe: ActorRef[CoordinatorCommand] = testKit.createTestProbe[CoordinatorCommand]().ref
-
-  val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
-
-  override def beforeAll(): Unit =
-    val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
-    val result = Await.result(startFuture, timeout.duration)
-    result shouldBe MockServer.ServerStarted
-
-  override def afterAll(): Unit =
-    webServerSystem ! MockServer.Stop
-    testKit.shutdownTestKit()
+class CrawlerTest extends ScalaTestWithMockServer:
 
   def buildCrawler(
                     coordinator: ActorRef[CoordinatorCommand],
