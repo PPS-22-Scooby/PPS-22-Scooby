@@ -14,7 +14,7 @@ import utility.document.ScrapeDocument
 import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
 import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats, batch, stream}
 import core.scooby.Configuration
-import dsl.Config.NetworkConfiguration.network
+import dsl.Config.network
 import dsl.Config.config
 import core.exporter.ExporterCommands.{Export, SignalEnd}
 import core.scraper.ScraperPolicies.ScraperPolicy
