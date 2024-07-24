@@ -11,7 +11,10 @@ import monocle.syntax.all.*
  */
 object Scrape:
   export SafeOps.*
-
+  /**
+   * Type alias representing the "scrape" section of the DSL
+   * @tparam T type of the results obtained doing by this scraping
+   */
   private type ScrapeBehaviorScope[T] = ScrapeDocument ?=> Iterable[T]
   /**
    * Facade for Scraping DSL operators that performs syntax checks.
