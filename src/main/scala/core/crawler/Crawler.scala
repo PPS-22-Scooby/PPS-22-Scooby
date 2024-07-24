@@ -2,7 +2,6 @@ package org.unibo.scooby
 package core.crawler
 
 import core.coordinator.CoordinatorCommand
-import core.crawler.Crawler.getCrawlerName
 import core.exporter.ExporterCommands
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Scraper, ScraperCommands}
@@ -101,15 +100,6 @@ object Crawler:
           new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
             maxDepth, buffer, httpClient).idle()
 
-  /**
-   * Obtains a simple identifier for a crawler given its URL
-   * @param url url of the given Crawler
-   * @return a simple name of the Crawler
-   */
-  def getCrawlerName(url: URL): String =
-    "[^a-zA-Z0-9\\-_.*$+:@&=,!~';]".r.replaceAllIn(url.withoutProtocol.filter(_ <= 0x7f), ".")
-
-
 /**
  * Type that specifies a function that, given a [[CrawlDocument]], returns the links that need to be explored inside it
  */
@@ -177,7 +167,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
        * @param document document obtained by fetching the URL
        */
       def scrape(document: CrawlDocument): Unit =
-        val scraper = context.spawn(Scraper(exporterRouter, scrapeRule), s"scraper-${getCrawlerName(url)}")
+        val scraper = context.spawnAnonymous(Scraper(exporterRouter, scrapeRule))
         context.watchWith(scraper, ChildTerminated())
         scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
@@ -213,8 +203,9 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
         url <- Some(returnedUrl)
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient),
-          s"crawler-${getCrawlerName(url)}")
+        val child = context.spawnAnonymous(
+          Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient)
+        )
         context.watchWith(child, ChildTerminated())
         child ! Crawl(url)
 
