@@ -24,7 +24,7 @@ object HTML:
    * @param block definition of the rule
    * @return a rule that filters HTML elements
    */
-  inline def rule(block: RuleDefinitionScope): HTMLElementRule =
+  inline def followRule(block: RuleDefinitionScope): HTMLElementRule =
     catchRecursiveCtx[HTMLElement]("rule")
     el =>
       given HTMLElement = el

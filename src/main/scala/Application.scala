@@ -30,7 +30,7 @@ object Application extends ScoobyEmbeddable with App:
           haveAttributeValue("href", "/domains/reserved") or
           haveAttributeValue("href", "/about")
         .and:
-          rule { element.tag == "a" } and rule { element.tag == "div" }
+          followRule { element.tag == "a" } and followRule { element.tag == "div" }
     exports:
       Batch:
         strategy:
