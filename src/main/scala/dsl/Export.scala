@@ -108,7 +108,10 @@ object Export:
     enum FormatType:
       case Text
       case Json
-    
+
+    /**
+     * Collection of operators for "export" part of the DSL, performing also syntax checks.
+     */
     object SafeOps:
       import UnsafeOps.*
       extension [T](x: Iterable[T])
@@ -120,6 +123,9 @@ object Export:
           catchRecursiveCtx[ExportStrategyContext[?]]("output")
           x.outputOp(f)
 
+    /**
+     * Collection of unsafe operators, containing the unsafe versions of the one inside [[SafeOps]]
+     */
     private[Export] object UnsafeOps:
 
       extension [T](x: Iterable[T])
@@ -131,6 +137,9 @@ object Export:
           given ExportStrategyContext[T] = ExportStrategyContext[T]()
           f(x)
 
+  /**
+   * Collection of contexts used inside the "export" part of the DSL.
+   */
   private[Export] object Context:
     import Export.ExportOps.{ExportSupport, FormatType}
     /**
