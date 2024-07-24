@@ -21,7 +21,7 @@ object Application extends ScoobyEmbeddable with App:
 
     crawl:
       url:
-        "https://www.example.it"
+        "https://www.example.com"
       policy:
         hyperlinks not external
     scrape:
