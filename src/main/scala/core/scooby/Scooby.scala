@@ -66,13 +66,13 @@ object ScoobyActor:
 
 
           // 3. Spawn a crawler
-          val crawler = context.spawn(Crawler(
+          val crawler = context.spawnAnonymous(Crawler(
             coordinator,
             exporterRouter,
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
             configuration.crawlerConfiguration.maxDepth
-          ), s"RootCrawler-${Crawler.getCrawlerName(configuration.crawlerConfiguration.url)}")
+          ))
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 
           context.watch(crawler)
