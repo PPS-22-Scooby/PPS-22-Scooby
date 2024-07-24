@@ -28,14 +28,15 @@ object Crawl:
       given CrawlDocument = doc
       init
 
-  def links(using crawlDocumentContext: CrawlDocument): Iterable[URL] = crawlDocumentContext.frontier
+  def hyperlinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
+    crawlDocumentContext.frontier
 
+  def allLinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
+    crawlDocumentContext.getAllLinkOccurrences
 
+  extension (x: Iterable[URL])
+    infix def not(pred: URL => Boolean): Iterable[URL] = 
+      x.filterNot(pred)
 
-
-
-
-
-
-
-
+  def external(using document: CrawlDocument): URL => Boolean =
+    _.domain != document.url.domain

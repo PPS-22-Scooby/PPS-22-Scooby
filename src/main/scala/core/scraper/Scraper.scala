@@ -19,10 +19,11 @@ enum ScraperCommands:
 /**
  * Class representing Scraper actor.
  *
+ * @param exporterRouter the exporter router [[ActorRef]] where to redirect the scraping results
  * @param scrapeRule the scraping rule the actor uses.
  * @tparam T type representing the [[DataResult]] type.
  */
-class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: ScraperPolicy[T]):
+class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]):
 
   import ScraperCommands._
   import core.exporter.ExporterCommands
@@ -32,7 +33,7 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
       Behaviors.receiveMessage:
         case ScraperCommands.Scrape(doc: ScrapeDocument) =>
           val res = resultFromRule(doc)
-          exporter ! ExporterCommands.Export(res)
+          exporterRouter ! ExporterCommands.Export(res)
           Behaviors.stopped
 
 
@@ -45,9 +46,9 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
  */
 object Scraper:
 
-  def apply[T](exporter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
+  def apply[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
     Behaviors.setup {
-      context => new Scraper(exporter, scrapeRule).idle()
+      context => new Scraper(exporterRouter, scrapeRule).idle()
     }
 
 object ScraperPolicies:

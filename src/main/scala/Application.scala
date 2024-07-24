@@ -1,12 +1,13 @@
 package org.unibo.scooby
 
-import org.unibo.scooby.utility.document.html.HTMLElement
+import utility.document.html.HTMLElement
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-
 import Application.scooby
 import dsl.ScoobyEmbeddable
+import org.unibo.scooby.dsl.Crawl.not
+import org.unibo.scooby.dsl.Scrape.{element, haveAttribute, haveAttributeValue, rule}
 
 object Application extends ScoobyEmbeddable with App:
 
@@ -19,27 +20,34 @@ object Application extends ScoobyEmbeddable with App:
           "Authorization" to "prova"
           "Agent" to "gr"
       option:
-        MaxDepth is 0
+        MaxDepth is 2
         MaxLinks is 20
 
     crawl:
       url:
-        "https://www.iana.org/help/example-domains"
+        "https://www.example.it"
       policy:
-        links
+        hyperlinks not external
     scrape:
-      elements that (haveAttribute("href") and dont(
-        haveAttributeValue("href", "/domains/reserved") or
-        haveAttributeValue("href", "/about")
-      ))
-
+      elements that :
+        haveAttribute("href") and dont:
+          haveAttributeValue("href", "/domains/reserved") or
+          haveAttributeValue("href", "/about")
+        .and:
+          rule { element.tag == "a" } and rule { element.tag == "div" }
     exports:
       Batch:
         strategy:
-          println(results get(_.attr("href")))
+          results get tag output:
+            ToConsole withFormat Text
+            ToFile("prova") withFormat Text
+
+        aggregate:
+          _ ++ _
           
       Streaming:
-        println(results)
+        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
+          ToConsole withFormat Text
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)
