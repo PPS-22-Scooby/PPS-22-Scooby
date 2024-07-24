@@ -110,6 +110,11 @@ object Export:
       case Json
 
     /**
+     * Type alias representing the "output" section under "strategy"
+     * @tparam T type of results returned by the scraping
+     */
+    private type OutputDefinitionScope[T] = ExportStrategyContext[T] ?=> Iterable[T] => Unit
+    /**
      * Collection of operators for "export" part of the DSL, performing also syntax checks.
      */
     object SafeOps:
@@ -119,7 +124,7 @@ object Export:
          * Context used to apply the [[Exporter]] consume function.
          * @param f the consume function to apply.
          */
-        inline infix def output(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+        inline infix def output(f: OutputDefinitionScope[T]): Unit  =
           catchRecursiveCtx[ExportStrategyContext[?]]("output")
           x.outputOp(f)
 
@@ -133,10 +138,15 @@ object Export:
           * Unsafe version of the one inside [[org.unibo.scooby.dsl.Export.ExportOps.SafeOps]]
           * @param f the consume function to apply.
           */
-        def outputOp(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+        def outputOp(f: OutputDefinitionScope[T]): Unit  =
           given ExportStrategyContext[T] = ExportStrategyContext[T]()
           f(x)
 
+  /**
+   * Type alias representing the "exports" section of the DSL
+   * @tparam T type of the results returned by the scraping
+   */
+  private type ExportDefinitionScope[T] = StrategiesContext[T] ?=> Unit
   /**
    * Collection of contexts used inside the "export" part of the DSL.
    */
@@ -152,19 +162,19 @@ object Export:
       /**
        * Builder used to summon the [[StrategiesContext]] containing exporting strategies and parse them in application
        * configuration.
-       * @param init function which set the exporting strategies in [[StrategiesContext]].
+       * @param block function which set the exporting strategies in [[StrategiesContext]].
        */
-      inline infix def apply(init: StrategiesContext[T] ?=> Unit): Unit =
+      inline infix def apply(block: ExportDefinitionScope[T]): Unit =
         catchRecursiveCtx[StrategiesContext[?]]("export")
-        visitCtxUnsafe(init)
+        visitCtxUnsafe(block)
 
       /**
        * Unsafe version of [[ExportContext.apply]]
-       * @param init function which set the exporting strategies in [[StrategiesContext]].
+       * @param block function which set the exporting strategies in [[StrategiesContext]].
        */
-      private def visitCtxUnsafe(init: StrategiesContext[T] ?=> Unit): Unit =
+      private def visitCtxUnsafe(block: ExportDefinitionScope[T]): Unit =
         given context: StrategiesContext[T] = StrategiesContext[T](Seq.empty[SingleExporting[T]])
-        init
+        block
         builder.configuration = builder.configuration
           .focus(_.exporterConfiguration.exportingStrategies).replace(context.exportingStrategies)
 
@@ -206,31 +216,42 @@ object Export:
      */
     case class ExportStrategyContext[T]()
 
-    object Batch:
+    /**
+     * Type alias representing <b>either</b>:
+     *  - the "strategy" section under "Batch" part of the DSL
+     *  - the "Streaming" section under "exports" part of the DSL
+     * @tparam T type of the Results returned by the scraping
+     */
+    private type StrategyDefinitionScope[T] = Iterable[T] ?=> Unit
 
+    object Batch:
+      /**
+       * Type alias representing the "Batch" section under the "exports" part of the DSL
+       * @tparam T type of results returned by the scraping.
+       */
+      private type BatchDefinitionScope[T] = BatchSettingContext[T] ?=> Unit
       /**
        * The exporter batch technique's context.
        * @param context the context used to set the [[BatchExporting]] configuration.
        * @tparam T the [[Result]]'s type.
        */
       case class BatchExportationContext[T](context: StrategiesContext[T]):
-
         /**
          * Builder used to set the [[BatchExporting]] configuration.
-         * @param init the function used to set the [[BatchExporting]] configuration.
+         * @param block the function used to set the [[BatchExporting]] configuration.
          */
-        inline infix def apply(init: BatchSettingContext[T] ?=> Unit): Unit =
+        inline infix def apply(block: BatchDefinitionScope[T]): Unit =
           catchRecursiveCtx[BatchSettingContext[?]]("Batch")
-          visitCtxUnsafe(init)
+          visitCtxUnsafe(block)
 
         /**
          * Unsafe version of [[BatchExportationContext.apply]].
-         * @param init the function used to set the [[BatchExporting]] configuration.
+         * @param block the function used to set the [[BatchExporting]] configuration.
          */
-        private def visitCtxUnsafe(init: BatchSettingContext[T] ?=> Unit): Unit =
-          given batchStrategyContext: BatchSettingContext[T] =
-            BatchSettingContext[T](ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
-          init
+        private def visitCtxUnsafe(block: BatchDefinitionScope[T]): Unit =
+          given batchStrategyContext: BatchSettingContext[T] = BatchSettingContext[T](
+            ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
+          block
           context.exportingStrategies = Seq(BatchExporting(
             batchStrategyContext.policy,
             batchStrategyContext.aggregation
@@ -252,11 +273,11 @@ object Export:
        * @tparam T the [[Result]]'s type.
        */
       case class BatchStrategyContext[T](context: BatchSettingContext[T]):
-        inline infix def apply(init: Iterable[T] ?=> Unit): Unit =
+        inline infix def apply(block: StrategyDefinitionScope[T]): Unit =
           catchRecursiveCtx[Iterable[?]]("strategy")
-          context.policy = (res: Result[T]) => 
+          context.policy = (res: Result[T]) =>
             given Iterable[T] = res.data
-            init
+            block
 
       /**
        * Context to set batch aggregate function.
@@ -264,21 +285,20 @@ object Export:
        * @tparam T the [[Result]]'s type.
        */
       case class BatchAggregateContext[T](context: BatchSettingContext[T]):
-        infix def apply(init: (Iterable[T], Iterable[T]) => Iterable[T]): Unit = 
-          context.aggregation = (res1: Result[T], res2: Result[T]) => Result(init(res1.data, res2.data))
+        infix def apply(block: (Iterable[T], Iterable[T]) => Iterable[T]): Unit =
+          context.aggregation = (res1: Result[T], res2: Result[T]) => Result(block(res1.data, res2.data))
           
     object Stream:
-
       /**
        * The exporter stream technique's context.
        * @param context the context used to set the [[StreamExporting]] configuration.
        * @tparam T the [[Result]]'s type.
        */
       case class StreamExportationContext[T](context: StrategiesContext[T]):
-        inline infix def apply(init: Iterable[T] ?=> Unit): Unit =
+        inline infix def apply(block: StrategyDefinitionScope[T]): Unit =
           catchRecursiveCtx[Iterable[?]]("Streaming")
           context.exportingStrategies = context.exportingStrategies :+ StreamExporting[T](
-          (res: Result[T]) => 
+          (res: Result[T]) =>
             given Iterable[T] = res.data
-            init
+            block
           )
