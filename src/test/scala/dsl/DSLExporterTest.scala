@@ -21,6 +21,7 @@ import core.scraper.ScraperPolicies.ScraperPolicy
 import core.exporter.ExporterCommands
 import utility.http.URL
 
+import org.unibo.scooby.dsl.Export.ExportOps.FormatType
 import org.unibo.scooby.utility.document.html.HTMLElement
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -66,8 +67,9 @@ class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAnd
 
   "Exporter with batch write on file" should "behave the same" in:
 
-    given Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
-    given ConfigurationBuilder[String] = new ConfigurationBuilder(Configuration.empty[String], ScrapingResultSetting[String]())
+    val result: Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
+    val configBuilder: ConfigurationBuilder[String] = new ConfigurationBuilder(
+      Configuration.empty[String], ScrapingResultSetting[String]())
 
     val app: ScoobyRunnable[String] = scooby:
       exports:
