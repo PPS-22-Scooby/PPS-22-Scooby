@@ -1,24 +1,25 @@
 package org.unibo.scooby
 package dsl
 
-import monocle.syntax.all.*
-import core.exporter.FormattingBehavior
 import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
+import core.exporter.FormattingBehavior
+import core.scooby.SingleExporting
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
-import core.scooby.SingleExporting
-import utility.document.html.HTMLElement
 
-import scala.annotation.targetName
+import _root_.dsl.syntax.catchRecursiveCtx
+import monocle.syntax.all.*
+
 import java.nio.file.Path
 
 object Export:
   import Context.*
-  import Context.Batch.* 
+  import Context.Batch.*
   import Context.Stream.*
-  export ExportOps.*
+  export ExportOps.SafeOps.*
   export ExportOps.FormatType.*
+  export ExportOps.{exports, Streaming, Batch, strategy, aggregate, results, ToFile, ToConsole}
 
   object ExportOps:
 
@@ -108,22 +109,30 @@ object Export:
       case Text
       case Json
     
-    extension [T](x: Iterable[T])
+    object SafeOps:
+      import UnsafeOps.*
+      extension [T](x: Iterable[T])
+        /**
+         * Context used to apply the [[Exporter]] consume function.
+         * @param f the consume function to apply.
+         */
+        inline infix def output(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+          catchRecursiveCtx[ExportStrategyContext[?]]("output")
+          x.outputOp(f)
 
-      /**
-       * Context used to apply the [[Exporter]] consume function.
-       * @param f the consume function to apply.
-       */
-      infix def output(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
-        given ExportStrategyContext[T] = ExportStrategyContext[T]()
-        f(x)
+    private[Export] object UnsafeOps:
 
-//      @targetName("export")
-//      infix inline def >>(f: Iterable[T] => Unit): Unit = f(x)
+      extension [T](x: Iterable[T])
+        /**
+          * Unsafe version of the one inside [[org.unibo.scooby.dsl.Export.ExportOps.SafeOps]]
+          * @param f the consume function to apply.
+          */
+        def outputOp(f: ExportStrategyContext[T] ?=> Iterable[T] => Unit): Unit  =
+          given ExportStrategyContext[T] = ExportStrategyContext[T]()
+          f(x)
 
-  object Context:
-    import ExportOps.ExportSupport
-
+  private[Export] object Context:
+    import Export.ExportOps.{ExportSupport, FormatType}
     /**
      * Context used to parse the exporting strategies given in configuration.
      * @param builder the [[ConfigurationBuilder]] containing all application parameters.
@@ -136,11 +145,19 @@ object Export:
        * configuration.
        * @param init function which set the exporting strategies in [[StrategiesContext]].
        */
-      infix def apply(init: StrategiesContext[T] ?=> Unit): Unit =
+      inline infix def apply(init: StrategiesContext[T] ?=> Unit): Unit =
+        catchRecursiveCtx[StrategiesContext[?]]("export")
+        visitCtxUnsafe(init)
+
+      /**
+       * Unsafe version of [[ExportContext.apply]]
+       * @param init function which set the exporting strategies in [[StrategiesContext]].
+       */
+      private def visitCtxUnsafe(init: StrategiesContext[T] ?=> Unit): Unit =
         given context: StrategiesContext[T] = StrategiesContext[T](Seq.empty[SingleExporting[T]])
         init
         builder.configuration = builder.configuration
-          .focus(_.exporterConfiguration.exportingStrategies)      .replace(context.exportingStrategies)
+          .focus(_.exporterConfiguration.exportingStrategies).replace(context.exportingStrategies)
 
     /**
      * Context containing all exporting strategies.
@@ -193,10 +210,17 @@ object Export:
          * Builder used to set the [[BatchExporting]] configuration.
          * @param init the function used to set the [[BatchExporting]] configuration.
          */
-        infix def apply(init: BatchSettingContext[T] ?=> Unit): Unit =
-          given batchStrategyContext: BatchSettingContext[T] = 
+        inline infix def apply(init: BatchSettingContext[T] ?=> Unit): Unit =
+          catchRecursiveCtx[BatchSettingContext[?]]("Batch")
+          visitCtxUnsafe(init)
+
+        /**
+         * Unsafe version of [[BatchExportationContext.apply]].
+         * @param init the function used to set the [[BatchExporting]] configuration.
+         */
+        private def visitCtxUnsafe(init: BatchSettingContext[T] ?=> Unit): Unit =
+          given batchStrategyContext: BatchSettingContext[T] =
             BatchSettingContext[T](ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
-          
           init
           context.exportingStrategies = Seq(BatchExporting(
             batchStrategyContext.policy,
@@ -219,7 +243,8 @@ object Export:
        * @tparam T the [[Result]]'s type.
        */
       case class BatchStrategyContext[T](context: BatchSettingContext[T]):
-        infix def apply(init: Iterable[T] ?=> Unit): Unit =
+        inline infix def apply(init: Iterable[T] ?=> Unit): Unit =
+          catchRecursiveCtx[Iterable[?]]("strategy")
           context.policy = (res: Result[T]) => 
             given Iterable[T] = res.data
             init
@@ -241,7 +266,8 @@ object Export:
        * @tparam T the [[Result]]'s type.
        */
       case class StreamExportationContext[T](context: StrategiesContext[T]):
-        infix def apply(init: Iterable[T] ?=> Unit): Unit =
+        inline infix def apply(init: Iterable[T] ?=> Unit): Unit =
+          catchRecursiveCtx[Iterable[?]]("Streaming")
           context.exportingStrategies = context.exportingStrategies :+ StreamExporting[T](
           (res: Result[T]) => 
             given Iterable[T] = res.data

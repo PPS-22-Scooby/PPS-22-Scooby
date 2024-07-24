@@ -14,13 +14,14 @@ import utility.document.ScrapeDocument
 import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
 import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats, batch, stream}
 import core.scooby.Configuration
-import dsl.Config.NetworkConfiguration.network
+import dsl.Config.network
 import dsl.Config.config
 import core.exporter.ExporterCommands.{Export, SignalEnd}
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.exporter.ExporterCommands
 import utility.http.URL
 
+import org.unibo.scooby.dsl.Export.ExportOps.FormatType
 import org.unibo.scooby.utility.document.html.HTMLElement
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -66,8 +67,9 @@ class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAnd
 
   "Exporter with batch write on file" should "behave the same" in:
 
-    given Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
-    given ConfigurationBuilder[String] = new ConfigurationBuilder(Configuration.empty[String], ScrapingResultSetting[String]())
+    val result: Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
+    val configBuilder: ConfigurationBuilder[String] = new ConfigurationBuilder(
+      Configuration.empty[String], ScrapingResultSetting[String]())
 
     val app: ScoobyRunnable[String] = scooby:
       exports:
