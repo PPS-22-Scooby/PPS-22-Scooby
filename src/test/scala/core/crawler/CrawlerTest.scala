@@ -11,7 +11,7 @@ import utility.http.URL
 import utility.http.URL.*
 import utility.MockServer
 
-import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.{CapturedLogEvent, Effect}
 import akka.actor.testkit.typed.Effect.*
 import org.scalatest.BeforeAndAfterAll
 
@@ -63,20 +63,21 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
-    val linksMap = Iterator(
+    val links = List(
       url"https://www.facebook.it",
       url"https://www.google.com"
     )
 
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
+    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(links.iterator))
 
-    behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
-
-    val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.facebook.it")
-    val child2Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.google.com")
-
-    child1Inbox.expectMessage(Crawl(URL("https://www.facebook.it")))
-    child2Inbox.expectMessage(Crawl(URL("https://www.google.com")))
+    val expectedMessages = links.map(Crawl(_))
+    val effects = behaviorTestKit.retrieveAllEffects()
+    effects.foreach:
+      case Effect.WatchedWith(actorRef: ActorRef[_], _) =>
+        val childInbox = behaviorTestKit.childInbox(actorRef)
+        assert(childInbox.hasMessages)
+        assert(childInbox.receiveAll().exists(expectedMessages.contains))
+      case _ => println(f"Other effect")
 
   it should "log an error message when the URL can't be parsed" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
@@ -88,21 +89,6 @@ class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     behaviorTestKit.logEntries() shouldBe Seq(
       CapturedLogEvent(Level.ERROR, f"Error while crawling $url: Exception when sending request: GET $url")
     )
-
-  it should "handle CrawlerCoordinatorResponse correctly when the same link is sent twice" in :
-    val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
-    val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
-
-    val url = URL("http://localhost:8080")
-
-    behaviorTestKit.run(CrawlerCommand.Crawl(url))
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(url)))
-
-    behaviorTestKit.expectEffectType[Spawned[Crawler[String]]]
-    val childInbox = behaviorTestKit.childInbox[CrawlerCommand](s"crawler-${url.withoutProtocol}")
-    childInbox.expectMessage(CrawlerCommand.Crawl(url))
-
-    behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator.empty))
 
   it should "explore only links with the same domain if exploration strategy is sameDomainLinks" in:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()

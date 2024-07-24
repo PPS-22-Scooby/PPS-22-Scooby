@@ -213,13 +213,14 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
         url <- Some(returnedUrl)
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient),
-          s"crawler-${getCrawlerName(url)}")
+        val child = context.spawnAnonymous(
+          Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient)
+        )
         context.watchWith(child, ChildTerminated())
         child ! Crawl(url)
 
       buffer.unstashAll(waitingForChildren(linkList.size + 1))
-
+      
     Behaviors.receiveMessage:
       case Crawl(url) => crawl(url)
       case CrawlerCoordinatorResponse(links) => visitChildren(links)
