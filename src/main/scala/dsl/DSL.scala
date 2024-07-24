@@ -59,6 +59,14 @@ object DSL:
        */
       inline infix def that(predicate: T => Boolean): Iterable[T] = x filter predicate
 
+    /**
+     * Return the predicate negated.
+     * @param predicate predicate to be negated
+     * @tparam T type of the element fed to the predicate
+     * @return the negation of the predicate
+     */
+    inline infix def dont[T](predicate: T => Boolean): T => Boolean = elem => !predicate(elem)
+
 
     extension[T] (x: T => Boolean)
       /**
