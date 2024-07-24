@@ -1,81 +1,49 @@
 package org.unibo.scooby
 package dsl
 
-import core.exporter.Exporter.AggregationBehaviors
-import core.scooby.SingleExporting
-import core.scraper.ScraperPolicies.ScraperPolicy
 import dsl.DSL.{ConfigurationBuilder, ScrapingResultSetting}
 import utility.document.*
-import utility.document.html.HTMLElement
 
 import monocle.syntax.all.*
 
-import scala.annotation.targetName
-
+/**
+ * Container for all the scraping-related DSL keywords.
+ */
 object Scrape:
   export SafeOps.*
-  
-  object SafeOps:
 
+  private type ScrapeBehaviorScope[T] = ScrapeDocument ?=> Iterable[T]
+  /**
+   * Facade for Scraping DSL operators that performs syntax checks.
+   */
+  object SafeOps:
     import UnsafeOps.*
     import _root_.dsl.syntax.catchRecursiveCtx
 
-    inline def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
+    /**
+     * Top level keyword for defining the scraping behavior.
+     * @param block definition of the scraping behavior
+     * @param globalScope global Scooby scope (i.g. "scooby: ...")
+     * @tparam T type of the result returned by this scraping behavior
+     */
+    inline def scrape[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationBuilder[T]): Unit =
       catchRecursiveCtx[ScrapeDocument]("scrape")
-      scrapeOp(init)
-      
-    inline def rule(init: HTMLElement ?=> Boolean): HTMLElement => Boolean =
-      catchRecursiveCtx[HTMLElement]("rule")
-      ruleOp(init)
+      scrapeOp(block)
 
+  /**
+   * Private collection of unsafe operators. The related safe versions are contained inside [[SafeOps]]
+   */
   private[Scrape] object UnsafeOps:
-    def scrapeOp[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
-      builder.configuration = builder.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
+    /**
+     * Unsafe version of the one inside [[SafeOps]]
+     * @param block definition of the scraping behavior
+     * @param globalScope global Scooby scope (i.g. "scooby: ...")
+     * @tparam T type of the result returned by this scraping behavior
+     */
+    def scrapeOp[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationBuilder[T]): Unit =
+      globalScope.configuration = globalScope.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
         doc =>
           given ScrapeDocument = doc
-          init
-      builder.scrapingResultSetting = ScrapingResultSetting[T]()
+          block
+      globalScope.scrapingResultSetting = ScrapingResultSetting[T]()
 
-    infix def ruleOp(init: HTMLElement ?=> Boolean): HTMLElement => Boolean =
-      el =>
-        given HTMLElement = el
-
-        init
-
-  def elements[T <: Document & CommonHTMLExplorer](using documentContext: T): Iterable[HTMLElement] = 
-    documentContext.getAllElements
-
-  def element(using el: HTMLElement): HTMLElement = el
-
-  def matchesOf[T <: Document & RegExpExplorer](regExp: String)(using documentContext: T): Iterable[String] =
-    documentContext.find(regExp)
-
-  def select[T <: Document & SelectorExplorer](selectors: String*)(using documentContext: T): Iterable[HTMLElement] =
-    documentContext.select(selectors*)
-  
-  def classes: HTMLElement => Iterable[String] = _.classes
-  def attributes: HTMLElement => Iterable[(String, String)] = _.attributes
-  def id: HTMLElement => String = _.id
-
-  infix def dont[T](predicate: T => Boolean): T => Boolean = (elem) => !predicate(elem)
-
-  infix def haveTag(tag: String): HTMLElement => Boolean = _.tag == tag
-  infix def haveClass(cssClass: String): HTMLElement => Boolean = _.classes.contains(cssClass)
-  infix def haveId(id: String): HTMLElement => Boolean = _.id == id
-  infix def haveAttribute(attributeName: String): HTMLElement => Boolean = _.attr(attributeName).nonEmpty
-  infix def haveAttributeValue(attributeName: String, attributeValue: String): HTMLElement => Boolean = 
-    _.attr(attributeName) == attributeValue
-
-  extension[T] (x: Iterable[T])
-    infix inline def including[S >: T](y: Iterable[S]): Iterable[S] = x concat y
-
-    infix inline def that(predicate: T => Boolean): Iterable[T] = x filter predicate
-
-
-  extension[T] (x: T => Boolean)
-    infix def and(y: T => Boolean): T => Boolean = el => x(el) && y(el)
-    @targetName("and")
-    inline infix def &&(y: T => Boolean): T => Boolean = and(y)
-    infix def or(y: T => Boolean): T => Boolean = el => x(el) || y(el)
-    @targetName("and")
-    inline infix def ||(y: T => Boolean): T => Boolean = or(y)

@@ -1,13 +1,9 @@
 package org.unibo.scooby
 
-import utility.document.html.HTMLElement
-
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import Application.scooby
 import dsl.ScoobyEmbeddable
-import org.unibo.scooby.dsl.Crawl.not
-import org.unibo.scooby.dsl.Scrape.{element, haveAttribute, haveAttributeValue, rule}
 
 object Application extends ScoobyEmbeddable with App:
 
