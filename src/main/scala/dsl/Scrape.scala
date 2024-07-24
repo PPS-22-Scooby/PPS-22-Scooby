@@ -4,26 +4,29 @@ package dsl
 import core.exporter.Exporter.AggregationBehaviors
 import core.scooby.SingleExporting
 import core.scraper.ScraperPolicies.ScraperPolicy
-import dsl.DSL.ConfigurationBuilder
-import utility.document.ScrapeDocument
+import dsl.DSL.{ConfigurationBuilder, ScrapingResultSetting}
+import utility.document.*
+import utility.document.html.HTMLElement
 
 import monocle.syntax.all.*
-import org.unibo.scooby.dsl.DSL.ScrapingResultSetting
-import org.unibo.scooby.utility.document.CommonHTMLExplorer
-import org.unibo.scooby.utility.document.Document
-import org.unibo.scooby.utility.document.html.HTMLElement
-import org.unibo.scooby.utility.document.RegExpExplorer
-import org.unibo.scooby.utility.document.SelectorExplorer
+
+import scala.annotation.targetName
 
 object Scrape:
-
+  export SafeOps.*
+  
   object SafeOps:
+
     import UnsafeOps.*
     import _root_.dsl.syntax.catchRecursiveCtx
 
     inline def scrape[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
       catchRecursiveCtx[ScrapeDocument]("scrape")
       scrapeOp(init)
+      
+    inline def rule(init: HTMLElement ?=> Boolean): HTMLElement => Boolean =
+      catchRecursiveCtx[HTMLElement]("rule")
+      ruleOp(init)
 
   private[Scrape] object UnsafeOps:
     def scrapeOp[T](init: ScrapeDocument ?=> Iterable[T])(using builder: ConfigurationBuilder[T]): Unit =
@@ -32,6 +35,12 @@ object Scrape:
           given ScrapeDocument = doc
           init
       builder.scrapingResultSetting = ScrapingResultSetting[T]()
+
+    infix def ruleOp(init: HTMLElement ?=> Boolean): HTMLElement => Boolean =
+      el =>
+        given HTMLElement = el
+
+        init
 
   def elements[T <: Document & CommonHTMLExplorer](using documentContext: T): Iterable[HTMLElement] = 
     documentContext.getAllElements
@@ -43,8 +52,7 @@ object Scrape:
 
   def select[T <: Document & SelectorExplorer](selectors: String*)(using documentContext: T): Iterable[HTMLElement] =
     documentContext.select(selectors*)
-
-  // def tag: HTMLElement => String = _.tag
+  
   def classes: HTMLElement => Iterable[String] = _.classes
   def attributes: HTMLElement => Iterable[(String, String)] = _.attributes
   def id: HTMLElement => String = _.id
@@ -58,11 +66,6 @@ object Scrape:
   infix def haveAttributeValue(attributeName: String, attributeValue: String): HTMLElement => Boolean = 
     _.attr(attributeName) == attributeValue
 
-  infix def rule(init: HTMLElement ?=> Boolean): HTMLElement => Boolean =
-    el =>
-      given HTMLElement = el
-      init
-
   extension[T] (x: Iterable[T])
     infix inline def including[S >: T](y: Iterable[S]): Iterable[S] = x concat y
 
@@ -70,7 +73,9 @@ object Scrape:
 
 
   extension[T] (x: T => Boolean)
-    infix def and(y: T => Boolean): T => Boolean = (el) => x(el) && y(el)
-    infix def &&(y: T => Boolean): T => Boolean = and(y)
-    infix def or(y: T => Boolean): T => Boolean = (el) => x(el) || y(el)
-    infix def ||(y: T => Boolean): T => Boolean = or(y)
+    infix def and(y: T => Boolean): T => Boolean = el => x(el) && y(el)
+    @targetName("and")
+    inline infix def &&(y: T => Boolean): T => Boolean = and(y)
+    infix def or(y: T => Boolean): T => Boolean = el => x(el) || y(el)
+    @targetName("and")
+    inline infix def ||(y: T => Boolean): T => Boolean = or(y)
