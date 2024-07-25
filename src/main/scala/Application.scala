@@ -15,7 +15,7 @@ object Application extends ScoobyEmbeddable with App:
         headers:
           "Authorization" to "prova"
           "Agent" to "gr"
-      option:
+      options:
         MaxDepth is 2
         MaxLinks is 20
 
