@@ -32,7 +32,7 @@ object Config:
    *      MaxDepth is 10
    * }}}
    */
-  object ConfigOps:
+  private object ConfigOps:
     import dsl.syntax.catchRecursiveCtx
 
     /**
