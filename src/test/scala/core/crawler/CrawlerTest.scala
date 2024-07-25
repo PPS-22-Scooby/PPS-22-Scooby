@@ -1,48 +1,25 @@
 package org.unibo.scooby
 package core.crawler
 
+import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.Effect.*
+import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import org.slf4j.event.Level
+import org.unibo.scooby.utility.ScalaTestWithMockServer
+
+import scala.language.implicitConversions
+import scala.language.postfixOps
+
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.CoordinatorCommand
 import utility.http.URL
 import utility.http.URL.*
-import utility.MockServer
-
-import akka.actor.testkit.typed.CapturedLogEvent
-import akka.actor.testkit.typed.Effect.*
-import org.scalatest.BeforeAndAfterAll
-
-import scala.concurrent.Await
-import scala.concurrent.duration.*
-import akka.actor.typed.scaladsl.AskPattern.*
-import akka.util.Timeout
-import org.slf4j.event.Level
 import core.exporter.ExporterCommands
-import utility.document.ScrapeDocument
 
-import scala.language.{implicitConversions, postfixOps}
-
-class CrawlerTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
-  implicit val timeout: Timeout = 30.seconds
-
-  val testKit: ActorTestKit = ActorTestKit()
-
-  implicit val system: ActorSystem[Nothing] = testKit.system
-  val crawlerProbe: ActorRef[CoordinatorCommand] = testKit.createTestProbe[CoordinatorCommand]().ref
-
-  val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(), "WebServerSystem")
-
-  override def beforeAll(): Unit =
-    val startFuture = webServerSystem.ask[MockServer.Command](ref => MockServer.Start(ref))(timeout, system.scheduler)
-    val result = Await.result(startFuture, timeout.duration)
-    result shouldBe MockServer.ServerStarted
-
-  override def afterAll(): Unit =
-    webServerSystem ! MockServer.Stop
-    testKit.shutdownTestKit()
+class CrawlerTest extends ScalaTestWithMockServer:
 
   def buildCrawler(
                     coordinator: ActorRef[CoordinatorCommand],

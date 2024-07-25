@@ -5,7 +5,6 @@ import core.scooby.Configuration.ExporterConfiguration
 import core.scooby.SingleExporting.BatchExporting
 import core.scooby.{Configuration, Scooby}
 import core.scraper.Result
-import utility.http.URL
 
 import monocle.syntax.all.*
 
@@ -34,7 +33,7 @@ trait ScoobyEmbeddable:
     ScoobyRunnable(builder.build)
 
 
-class ScoobyRunnable[T](config: Configuration[T]):
+class ScoobyRunnable[T](val config: Configuration[T]):
   def run(): Future[Result[T]] =
     val promise = Promise[Result[T]]()
     val promiseConfig = config

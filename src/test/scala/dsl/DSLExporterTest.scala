@@ -1,32 +1,26 @@
 package org.unibo.scooby
 package dsl
 
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 import Application.scooby
+import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats, batch}
+import core.exporter.ExporterCommands
+import core.exporter.ExporterCommands.{Export, SignalEnd}
+import core.scooby.Configuration
+import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Result, ScraperPolicies}
+import dsl.Export.ExportOps.FormatType
+import utility.document.ScrapeDocument
+import utility.http.URL
 
+import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import utility.document.ScrapeDocument
 
-import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
-import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats, batch, stream}
-import core.scooby.Configuration
-import dsl.Config.network
-import dsl.Config.config
-import core.exporter.ExporterCommands.{Export, SignalEnd}
-import core.scraper.ScraperPolicies.ScraperPolicy
-import core.exporter.ExporterCommands
-import utility.http.URL
-
-import org.unibo.scooby.dsl.Export.ExportOps.FormatType
-import org.unibo.scooby.utility.document.html.HTMLElement
-
-import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
 class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAndAfterEach:
 
