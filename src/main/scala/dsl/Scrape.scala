@@ -21,7 +21,7 @@ object Scrape:
    */
   object SafeOps:
     import UnsafeOps.*
-    import _root_.dsl.syntax.catchRecursiveCtx
+    import dsl.syntax.catchRecursiveCtx
 
     /**
      * Top level keyword for defining the scraping behavior.

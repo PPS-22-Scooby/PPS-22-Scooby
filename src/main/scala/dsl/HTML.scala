@@ -6,7 +6,7 @@ import utility.document.html.HTMLElement
 import utility.document.{CommonHTMLExplorer, Document, RegExpExplorer, SelectorExplorer}
 
 object HTML:
-  import _root_.dsl.syntax.catchRecursiveCtx
+  import dsl.syntax.catchRecursiveCtx
 
   /**
    * Type alias for Rule definition scope (i.e. "rule: ...")

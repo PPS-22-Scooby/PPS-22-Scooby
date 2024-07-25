@@ -16,7 +16,7 @@ object Config:
   import ConfigContexts.*
 
   object ConfigOps:
-    import _root_.dsl.syntax.catchRecursiveCtx
+    import dsl.syntax.catchRecursiveCtx
 
     object SafeOps:
       import UnsafeOps.* 

@@ -7,7 +7,7 @@ import utility.document.CrawlDocument
 import utility.http.URL
 
 import monocle.syntax.all.*
-import _root_.dsl.syntax.catchRecursiveCtx
+import dsl.syntax.catchRecursiveCtx
 
 object Crawl:
   export SafeOps.*

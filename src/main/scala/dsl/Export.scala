@@ -8,7 +8,7 @@ import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
 
-import _root_.dsl.syntax.catchRecursiveCtx
+import dsl.syntax.catchRecursiveCtx
 import monocle.syntax.all.*
 
 import java.nio.file.Path
