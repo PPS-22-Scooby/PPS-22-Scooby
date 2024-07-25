@@ -34,7 +34,7 @@ trait ScoobyEmbeddable:
     ScoobyRunnable(builder.build)
 
 
-class ScoobyRunnable[T](config: Configuration[T]):
+class ScoobyRunnable[T](val config: Configuration[T]):
   def run(): Future[Result[T]] =
     val promise = Promise[Result[T]]()
     val promiseConfig = config
