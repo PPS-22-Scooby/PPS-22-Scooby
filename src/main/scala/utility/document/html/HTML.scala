@@ -68,7 +68,7 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
     */
   def allElements: Seq[HTMLElement] =
     // #root is a special node inserted by Jsoup, we ignore it
-    htmlDocument.getAllElements().asScala.map(HTMLElement(_)).filterNot(_.tag == "#root").toSeq
+    htmlDocument.getAllElements.asScala.map(HTMLElement(_)).filterNot(_.tag == "#root").toSeq
 
 /**
  * Represents an HTML element.
@@ -108,7 +108,7 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
     * @return a [[Map]] with the names of the attributes as keys and their values as values
     */
   def attributes: Map[String, String] = htmlElement.attributes().asScala
-    .map(attr => (attr.getKey(), attr.getValue())).toMap
+    .map(attr => (attr.getKey, attr.getValue)).toMap
 
   /**
    * Gets the tag name of the HTML element.
@@ -153,6 +153,12 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
     * @return a [[String]] corresponding to the id
     */
   def id: String = htmlElement.id()
+
+  /**
+   * Gets the parent HTML element of this element.
+   * @return the parent HTML element
+   */
+  def parent: HTMLElement = HTMLElement(htmlElement.parent())
 
 object HTMLDom:
   private[html] def apply(htmlDocument: org.jsoup.nodes.Document): HTMLDom =

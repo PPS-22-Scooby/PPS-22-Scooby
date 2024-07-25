@@ -70,6 +70,12 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
     document.getAllElements.map(_.tag).zipWithIndex.foreach:
       case (outer, index) => outer shouldBe expectedTags(index)
+
+  "A document with HtmlExplorer" should "be able to navigate between HTML parents" in:
+    val document = new Document(html, url) with CommonHTMLExplorer
+    val element = document.getElementById("test").getOrElse(fail())
+    element.parent.tag shouldBe "body"
+    element.parent.parent.tag shouldBe "html"
   
 
   "A document with SelectorExplorer" should "return all the selected HTML elements" in:
