@@ -1,9 +1,12 @@
 package org.unibo.scooby
 package utility.document
 
+import utility.document.html.*
+import utility.http.URL
+
 import scala.util.matching.Regex
-import html.*
-import org.unibo.scooby.utility.http.URL
+import utility.http.URL
+import utility.http.URL.toUrl
 
 /**
  * Trait that provides functionality to explore a document using regular expressions.
@@ -16,7 +19,7 @@ trait RegExpExplorer extends Document:
    * @param regExp
    *   the regular expression to match
    * @return
-   *   a sequence of all matches
+   *   an sequence of all matches
    */
   def find(regExp: String): Seq[String] =
     group(regExp.r.findAllMatchIn(content))
@@ -34,17 +37,31 @@ trait RegExpExplorer extends Document:
 /**
  * Trait that provides functionality to explore links in a document.
  */
-trait LinkExplorer extends RegExpExplorer:
+trait LinkExplorer extends RegExpExplorer, HtmlExplorer:
 
   /**
-   * Finds all links in the document's content.
+   * Finds all links in "href" attribute in the document's content.
    *
    * @return
    *   a sequence of all links
    */
-  def frontier: Seq[String] = find("""<a\b[^>]*href="([^#][^"]*)""")
+  def frontier: Seq[URL] = find("""<a\b[^>]*href="([^#][^"]*)""").map(URL(_).resolve(url)).filter(_.isValid).toSeq
 
   override def group(toGroup: Iterator[Regex.Match]): Seq[String] = toGroup.map(_.group(1)).toSeq
+
+trait EnhancedLinkExplorer extends HtmlExplorer:
+  /**
+   * Retrieves all the links from the HTML document.
+   *
+   * @return a sequence of URLs representing the links in the document.
+   */
+  def getAllLinkOccurrences: Seq[URL] =
+    val hrefLinks = htmlDocument.select("[href]").map(_.attr("href")).map(_.toUrl)
+    val srcLinks = htmlDocument.select("[src]").map(_.attr("src")).map(_.toUrl)
+    val urlPattern: Regex = "(https?://\\S+|http://\\S+|www\\.\\S+)".r
+    val textLinks = urlPattern.findAllIn(htmlDocument.select("body").map(_.text).mkString(" ")).map(_.toUrl)
+    hrefLinks ++ srcLinks ++ textLinks
+
 
 /**
  * Trait that provides functionality to explore an HTML document.
@@ -103,7 +120,7 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    * @return
    *   a sequence of elements with the given tag name
    */
-  def getElementByTag(tag: String): Seq[HTMLElement] = htmlDocument.getElementByTag(tag)
+  def getElementsByTag(tag: String): Seq[HTMLElement] = htmlDocument.getElementByTag(tag)
 
   /**
    * Gets elements from the HTML document by their class name.
@@ -113,10 +130,18 @@ trait CommonHTMLExplorer extends HtmlExplorer:
    * @return
    *   a sequence of elements with the given class name
    */
-  def getElementByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
+  def getElementsByClass(className: String): Seq[HTMLElement] = htmlDocument.getElementByClass(className)
+
+  /**
+    * Gets all the elements from the HTML document
+    *
+    * @return a sequence containing all the HTML elements of the document
+    */
+  def getAllElements: Seq[HTMLElement] = htmlDocument.allElements
 
 class CrawlDocument(content: String, url: URL) extends Document(content, url)
       with LinkExplorer
+      with EnhancedLinkExplorer
 
 class ScrapeDocument(content: String, url: URL) extends Document(content, url)
       with SelectorExplorer

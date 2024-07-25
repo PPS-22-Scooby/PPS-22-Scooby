@@ -20,8 +20,8 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
 
   "Crawler" should "die if there is no valid link" in:
     val mockedBehavior: Behavior[CoordinatorCommand] = Behaviors.receiveMessage:
-      case CoordinatorCommand.CheckPages(links, replyTo) if links.nonEmpty && links.head == url"https://www.fortest.it".getOrElse(URL.empty) =>
-        replyTo ! CrawlerCoordinatorResponse(List(url"http://localhost:8080/notFound".getOrElse(URL.empty)).iterator)
+      case CoordinatorCommand.CheckPages(links, replyTo) if links.nonEmpty && links.head == url"https://www.fortest.it" =>
+        replyTo ! CrawlerCoordinatorResponse(List(url"http://localhost:8080/notFound").iterator)
         Behaviors.same
       case CoordinatorCommand.CheckPages(links, replyTo) =>
         replyTo ! CrawlerCoordinatorResponse(Iterator.empty)
@@ -35,12 +35,12 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
       mockedCoordinator,
       exporterProbe.ref,
       scraperRulePlaceholder,
-      _.frontier.map(_.toUrl.getOrElse(URL.empty)),
+      _.frontier,
       2
     ))
-    val url = url"http://localhost:8080".getOrElse(fail("Invalid URL"))
+    val url = url"http://localhost:8080"
     crawler ! Crawl(url)
-    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(url"https://www.fortest.it".getOrElse(URL.empty)), crawler))
+    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(url"https://www.fortest.it"), crawler))
 
     coordinatorProbe.expectTerminated(crawler.ref)
 
@@ -49,7 +49,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
     var count: Int = 0
     val mockedBehavior: Behavior[CoordinatorCommand] = Behaviors.receiveMessage:
       case CoordinatorCommand.CheckPages(links, replyTo) =>
-        replyTo ! CrawlerCoordinatorResponse(List(url"http://localhost:8080/notFound".getOrElse(URL.empty)).iterator)
+        replyTo ! CrawlerCoordinatorResponse(List(url"http://localhost:8080/notFound").iterator)
         count += 1
         Behaviors.same
 
@@ -61,10 +61,10 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
       mockedCoordinator,
       exporterProbe.ref,
       scraperRulePlaceholder,
-      _.frontier.map(_.toUrl.getOrElse(URL.empty)),
+      ExplorationPolicies.allLinks,
       1
     ))
-    val url = url"http://localhost:8080".getOrElse(fail("Invalid URL"))
+    val url = url"http://localhost:8080"
     crawler ! Crawl(url)
     coordinatorProbe.expectTerminated(crawler.ref)
     count should be(1)
@@ -74,7 +74,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
       mockedCoordinator,
       exporterProbe.ref,
       scraperRulePlaceholder,
-      _.frontier.map(_.toUrl.getOrElse(URL.empty)),
+      ExplorationPolicies.allLinks,
       2
     ))
 

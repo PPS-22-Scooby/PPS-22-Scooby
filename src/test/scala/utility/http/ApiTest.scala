@@ -52,7 +52,7 @@ class ApiTest extends ScalaTestWithMockServer:
   "A GET request to an invalid URL" should "return a Left indicating the error" in:
     given client: SimpleHttpClient = new SimpleHttpClient
     val response: Either[HttpError, Response] =
-      GET("http") sending:
+      GET(":http") sending:
         Body {"examplebody"}
 
-    response.fold(_.message, _ => fail("Should be a Left")) should be("You must provide a valid URL")
+    response.fold(_.message, _ => fail("Should be a Left")) should be("Invalid URL was provided")

@@ -32,17 +32,17 @@ class CrawlerTest extends ScalaTestWithMockServer:
   "Crawler" should "send CheckPages message to Coordinator when Crawl message is received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref))
-    val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
+    val url = URL("http://localhost:8080")
     crawler ! Crawl(url)
-    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(url"https://www.fortest.it".getOrElse(URL.empty)), crawler))
+    coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(url"https://www.fortest.it"), crawler))
 
   it should "spawn a new Crawler actor for each link received" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
     val linksMap = Iterator(
-      url"https://www.facebook.it".getOrElse(URL.empty),
-      url"https://www.google.com".getOrElse(URL.empty)
+      url"https://www.facebook.it",
+      url"https://www.google.com"
     )
 
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(linksMap))
@@ -52,15 +52,15 @@ class CrawlerTest extends ScalaTestWithMockServer:
     val child1Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.facebook.it")
     val child2Inbox = behaviorTestKit.childInbox[CrawlerCommand]("crawler-www.google.com")
 
-    child1Inbox.expectMessage(Crawl(URL("https://www.facebook.it").getOrElse(fail("Invalid URL"))))
-    child2Inbox.expectMessage(Crawl(URL("https://www.google.com").getOrElse(fail("Invalid URL"))))
+    child1Inbox.expectMessage(Crawl(URL("https://www.facebook.it")))
+    child2Inbox.expectMessage(Crawl(URL("https://www.google.com")))
 
   it should "log an error message when the URL can't be parsed" in :
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
-    val url = URL("http://localhost:23111").getOrElse(fail("Invalid URL"))
-    behaviorTestKit.run(CrawlerCommand.Crawl(URL("http://localhost:23111").getOrElse(fail("Invalid URL"))))
+    val url = URL("http://localhost:23111")
+    behaviorTestKit.run(CrawlerCommand.Crawl(URL("http://localhost:23111")))
 
     behaviorTestKit.logEntries() shouldBe Seq(
       CapturedLogEvent(Level.ERROR, f"Error while crawling $url: Exception when sending request: GET $url")
@@ -70,7 +70,7 @@ class CrawlerTest extends ScalaTestWithMockServer:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val behaviorTestKit = BehaviorTestKit(buildCrawler(coordinatorProbe.ref))
 
-    val url = URL("http://localhost:8080").getOrElse(fail("Invalid URL"))
+    val url = URL("http://localhost:8080")
 
     behaviorTestKit.run(CrawlerCommand.Crawl(url))
     behaviorTestKit.run(CrawlerCommand.CrawlerCoordinatorResponse(Iterator(url)))
@@ -85,23 +85,23 @@ class CrawlerTest extends ScalaTestWithMockServer:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref, ExplorationPolicies.sameDomainLinks))
 
-    val url = url"http://localhost:8080/ext-url".getOrElse(fail("Invalid URL"))
+    val url = url"http://localhost:8080/ext-url"
     crawler ! Crawl(url)
 
     coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(
-      url"http://localhost:8080/a".getOrElse(URL.empty),
-      url"http://localhost:8080/b".getOrElse(URL.empty)
+      url"http://localhost:8080/a",
+      url"http://localhost:8080/b"
     ), crawler))
   
   it should "explore all links if exploration strategy is allLinks" in:
     val coordinatorProbe = testKit.createTestProbe[CoordinatorCommand]()
     val crawler = testKit.spawn(buildCrawler(coordinatorProbe.ref, ExplorationPolicies.allLinks))
 
-    val url = url"http://localhost:8080/ext-url".getOrElse(fail("Invalid URL"))
+    val url = url"http://localhost:8080/ext-url"
     crawler ! Crawl(url)
 
     coordinatorProbe.expectMessage(CoordinatorCommand.CheckPages(List(
-      url"http://localhost:8080/a".getOrElse(URL.empty),
-      url"http://localhost:8080/b".getOrElse(URL.empty),
-      url"http://www.external-url.it".getOrElse(URL.empty)
+      url"http://localhost:8080/a",
+      url"http://localhost:8080/b",
+      url"http://www.external-url.it"
     ), crawler))

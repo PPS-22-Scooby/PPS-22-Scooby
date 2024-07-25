@@ -6,8 +6,8 @@ import core.exporter.{AggregationBehavior, ExportingBehavior}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.document.Document
-import utility.http.Configuration.ClientConfiguration
-import utility.http.URL
+import utility.http.{ClientConfiguration, URL}
+import org.unibo.scooby.core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Single Exporting option. Configures one single Exporter
@@ -32,12 +32,12 @@ enum SingleExporting[A](behavior: ExportingBehavior[A]):
  * @param crawlerConfiguration configuration for the crawler
  * @param scraperConfiguration configuration for the scraper
  * @param exporterConfiguration configuration for the exporter
- * @tparam D type of [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
  * @tparam T type of [[Result]] that will be exported
  */
 case class Configuration[T](crawlerConfiguration: CrawlerConfiguration,
                                            scraperConfiguration: ScraperConfiguration[T],
-                                           exporterConfiguration: ExporterConfiguration[T])
+                                           exporterConfiguration: ExporterConfiguration[T],
+                                           coordinatorConfiguration: CoordinatorConfiguration)
 
 object Configuration:
   /**
@@ -52,13 +52,30 @@ object Configuration:
                                   maxDepth: Int,
                                   networkOptions: ClientConfiguration)
 
+  object CrawlerConfiguration:
+
+    /**
+     * Represent the default configuration of the crawler.
+     * @return
+     */
+    def empty: CrawlerConfiguration =
+      CrawlerConfiguration(
+        URL.empty,
+        _ => Iterable.empty, +
+          0,
+        ClientConfiguration.default
+      )
+
+
   /**
    * Configuration class for the Scraper
    * @param scrapePolicy policy that specifies what to scrape inside a Document
-   * @tparam D type of the [[Document]] managed by the scraper (TODO replace with [[ScrapeDocument]]))
    * @tparam T type of [[Result]] that will be exported
    */
   case class ScraperConfiguration[T](scrapePolicy: ScraperPolicy[T])
+
+  object ScraperConfiguration:
+    def empty[T]: ScraperConfiguration[T] = ScraperConfiguration(_ => Iterable.empty)
 
   /**
    * Configuration class for the exporter
@@ -68,5 +85,11 @@ object Configuration:
    */
   case class ExporterConfiguration[T](exportingStrategies: Seq[SingleExporting[T]])
 
+  object ExporterConfiguration:
+    def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty[SingleExporting[T]])
 
-  case class CoordinatorConfiguration()
+
+  case class CoordinatorConfiguration(maxLinks: Int)
+
+  def empty[T]: Configuration[T] = Configuration(CrawlerConfiguration.empty, ScraperConfiguration.empty[T],
+    ExporterConfiguration.empty[T], CoordinatorConfiguration(100))

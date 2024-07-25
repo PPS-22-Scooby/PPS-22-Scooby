@@ -2,18 +2,19 @@ package org.unibo.scooby
 package core.scooby
 
 import core.coordinator.Coordinator
-import core.crawler.{Crawler, CrawlerCommand}
+import core.crawler.{Crawler, CrawlerCommand, ExplorationPolicies}
 import core.exporter.Exporter.*
 import core.exporter.ExporterCommands.SignalEnd
-import core.exporter.{Exporter, ExporterCommands}
+import core.exporter.{Exporter, ExporterCommands, ExporterRouter}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.ScraperPolicies
 import utility.document.Document
-import utility.http.URL
+import utility.http.{ClientConfiguration, URL}
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
+import org.unibo.scooby.core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Main commands to be used inside Scooby
@@ -54,7 +55,7 @@ object ScoobyActor:
           // 1. Spawn a coordinator
           val coordinator = context.spawn(Coordinator(), "Coordinator")
 
-          // 2. Spawn an exporter
+          // 2. Handle exporting
           val exporters = configuration.exporterConfiguration.exportingStrategies.zipWithIndex.map {
             case (SingleExporting.StreamExporting(behavior), index) =>
               context.spawn(Exporter.stream(behavior), s"Exporter${index}-Stream")
@@ -62,13 +63,17 @@ object ScoobyActor:
               context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter${index}-Batch")
           }
 
+          val exporterRouter = context.spawn(ExporterRouter(exporters), "ExporterRouter")
+
+
           // 3. Spawn a crawler
           val crawler = context.spawn(Crawler(
             coordinator,
-            exporters.head, // TODO fix crawler and scraper to take multiple exporters
+            exporterRouter,
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
-            configuration.crawlerConfiguration.maxDepth
+            configuration.crawlerConfiguration.maxDepth,
+            configuration.crawlerConfiguration.networkOptions
           ), s"RootCrawler-${Crawler.getCrawlerName(configuration.crawlerConfiguration.url)}")
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 
@@ -104,17 +109,18 @@ object Main:
     Scooby.run(
       Configuration(
         CrawlerConfiguration(
-          URL("https://www.example.com").getOrElse(URL.empty),
-          _.frontier.map(URL(_).getOrElse(URL.empty)),
+          URL("https://www.example.com"),
+          ExplorationPolicies.allLinks,
           2,
-          utility.http.Configuration.default
+          ClientConfiguration.default
         ),
         ScraperConfiguration(ScraperPolicies.scraperRule(Seq("link"), "tag")),
         ExporterConfiguration(Seq(
           BatchExporting(
             ExportingBehaviors.writeOnConsole(Formats.string),
             AggregationBehaviors.default
-          )))
+          ))),
+        CoordinatorConfiguration(100)
       )
     )
 

@@ -19,10 +19,11 @@ enum ScraperCommands:
 /**
  * Class representing Scraper actor.
  *
+ * @param exporterRouter the exporter router [[ActorRef]] where to redirect the scraping results
  * @param scrapeRule the scraping rule the actor uses.
  * @tparam T type representing the [[DataResult]] type.
  */
-class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: ScraperPolicy[T]):
+class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]):
 
   import ScraperCommands._
   import core.exporter.ExporterCommands
@@ -32,7 +33,7 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
       Behaviors.receiveMessage:
         case ScraperCommands.Scrape(doc: ScrapeDocument) =>
           val res = resultFromRule(doc)
-          exporter ! ExporterCommands.Export(res)
+          exporterRouter ! ExporterCommands.Export(res)
           Behaviors.stopped
 
 
@@ -45,9 +46,9 @@ class Scraper[T](val exporter: ActorRef[ExporterCommands], val scrapeRule: Scrap
  */
 object Scraper:
 
-  def apply[T](exporter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
+  def apply[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
     Behaviors.setup {
-      context => new Scraper(exporter, scrapeRule).idle()
+      context => new Scraper(exporterRouter, scrapeRule).idle()
     }
 
 object ScraperPolicies:
@@ -89,9 +90,9 @@ object ScraperPolicies:
       case "id" =>
         selectors.map(scraper.getElementById).map(_.fold("")(_.outerHtml)).filter(_.nonEmpty)
       case "tag" =>
-        selectors.flatMap(scraper.getElementByTag).map(_.outerHtml)
+        selectors.flatMap(scraper.getElementsByTag).map(_.outerHtml)
       case "class" =>
-        selectors.flatMap(scraper.getElementByClass).map(_.outerHtml)
+        selectors.flatMap(scraper.getElementsByClass).map(_.outerHtml)
       case "css" =>
         selectors.flatMap(scraper.select(_)).map(_.outerHtml)
       case "regex" =>
@@ -114,7 +115,7 @@ object ScraperPolicies:
    * @return the rule based on elements' tags.
    */
   def scraperTagSelectorRule(tags: Seq[String]): ScraperPolicy[String] = (scraper: ScrapeDocument) =>
-    tags.flatMap(scraper.getElementByTag).map(_.outerHtml)
+    tags.flatMap(scraper.getElementsByTag).map(_.outerHtml)
 
   /**
    * A scraper rule based on elements' classes given.
@@ -123,7 +124,7 @@ object ScraperPolicies:
    * @return the rule based on elements' classes.
    */
   def scraperClassSelectorRule(classesNames: Seq[String]): ScraperPolicy[String] = (scraper: ScrapeDocument) =>
-    classesNames.flatMap(scraper.getElementByClass).map(_.outerHtml)
+    classesNames.flatMap(scraper.getElementsByClass).map(_.outerHtml)
 
   /**
    * A scraper rule based on css selectors given.

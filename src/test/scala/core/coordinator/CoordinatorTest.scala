@@ -21,7 +21,7 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
     "return an iterator of pages and their crawled status" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
-      val pages = List(url"http://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty))
+      val pages = List(url"http://www.google.com", url"http://www.github.com")
       coordinator ! CheckPages(pages, probe.ref)
       assert(probe.receiveMessage().result.toSet == pages.toSet)
 
@@ -34,34 +34,34 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
     "return an iterator without pages that have been crawled" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
-      val alreadyCrawledPages = List(url"http://www.google.com".getOrElse(empty))
-      val pages = List(url"https://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty))
+      val alreadyCrawledPages = List(url"http://www.google.com")
+      val pages = List(url"https://www.google.com", url"http://www.github.com")
 
       coordinator ! SetCrawledPages(alreadyCrawledPages)
       coordinator ! CheckPages(pages, probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com").map(_.toUrl.getOrElse(empty)))
+      assert(probe.receiveMessage().result.toSet == Set("http://www.github.com").map(_.toUrl))
 
     "return an iterator with only pages that should be checked" in :
       val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
       val coordinator = testKit.spawn(Coordinator())
 
-      coordinator ! CheckPages(List(url"http://www.google.com".getOrElse(empty)), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set(url"http://www.google.com".getOrElse(empty)))
-      coordinator ! CheckPages(List(url"https://www.google.com".getOrElse(empty), url"http://www.github.com".getOrElse(empty)), probe.ref)
-      assert(probe.receiveMessage().result.toSet == Set(url"http://www.github.com".getOrElse(empty)))
+      coordinator ! CheckPages(List(url"http://www.google.com"), probe.ref)
+      assert(probe.receiveMessage().result.toSet == Set(url"http://www.google.com"))
+      coordinator ! CheckPages(List(url"https://www.google.com", url"http://www.github.com"), probe.ref)
+      assert(probe.receiveMessage().result.toSet == Set(url"http://www.github.com"))
 
     "update the list of crawled pages" in :
       val probe = testKit.createTestProbe[List[URL]]()
       val coordinator = testKit.spawn(Coordinator())
-      coordinator ! SetCrawledPages(List(url"http://www.google.com".getOrElse(empty)))
+      coordinator ! SetCrawledPages(List(url"http://www.google.com"))
       coordinator ! GetCrawledPages(probe.ref)
-      probe.expectMessage(List(url"http://www.google.com".getOrElse(empty)))
+      probe.expectMessage(List(url"http://www.google.com"))
 
     "return an empty iterator when the number of pages to check is not lower than maxNumberOfLinks" in :
       val maxNumberOfLinks = 5
       val coordinator = testKit.spawn(Coordinator(maxNumberOfLinks))
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
-      val pages = List.fill(maxNumberOfLinks + 1)(url"http://example.com".getOrElse(empty))
+      val pages = List.fill(maxNumberOfLinks + 1)(url"http://example.com")
 
       coordinator ! CheckPages(pages, probe.ref)
       val response = probe.receiveMessage()

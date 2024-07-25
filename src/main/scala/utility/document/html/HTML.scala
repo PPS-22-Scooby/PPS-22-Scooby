@@ -6,6 +6,7 @@ import utility.document.Parser
 import org.jsoup.Jsoup
 
 import scala.jdk.CollectionConverters.*
+import scala.util.matching.Regex
 
 /**
  * Represents a HTML Document Object Model (DOM).
@@ -60,6 +61,15 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
   def getElementByClass(className: String): Seq[HTMLElement] =
     htmlDocument.getElementsByClass(className).asScala.map(HTMLElement(_)).toSeq
 
+  /**
+    * Gets all the HTML elements from the DOM
+    *
+    * @return a [[Seq]] containing all the elements of the DOM
+    */
+  def allElements: Seq[HTMLElement] =
+    // #root is a special node inserted by Jsoup, we ignore it
+    htmlDocument.getAllElements().asScala.map(HTMLElement(_)).filterNot(_.tag == "#root").toSeq
+
 /**
  * Represents an HTML element.
  *
@@ -86,12 +96,48 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
   def attr(attribute: String): String = htmlElement.attr(attribute)
 
   /**
+    * Gets the class names of this element
+    *
+    * @return a [[Set]] containing the class names
+    */
+  def classes: Set[String] = htmlElement.classNames().asScala.toSet
+
+  /**
+    * Gets the attributes of this elements
+    *
+    * @return a [[Map]] with the names of the attributes as keys and their values as values
+    */
+  def attributes: Map[String, String] = htmlElement.attributes().asScala
+    .map(attr => (attr.getKey(), attr.getValue())).toMap
+
+  /**
    * Gets the tag name of the HTML element.
    *
    * @return
    *   the tag name of the element
    */
   def tag: String = htmlElement.tagName()
+
+//  /**
+//   * Extracts the attributes of the HTML element as a Map.
+//   * This method converts the Jsoup Element's attributes into a Scala Map where each
+//   * key-value pair represents an attribute name and its corresponding value.
+//   *
+//   * @return A Map[String, String] containing the attribute names and values.
+//   */
+//  def attributes: Map[String, String] =
+//    htmlElement.attributes().asScala.map: attr =>
+//      attr.getKey -> attr.getValue
+//    .toMap
+
+  /**
+   * Retrieves the children of the HTML element as a sequence of HTMLElements.
+   * This method iterates over the Jsoup Element's children, converting each to an HTMLElement,
+   * allowing for Scala-friendly manipulation and access to the HTML structure.
+   *
+   * @return A Seq[HTMLElement] representing the children of the element.
+   */
+  def children: Seq[HTMLElement] = htmlElement.children().asScala.map(HTMLElement(_)).toSeq
 
   /**
    * Gets the outer HTML of the HTML element.
@@ -100,6 +146,13 @@ class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
    *   the outer HTML of the element
    */
   def outerHtml: String = htmlElement.outerHtml()
+
+  /**
+    * Gets the id of this HTML element
+    *
+    * @return a [[String]] corresponding to the id
+    */
+  def id: String = htmlElement.id()
 
 object HTMLDom:
   private[html] def apply(htmlDocument: org.jsoup.nodes.Document): HTMLDom =

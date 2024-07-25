@@ -7,11 +7,11 @@ import core.exporter.ExporterCommands
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Scraper, ScraperCommands}
 
-import utility.document.{CrawlDocument, Document, ScrapeDocument}
+import utility.document.{CrawlDocument, ScrapeDocument}
 import utility.http.Clients.SimpleHttpClient
-import utility.http.Configuration.ClientConfiguration
+import utility.http.ClientConfiguration
 import utility.http.api.Calls.GET
-import utility.http.{Configuration, HttpError, HttpErrorType, URL}
+import utility.http.{HttpError, HttpErrorType, URL}
 import utility.http.URL.*
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer}
@@ -42,8 +42,9 @@ enum CrawlerCommand:
   case ChildTerminated()
 
 object Crawler:
+
   /**
-   * Creates a new Crawler actor.
+   * Creates a new Crawler actor with no [[SimpleHttpClient]] set up.
    *
    * @param coordinator
    *   the ActorRef of the coordinator to communicate with
@@ -63,12 +64,42 @@ object Crawler:
                                scrapeRule: ScraperPolicy[T],
                                explorationPolicy: ExplorationPolicy,
                                maxDepth: Int,
-                               networkConfiguration: ClientConfiguration = Configuration.default
+                               networkConfiguration: ClientConfiguration = ClientConfiguration.default
                              ): Behavior[CrawlerCommand] =
+    buildWithClient[T](coordinator, exporter, scrapeRule, explorationPolicy,
+      maxDepth, SimpleHttpClient(networkConfiguration))
+
+  /**
+   * Creates a new Crawler actor with an already set up [[SimpleHttpClient]].
+   *
+   * @param coordinator
+   *    the ActorRef of the coordinator to communicate with
+   * @param exporter
+   *    the ActorRef of the exporter to communicate with
+   * @param scrapeRule
+   *    scraping rule for the [[Scraper]]s spawned by this Crawler
+   * @param explorationPolicy
+   *    policy that specifies what links to explore inside the [[CrawlDocument]]
+   * @param maxDepth
+   *    max recursion depth for crawlers (maximum depth of the tree of crawlers)
+   * @param httpClient
+   *    the http client already set up
+   * @tparam T type of [[Result]]s that get exported
+   * @return
+   *    the behavior of the Crawler actor
+   */
+  def buildWithClient[T](
+              coordinator: ActorRef[CoordinatorCommand],
+              exporter: ActorRef[ExporterCommands],
+              scrapeRule: ScraperPolicy[T],
+              explorationPolicy: ExplorationPolicy,
+              maxDepth: Int,
+              httpClient: SimpleHttpClient): Behavior[CrawlerCommand] =
     Behaviors.withStash(50): buffer =>
       Behaviors.setup:
-        context => new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
-          maxDepth, networkConfiguration, buffer).idle()
+        context =>
+          new Crawler[T](context, coordinator, exporter, scrapeRule, explorationPolicy,
+            maxDepth, buffer, httpClient).idle()
 
   /**
    * Obtains a simple identifier for a crawler given its URL
@@ -83,35 +114,35 @@ object Crawler:
  * Type that specifies a function that, given a [[CrawlDocument]], returns the links that need to be explored inside it
  */
 type ExplorationPolicy = CrawlDocument => Iterable[URL]
+
 /**
  * Class representing a Crawler actor.
  *
+ * @param context
+ *   the system context
  * @param coordinator
  *   the ActorRef of the coordinator to communicate with
- * @param exporter
- *   the ActorRef of the exporter to communicate with
+ * @param exporterRouter
+ *   the ActorRef of the exporter router to communicate with
  * @param scrapeRule scraping rule for the [[Scraper]]s spawned by this Crawler
  * @param explorationPolicy policy that specifies what links to explore inside the [[CrawlDocument]]
  * @param maxDepth max recursion depth for crawlers (maximum depth of the tree of crawlers)
- * @param networkConfiguration network configuration for the HTTP client
+ * @param client client used
+ * @param buffer
+ *   the buffer used to stash messages
  * @tparam T type of [[Result]]s that get exported
  */
 class Crawler[T](context: ActorContext[CrawlerCommand],
-                                coordinator: ActorRef[CoordinatorCommand],
-                                exporter: ActorRef[ExporterCommands],
-                                scrapeRule: ScraperPolicy[T],
-                                explorationPolicy: ExplorationPolicy,
-                                maxDepth: Int,
-                                networkConfiguration: ClientConfiguration,
-                                buffer: StashBuffer[CrawlerCommand]
-                               ):
+                 coordinator: ActorRef[CoordinatorCommand],
+                 exporterRouter: ActorRef[ExporterCommands],
+                 scrapeRule: ScraperPolicy[T],
+                 explorationPolicy: ExplorationPolicy,
+                 maxDepth: Int,
+                 buffer: StashBuffer[CrawlerCommand],
+                 client: SimpleHttpClient):
   import CrawlerCommand.*
 
-  /**
-   * Client used for HTTP requests
-   * @return the client used
-   */
-  given httpClient: SimpleHttpClient = SimpleHttpClient(networkConfiguration)
+  given httpClient: SimpleHttpClient = client
 
   /**
    * The behavior of the Crawler actor.
@@ -146,7 +177,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
        * @param document document obtained by fetching the URL
        */
       def scrape(document: CrawlDocument): Unit =
-        val scraper = context.spawn(Scraper(exporter, scrapeRule), s"scraper-${getCrawlerName(url)}")
+        val scraper = context.spawn(Scraper(exporterRouter, scrapeRule), s"scraper-${getCrawlerName(url)}")
         context.watchWith(scraper, ChildTerminated())
         scraper ! ScraperCommands.Scrape(ScrapeDocument(document.content, document.url))
 
@@ -182,7 +213,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
         url <- Some(returnedUrl)
       do
         context.log.info(s"Crawling: ${url.toString}")
-        val child = context.spawn(Crawler(coordinator, exporter, scrapeRule, explorationPolicy, maxDepth-1),
+        val child = context.spawn(Crawler.buildWithClient(coordinator, exporterRouter, scrapeRule, explorationPolicy, maxDepth-1, httpClient),
           s"crawler-${getCrawlerName(url)}")
         context.watchWith(child, ChildTerminated())
         child ! Crawl(url)
@@ -220,14 +251,14 @@ object ExplorationPolicies:
    * Policy that extracts all the links from the document
    * @return all the links in the document
    */
-  def allLinks: ExplorationPolicy = _.frontier.map(_.toUrl.getOrElse(URL.empty))
+  def allLinks: ExplorationPolicy = _.frontier
 
   /**
    * Policy that extracts only the links that are in the same domain of the document
    * @return all the links in the document
    */
   def sameDomainLinks: ExplorationPolicy = (document: CrawlDocument) =>
-    document.frontier.map(_.toUrl.getOrElse(URL.empty)).filter(_.domain == document.url.domain)
+    document.frontier.filter(_.domain == document.url.domain)
       
 
 

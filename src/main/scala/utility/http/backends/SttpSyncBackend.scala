@@ -2,7 +2,6 @@ package org.unibo.scooby
 package utility.http.backends
 
 import utility.http.*
-import utility.http.Configuration.Property.NetworkTimeout
 import utility.http.HttpStatus.INVALID
 
 import sttp.model.RequestMetadata
@@ -54,7 +53,10 @@ trait SttpSyncBackend extends Backend[Response]:
         case POST => basicRequest.post(originalRequest.url.asSttpURI)
         case PUT => basicRequest.put(originalRequest.url.asSttpURI)
         case DELETE => basicRequest.delete(originalRequest.url.asSttpURI)
-      request.headers(originalRequest.headers).body(originalRequest.body.getOrElse("")).response(asString)
+      request
+        .headers(originalRequest.headers)
+        .headers(configuration.headers)
+        .body(originalRequest.body.getOrElse("")).response(asString)
 
   /**
    * Simple extension to convert a [[RequestMetadata]] (obtained from inside the sttp Response) to a [[Request]].
@@ -103,8 +105,7 @@ trait SttpSyncBackend extends Backend[Response]:
    * STTP backend used internally to make HTTP calls.
    */
   private lazy val actualBackend = HttpClientSyncBackend(
-    options = SttpBackendOptions.connectionTimeout(configuration.property[NetworkTimeout, FiniteDuration]
-      .getOrElse(defaultTimeout))
+    options = SttpBackendOptions.connectionTimeout(configuration.networkTimeout)
   )
 
   /**

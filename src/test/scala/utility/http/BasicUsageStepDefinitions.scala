@@ -4,6 +4,7 @@ package utility.http
 import utility.CucumberTestWithMockServer
 import utility.http.Clients.SimpleHttpClient
 import utility.http.Request.RequestBuilder
+import scala.concurrent.duration.DurationInt
 
 import org.scalatest.Assertions.*
 
@@ -12,7 +13,7 @@ object BasicUsageStepDefinitions extends CucumberTestWithMockServer:
 
   var request: RequestBuilder = Request.builder
   var response: Either[HttpError, Response] = Left("Empty response".asHttpError)
-  val httpClient: SimpleHttpClient = SimpleHttpClient()
+  val httpClient: SimpleHttpClient = SimpleHttpClient(ClientConfiguration(networkTimeout = 1.seconds))
   
 
   Given("""a simple {string} request"""): (requestType: String) =>
