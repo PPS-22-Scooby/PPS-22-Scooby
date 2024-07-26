@@ -1,6 +1,6 @@
 package org.unibo.scooby
 package core.exporter
-import core.scraper.{DataResult, Result}
+import core.scraper.Result
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -160,7 +160,6 @@ object Exporter:
      * @return A formatting behavior.
      */
     def string[A]: FormattingBehavior[A] = (result: Result[A]) => result.data.toString() + System.lineSeparator()
-
 
     /**
      * Converts a `Result[A]` to a JSON string representation.

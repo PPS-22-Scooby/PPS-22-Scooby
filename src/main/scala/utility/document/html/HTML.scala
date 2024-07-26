@@ -6,7 +6,6 @@ import utility.document.Parser
 import org.jsoup.Jsoup
 
 import scala.jdk.CollectionConverters.*
-import scala.util.matching.Regex
 
 /**
  * Represents a HTML Document Object Model (DOM).

@@ -32,18 +32,18 @@ object Application extends ScoobyEmbeddable with App:
         .and:
           followRule { element.tag == "a" } and followRule { element.tag == "div" }
     exports:
-      Batch:
+      batch:
         strategy:
           results get tag output:
-            ToConsole withFormat Text
-            ToFile("prova") withFormat Text
+            toConsole withFormat Text
+            toFile("prova") withFormat Text
 
         aggregate:
           _ ++ _
           
-      Streaming:
-        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
-          ToConsole withFormat Text
+//      streaming:
+//        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
+//          toConsole withFormat Text
 
   val result = Await.result(app.run(), 10.seconds)
   println(result)

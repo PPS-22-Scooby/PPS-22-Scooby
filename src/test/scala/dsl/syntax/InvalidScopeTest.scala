@@ -32,12 +32,12 @@ class InvalidScopeTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAn
     "scooby {crawl {policy { policy {???}}}}" shouldNot compile
 
   "Exports inner scope keywords" should "be checked against recursive usage" in:
-    "scooby {exports {Batch {???}}}" should compile
-    "scooby {exports {Batch { Batch {???}}}}" shouldNot compile
-    "scooby {exports {Streaming {???}}}" should compile
-    "scooby {exports {Streaming { Streaming {???}}}}" shouldNot compile
-    "scooby {exports {Batch { strategy {???}}}}" should compile
-    "scooby {exports {Batch { strategy { strategy {???}}}}}" shouldNot compile
+    "scooby {exports {batch {???}}}" should compile
+    "scooby {exports {batch { Batch {???}}}}" shouldNot compile
+    "scooby {exports {streaming {???}}}" should compile
+    "scooby {exports {streaming { Streaming {???}}}}" shouldNot compile
+    "scooby {exports {batch { strategy {???}}}}" should compile
+    "scooby {exports {batch { strategy { strategy {???}}}}}" shouldNot compile
 
 
 

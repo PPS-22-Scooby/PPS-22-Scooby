@@ -24,13 +24,11 @@ class ExampleTest extends ScoobyTest:
     val filePath = path.resolve("temp.txt")
 
     mockedScooby:
-      scrape:
-        elements
       exports:
-        Batch:
+        batch:
           strategy:
             results get tag output:
-              ToFile(filePath.toString) withFormat Text
+              toFile(filePath.toString) withFormat Text
 
     .scrapeExportInspectFileContains(baseURL, filePath,
       "List(html, head, meta, meta, title, body, h1, p, div, h2, a, br, a, br, a, br, a)\n"

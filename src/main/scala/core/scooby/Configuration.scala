@@ -5,9 +5,8 @@ import core.crawler.ExplorationPolicy
 import core.exporter.{AggregationBehavior, ExportingBehavior}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scraper.ScraperPolicies.ScraperPolicy
-import utility.document.Document
 import utility.http.{ClientConfiguration, URL}
-import org.unibo.scooby.core.scooby.Configuration.CoordinatorConfiguration
+import core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Single Exporting option. Configures one single Exporter
