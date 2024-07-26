@@ -14,31 +14,36 @@ object Crawl:
 
   case class CrawlContext(var url: String, var policy: ExplorationPolicy)
 
-  case class CrawlDocumentContext(var provider: ExplorationPolicy)
+  private type CrawlScope = CrawlContext ?=> Unit
+  private type PolicyScope = CrawlDocument ?=> Iterable[URL]
 
   object SafeOps:
     import UnsafeOps.* 
 
-    inline def crawl[T](init: CrawlContext ?=> Unit)(using context: ConfigurationBuilder[T]): Unit =
+    inline def crawl[T](block: CrawlScope)(using context: ConfigurationBuilder[T]): Unit =
       catchRecursiveCtx[CrawlContext]("crawl")
-      crawlOp(init)
+      crawlOp(block)
 
-    inline def policy(init: CrawlDocument ?=> Iterable[URL])(using builder: CrawlContext): Unit =
+    inline def policy(blocK: PolicyScope)(using builder: CrawlContext): Unit =
       catchRecursiveCtx[CrawlDocument]("policy")
-      policyOp(init)
+      policyOp(blocK)
+
+    extension (x: Iterable[URL])
+      infix def not(pred: URL => Boolean): Iterable[URL] =
+        x.filterNot(pred)
 
   private[Crawl] object UnsafeOps:
-    def crawlOp[T](init: CrawlContext ?=> Unit)(using context: ConfigurationBuilder[T]): Unit =
+    def crawlOp[T](block: CrawlScope)(using context: ConfigurationBuilder[T]): Unit =
       given builder: CrawlContext = CrawlContext("", context.configuration.crawlerConfiguration.explorationPolicy)
-      init
+      block
       context.configuration = context.configuration
         .focus(_.crawlerConfiguration.url)                 .replace(URL(builder.url))
         .focus(_.crawlerConfiguration.explorationPolicy)   .replace(builder.policy)
 
-    def policyOp(init: CrawlDocument ?=> Iterable[URL])(using builder: CrawlContext): Unit =
+    def policyOp(block: PolicyScope)(using builder: CrawlContext): Unit =
     builder.policy = doc =>
       given CrawlDocument = doc
-      init
+      block
 
   def url(init: => String)(using builder: CrawlContext): Unit =
     builder.url = init
@@ -48,10 +53,6 @@ object Crawl:
 
   def allLinks(using crawlDocumentContext: CrawlDocument): Iterable[URL] = 
     crawlDocumentContext.getAllLinkOccurrences
-
-  extension (x: Iterable[URL])
-    infix def not(pred: URL => Boolean): Iterable[URL] = 
-      x.filterNot(pred)
 
   def external(using document: CrawlDocument): URL => Boolean =
     _.domain != document.url.domain
