@@ -11,27 +11,24 @@ import monocle.syntax.all.*
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Container for all the generic configuration-related DSL keywords.
+ * Collection of DSL operators to customize the generic properties of Scooby application
+ *
+ * Example usage:
+ * {{{
+ * config:
+ *    network:
+ *      Timeout is 5.seconds
+ *      headers:
+ *        "HeaderName" to "HeaderValue"
+ *    options:
+ *      MaxDepth is 10
+ * }}}
  */
 object Config:
   export ConfigOps.SafeOps.*
   export ConfigOps.PropertyBuilder.*
   import ConfigContexts.*
 
-  /**
-   * Collection of DSL operators to customize the generic properties of Scooby application
-   *
-   * Example usage:
-   * {{{
-   * config:
-   *    network:
-   *      Timeout is 5.seconds
-   *      headers:
-   *        "HeaderName" to "HeaderValue"
-   *    options:
-   *      MaxDepth is 10
-   * }}}
-   */
   private object ConfigOps:
     import dsl.syntax.catchRecursiveCtx
 

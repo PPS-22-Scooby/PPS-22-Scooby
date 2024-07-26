@@ -7,7 +7,18 @@ import utility.document.*
 import monocle.syntax.all.*
 
 /**
- * Container for all the scraping-related DSL keywords.
+ * Collection of DSL operators to customize the Scrape properties of Scooby application
+ *
+ * Example usage:
+ * {{{
+ *   scrape:
+ *     elements that:
+ *       haveAttribute("attribute") and dont:
+ *         haveAttributeValue("attribute", "valueToHave") or
+ *         haveAttributeValue("href", "/secret/")
+ *       .and:
+ *         followRule { element.tag == "anyHtmlTag" } and followRule { element.tag == "div" }
+ * }}}
  */
 object Scrape:
   export SafeOps.*
