@@ -34,7 +34,6 @@ class DSLScraperTest extends ScoobyTest:
           elements
     .expectResultFromScraping(targetUrl, scrapedDocument.getAllElements)
 
-
   it should "return no html at all if no scrape policy is present" in:
     mockedScooby:
       crawl:
@@ -85,4 +84,34 @@ class DSLScraperTest extends ScoobyTest:
           elements that :
             haveAttributeValue("class", "lorem")
     .expectResultFromScraping(baseURL / "level1.0.html", scrapeDocument.getElementsByClass("lorem"))
+
+  it should "be able to concatenate two conditions using or" in:
+    val scrapeDocument = getScrapeDocument(baseURL / "level2.0.html")
+    val expectedResult = scrapeDocument.select("a[href^=\"level\"]")
+    mockedScooby:
+      crawl:
+        url:
+          baseURL / "level2.0.html"
+        policy:
+          hyperlinks
+        scrape:
+          elements that :
+            haveAttributeValue("href", "level1.0.html") or haveAttributeValue("href", "level1.1.html")
+    .expectResultFromScraping(baseURL / "level2.0.html", expectedResult)
+
+  it should "be able to concatenate two conditions using and" in:
+    val scrapeDocument = getScrapeDocument(baseURL / "level2.0.html")
+    val expectedResult = scrapeDocument.select("a[href^=\"level1.1\"]")
+
+    mockedScooby:
+      crawl:
+        url:
+          baseURL / "level2.0.html"
+        policy:
+          hyperlinks
+        scrape:
+          elements that :
+            haveAttributeValue("href", "level1.1.html") and haveClass("amet")
+    .expectResultFromScraping(baseURL / "level2.0.html", expectedResult)
+
 
