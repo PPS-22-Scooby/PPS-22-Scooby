@@ -56,10 +56,10 @@ trait EnhancedLinkExplorer extends HtmlExplorer:
    * @return a sequence of URLs representing the links in the document.
    */
   def getAllLinkOccurrences: Seq[URL] =
-    val hrefLinks = htmlDocument.select("[href]").map(_.attr("href")).map(_.toUrl)
-    val srcLinks = htmlDocument.select("[src]").map(_.attr("src")).map(_.toUrl)
+    val hrefLinks = htmlDocument.select("[href]").map(_.attr("href")).map(_.toUrl.resolve(url)).filter(_.isValid)
+    val srcLinks = htmlDocument.select("[src]").map(_.attr("src")).map(_.toUrl.resolve(url)).filter(_.isValid)
     val urlPattern: Regex = "(https?://\\S+|http://\\S+|www\\.\\S+)".r
-    val textLinks = urlPattern.findAllIn(htmlDocument.select("body").map(_.text).mkString(" ")).map(_.toUrl)
+    val textLinks = urlPattern.findAllIn(htmlDocument.select("body").map(_.text).mkString(" ")).map(_.toUrl.resolve(url)).filter(_.isValid)
     hrefLinks ++ srcLinks ++ textLinks
 
 

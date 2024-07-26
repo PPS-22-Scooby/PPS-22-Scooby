@@ -2,7 +2,7 @@ package org.unibo.scooby
 package dsl
 
 import dsl.util.ScoobyTest
-import org.unibo.scooby.utility.http.URL.toUrl
+import utility.http.URL.toUrl
 
 class ExampleTest extends ScoobyTest:
 
