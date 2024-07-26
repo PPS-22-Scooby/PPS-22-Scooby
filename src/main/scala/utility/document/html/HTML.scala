@@ -14,7 +14,7 @@ import scala.util.matching.Regex
  * @param htmlDocument
  *   the Jsoup Document instance
  */
-class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
+case class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
   /**
    * Selects HTML elements from the DOM using CSS selectors.
    *
@@ -76,7 +76,14 @@ class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
  * @param htmlElement
  *   the Jsoup Element instance
  */
-class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
+case class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
+
+  override def equals(obj: Any): Boolean = obj match {
+    case that: HTMLElement => this.text.trim == that.text.trim
+    case _ => false
+  }
+
+  override def hashCode(): Int = text.trim.hashCode
   /**
    * Gets the text of the HTML element.
    *

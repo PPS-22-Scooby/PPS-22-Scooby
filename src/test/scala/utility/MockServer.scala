@@ -82,6 +82,7 @@ object MockServer:
                 status = StatusCodes.OK
               )
             )
+      
       val extUrl: Route =
         path("ext-url"):
           get:
@@ -101,6 +102,7 @@ object MockServer:
                 status = StatusCodes.OK
               )
             )
+      
 
       val echo: Route =
         path("echo"):

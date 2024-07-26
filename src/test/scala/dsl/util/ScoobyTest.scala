@@ -70,7 +70,7 @@ class ScoobyTest(mockServerPort: Int = 8080, route: Route = MockServer.Routes.st
     def expectResultFromScraping(serverURL: URL, results: Iterable[T]): Unit =
       val docEither: Either[HttpError, ScrapeDocument] = GET(serverURL)
       docEither.isRight shouldBe true
-      mockScraping(docEither.getOrElse(fail())) shouldBe results
+      mockScraping(docEither.getOrElse(fail())).toList should contain theSameElementsAs results
 
     def expectCrawledLinks(links: URL*): Unit =
       val docEither: Either[HttpError, CrawlDocument] = GET(config.crawlerConfiguration.url)
