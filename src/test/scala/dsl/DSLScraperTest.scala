@@ -115,3 +115,20 @@ class DSLScraperTest extends ScoobyTest:
     .expectResultFromScraping(baseURL / "level2.0.html", expectedResult)
 
 
+  it should "be able to describe a scrape rule using followRule keyword" in:
+    val scrapeDocument = getScrapeDocument(baseURL / "level2.1.html")
+    val expectedResult = scrapeDocument.select("#ipsum")
+
+    mockedScooby:
+      crawl:
+        url:
+          baseURL / "level2.1.html"
+        policy:
+          hyperlinks
+        scrape:
+          elements that :
+            followRule {
+              element.id == "ipsum"
+            }
+    .expectResultFromScraping(baseURL / "level2.1.html", expectedResult)
+
