@@ -9,6 +9,18 @@ import utility.http.URL
 import monocle.syntax.all.*
 import dsl.syntax.catchRecursiveCtx
 
+/**
+ * Collection of DSL operators to customize the Crawl properties of Scooby application
+ *
+ * Example usage:
+ * {{{
+ *   crawl:
+ *     url:
+ *       "https://www.example.com"
+ *     policy:
+ *       hyperlinks not external
+ * }}}
+ */
 object Crawl:
   export SafeOps.*
 

@@ -13,6 +13,22 @@ import monocle.syntax.all.*
 
 import java.nio.file.Path
 
+/**
+ * Collection of DSL operators to customize the Export properties of Scooby application
+ *
+ * Example usage:
+ * {{{
+ *   exports:
+ *    Batch:
+ *      strategy:
+ *        results get tag output:
+ *          ToConsole withFormat Text
+ *          ToFile("outputFileName") withFormat Text
+ *
+ *      aggregate:
+ *        _ ++ _
+ * }}}
+ */
 object Export:
   import Context.*
   import Context.Batch.*
