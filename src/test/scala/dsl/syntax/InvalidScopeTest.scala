@@ -24,8 +24,8 @@ class InvalidScopeTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAn
     "scooby {config {network {network {???}}}}" shouldNot compile
     "scooby {config {network {headers {???}}}}" should compile
     "scooby {config {network {headers { headers {???}}}}}" shouldNot compile
-    "scooby {config {option {???}}}" should compile
-    "scooby {config {option { option {???}}}}" shouldNot compile
+    "scooby {config {options {???}}}" should compile
+    "scooby {config {options { option {???}}}}" shouldNot compile
 
   "Crawl inner scope keywords" should "be checked against recursive usage" in:
     "scooby {crawl {policy {???}}}" should compile
