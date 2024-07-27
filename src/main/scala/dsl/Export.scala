@@ -7,9 +7,9 @@ import core.scooby.SingleExporting
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
-
 import dsl.syntax.catchRecursiveCtx
 import monocle.syntax.all.*
+import play.api.libs.json.{JsValue, Writes}
 
 import java.nio.file.Path
 
@@ -224,7 +224,11 @@ object Export:
         (it: Iterable[T]) =>
           val format: FormattingBehavior[T] = strategy match
             case FormatType.Text => Formats.string
-            case FormatType.Json => Formats.string // TODO once implemented Json export, parse it
+            case FormatType.Json =>
+              import play.api.libs.json.{Json as PlayJson, *}
+              given Writes[T] with
+                override def writes(o: T): JsValue = PlayJson.toJson(o)
+              Formats.json
 
           support match
             case ExportSupport.File(path: String) =>
