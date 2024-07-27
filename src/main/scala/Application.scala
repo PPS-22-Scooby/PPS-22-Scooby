@@ -7,7 +7,7 @@ import dsl.ScoobyEmbeddable
 
 object Application extends ScoobyEmbeddable with App:
 
-  val app = scooby:
+  private val app = scooby:
     config:
       network:
         Timeout is 9.seconds

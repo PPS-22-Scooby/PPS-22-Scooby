@@ -57,9 +57,9 @@ object ScoobyActor:
           // 2. Handle exporting
           val exporters = configuration.exporterConfiguration.exportingStrategies.zipWithIndex.map {
             case (SingleExporting.StreamExporting(behavior), index) =>
-              context.spawn(Exporter.stream(behavior), s"Exporter${index}-Stream")
+              context.spawn(Exporter.stream(behavior), s"Exporter$index-Stream")
             case (SingleExporting.BatchExporting(behavior, aggregation), index) =>
-              context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter${index}-Batch")
+              context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter$index-Batch")
           }
 
           val exporterRouter = context.spawn(ExporterRouter(exporters), "ExporterRouter")
@@ -99,7 +99,7 @@ object ScoobyActor:
   /**
    * Callback for when the application ends its execution.
    */
-  def onFinishedExecution(): Unit =
+  private def onFinishedExecution(): Unit =
     // TODO kill actor system
     println("Process end with success!")
 
