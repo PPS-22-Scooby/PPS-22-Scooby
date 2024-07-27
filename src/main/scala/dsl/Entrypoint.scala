@@ -10,7 +10,7 @@ import monocle.syntax.all.*
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Success
-import org.unibo.scooby.core.scooby.SingleExporting
+import core.scooby.SingleExporting
 
 trait ScoobyApplication extends App:
   export DSL.*

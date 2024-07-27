@@ -3,7 +3,7 @@ package utility.http
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.unibo.scooby.utility.http.URL.url
+import utility.http.URL.url
 
 class RelativeUrlsTest extends AnyFlatSpec with should.Matchers:
 

@@ -211,20 +211,20 @@ enum URL private (
    * Gets the port string (e.g. if a URL has port 4000, it returns ":4000").
    * @return the port string <b>or</b> empty string if the URL has no port
    */
-  def portString: String = port.map(":" + _).getOrElse("")
+  private def portString: String = port.map(":" + _).getOrElse("")
 
   /**
    * Gets the query string (e.g. "https://www.example.com?fo=1&ol=2" => "?fo=1&ol=2")
    * @return the query string <b>or</b> empty string if the URL has no query parameter
    */
-  def queryString: String = if (queryParams.isEmpty) ""
+  private def queryString: String = if (queryParams.isEmpty) ""
     else "?" + queryParams.map { case (k, v) => s"$k=$v" }.mkString("&")
 
   /**
    * Gets the fragment string (e.g. "https://www.example.com#fragment" => "#fragment")
    * @return the fragment string <b>or</b> empty string if the URL has no fragment
    */
-  def fragmentString: String = fragment.map("#" + _).getOrElse("")
+  private def fragmentString: String = fragment.map("#" + _).getOrElse("")
 
   /**
    * FlatMap method for URL. Enables it to be used inside for-comprehensions. Returns f(URL) as long as URL is valid
