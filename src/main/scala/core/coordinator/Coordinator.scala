@@ -63,14 +63,8 @@ object Coordinator:
    * The behavior of the Coordinator actor when it is first created.
    */
   def apply(maxNumberOfLinks: Int = 2000): Behavior[CoordinatorCommand] =
-    import utility.rule.Rule.policy
     Behaviors.setup { context =>
-      val defaultUrlPolicy: ConditionalRule[(URL, Set[URL])] = policy:
-        (url: URL, crawledPages: Set[URL]) => !crawledPages
-          .map(_.domain)
-          .contains(url.domain)
-
-      new Coordinator(context, defaultUrlPolicy, maxNumberOfLinks).idle(Set.empty, Set.empty)
+      new Coordinator(context, maxNumberOfLinks).idle(Set.empty, Set.empty)
     }
 
 /**
@@ -80,12 +74,20 @@ object Coordinator:
  *   The context in which the actor is running.
  */
 class Coordinator(
-                   context: ActorContext[CoordinatorCommand], 
-                   urlPolicy: ConditionalRule[(URL, Set[URL])],
+                   context: ActorContext[CoordinatorCommand],
                    maxNumberOfLinks: Int
                  ):
 
   import CoordinatorCommand.*
+
+  /**
+   * Execute the default policy on the page
+   * @param pageUrl
+   * @param alreadyCrawledUrl
+   * @return
+   */
+  private def executePolicy(pageUrl: URL, alreadyCrawledUrl: Set[URL]): Boolean =
+    !alreadyCrawledUrl.map(_.domain).contains(pageUrl.domain)
 
   /**
    * The behavior of the Coordinator actor when it is idle.
@@ -110,7 +112,9 @@ class Coordinator(
         Behaviors.same
         
       case CheckPages(pages, replyTo) =>
-        val checkResult = pages.filter(_.isAbsolute).filter(page => urlPolicy.executeOn(page, crawledPages))
+        val checkResult = pages.filter(_.isAbsolute)
+          .filter(page => executePolicy(page, crawledPages))
+
         val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
         idle(crawledPages ++ checkResult.toSet, blackList)
