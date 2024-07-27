@@ -73,7 +73,7 @@ object ScoobyActor:
             configuration.crawlerConfiguration.explorationPolicy,
             configuration.crawlerConfiguration.maxDepth,
             configuration.crawlerConfiguration.networkOptions
-          ), s"RootCrawler-${Crawler.getCrawlerName(configuration.crawlerConfiguration.url)}")
+          ))
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 
           context.watch(crawler)
