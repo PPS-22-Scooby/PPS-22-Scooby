@@ -89,6 +89,7 @@ object ScoobyActor:
 
           context.watch(crawler)
           waitCrawlingFinished(exporters)
+        case ExportFinished => Behaviors.same
 
   /**
    * Waiting behavior for the [[ScoobyActor]]. Waits until all the crawling is finished
