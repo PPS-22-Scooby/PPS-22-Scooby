@@ -7,7 +7,6 @@ import core.exporter.ExporterCommands
 import core.scraper.ScraperPolicies
 import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.ScalaTestWithMockServer
-import utility.document.ScrapeDocument
 import utility.http.URL
 import utility.http.URL.*
 

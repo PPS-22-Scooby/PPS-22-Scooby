@@ -25,7 +25,7 @@ trait Rule[A, B]:
    * @return
    *   the result of applying the rule
    */
-  def executeOn(value: A): B = f(value)
+  infix def executeOn(value: A): B = f(value)
 
 /**
  * A trait representing a rule that can be joined with another rule.
@@ -59,7 +59,7 @@ sealed trait ConditionalRule[A] extends Rule[A, Boolean]:
    * @return
    *   a new rule that represents the logical AND of this rule and the other rule
    */
-  def and(other: ConditionalRule[A]): ConditionalRule[A]
+  infix def and(other: ConditionalRule[A]): ConditionalRule[A]
 
   /**
    * Combines this rule with another rule using logical OR.
@@ -68,7 +68,7 @@ sealed trait ConditionalRule[A] extends Rule[A, Boolean]:
    * @return
    *   a new rule that represents the logical OR of this rule and the other rule
    */
-  def or(other: ConditionalRule[A]): ConditionalRule[A]
+  infix def or(other: ConditionalRule[A]): ConditionalRule[A]
 
 /**
  * A case class representing a base rule that can be joined with another rule.
@@ -102,7 +102,7 @@ final case class Policy[A](f: A => Boolean) extends ConditionalRule[A]:
    * @return
    *   a new rule that represents the logical AND of this rule and the other rule
    */
-  def and(other: ConditionalRule[A]): ConditionalRule[A] = Policy((a: A) => f(a) && other.f(a))
+  infix def and(other: ConditionalRule[A]): ConditionalRule[A] = Policy((a: A) => f(a) && other.f(a))
 
   /**
    * Combines this rule with another rule using logical OR.
@@ -111,7 +111,7 @@ final case class Policy[A](f: A => Boolean) extends ConditionalRule[A]:
    * @return
    *   a new rule that represents the logical OR of this rule and the other rule
    */
-  def or(other: ConditionalRule[A]): ConditionalRule[A] = Policy((a: A) => f(a) || other.f(a))
+  infix def or(other: ConditionalRule[A]): ConditionalRule[A] = Policy((a: A) => f(a) || other.f(a))
 
 /**
  * An object representing a set of utility methods for creating and manipulating rules.

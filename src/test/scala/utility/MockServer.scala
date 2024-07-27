@@ -171,7 +171,7 @@ object MockServer:
 
   def apply(port: Int = 8080, routes: Route = Routes.defaultTestingRoutes): Behavior[Command] = 
     Behaviors.setup: context =>
-      implicit val system: ActorSystem[_] = context.system
+      implicit val system: ActorSystem[?] = context.system
       implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
       def running(bindingFuture: Future[Http.ServerBinding]): Behavior[Command] =

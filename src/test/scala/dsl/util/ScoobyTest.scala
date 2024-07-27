@@ -14,9 +14,12 @@ import utility.{MockServer, ScalaTestWithMockServer}
 
 import akka.http.scaladsl.server.Route
 import org.scalatest.BeforeAndAfterEach
+import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
+import scala.util.matching.Regex
 
 class ScoobyTest(mockServerPort: Int = 8080, route: Route = MockServer.Routes.staticHtmlRoutes)
   extends ScoobyEmbeddable with ScalaTestWithMockServer(port = mockServerPort, routes = route)
@@ -77,16 +80,39 @@ class ScoobyTest(mockServerPort: Int = 8080, route: Route = MockServer.Routes.st
       docEither.isRight shouldBe true
       mockCrawling(docEither.getOrElse(fail())) shouldBe links
 
-    def scrapeExportInspectFileContains(serverURL: URL, filePath: Path, content: String): Unit =
+    def scrapeExportInspectFileContains(serverURL: URL, filePath: Path, expected: String,
+                                        scraping: ScraperPolicy[T] = _.getAllElements): Unit =
       val docEither: Either[HttpError, ScrapeDocument] = GET(serverURL)
       docEither.isRight shouldBe true
-      val results = mockScraping(docEither.getOrElse(fail()))
+      val results = scraping(docEither.getOrElse(fail()))
       mockExporting(Result(results))
       Files.exists(filePath) shouldBe true
-      Files.readString(filePath) shouldBe content
+      Files.readString(filePath) shouldBe expected
 
+    def scrapeExportInspectConsoleContains(serverURL: URL, expected: Iterable[String], separator: String,
+                                           scraping: ScraperPolicy[T] = _.getAllElements): Unit =
+      
+      val docEither: Either[HttpError, ScrapeDocument] = GET(serverURL)
+      docEither.isRight shouldBe true
+      val results = scraping(docEither.getOrElse(fail()))
 
+      val outCapture = new ByteArrayOutputStream()
+      Console.withOut(new PrintStream(outCapture)) {
+        mockExporting(Result(results))
+      }
 
+      def countOccurrences(mainStr: String, subStr: String): Int = {
+        val regex: Regex = subStr.r
+        regex.findAllMatchIn(mainStr).length
+      }
+      
+      val listOccurrences = expected.groupBy(identity).view.mapValues(_.size)
+      
+      val allElementsMatchCount = listOccurrences.forall { case (element, count) =>
+        countOccurrences(outCapture.toString, element) >= count
+      }
+
+      allElementsMatchCount shouldBe true
 
 
 

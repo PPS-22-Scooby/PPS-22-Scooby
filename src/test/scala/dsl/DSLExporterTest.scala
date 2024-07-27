@@ -1,137 +1,60 @@
 package org.unibo.scooby
 package dsl
 
-import Application.scooby
-import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats, batch}
-import core.exporter.ExporterCommands
-import core.exporter.ExporterCommands.{Export, SignalEnd}
-import core.scooby.Configuration
+import core.exporter.Exporter.Formats
 import core.scraper.ScraperPolicies.ScraperPolicy
 import core.scraper.{Result, ScraperPolicies}
+
 import dsl.Export.ExportOps.FormatType
+import dsl.util.ScoobyTest
+
 import utility.document.ScrapeDocument
-import utility.http.URL
+import utility.document.html.HTMLElement
+import utility.http.HttpError
+import utility.http.api.Calls.GET
 
-import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-
-import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 
-class DSLExporterTest extends AnyFlatSpec, ScoobyEmbeddable, Matchers, BeforeAndAfterEach:
+class DSLExporterTest extends ScoobyTest:
 
-  var expectedResult: Result[String] = uninitialized
-  var resultDSL: Result[String] = uninitialized
-  var resultExporter: Result[String] = uninitialized
+  var expected: String = uninitialized
+  var expectedIterable: Iterable[String] = uninitialized
 
-  var pathDSL: Path = uninitialized
-  var pathExporter: Path = uninitialized
-
-  var fileDSL: String = "dslTest.txt"
-  var fileExporter: String = "exporterTest.txt"
-
-  val testClass: String = "myClass"
-  val scrapePolicy: ScraperPolicy[String] = doc => doc.getElementsByClass(testClass).map(_.outerHtml)
+  val scrapePolicy: ScraperPolicy[HTMLElement] = doc => doc.getAllElements
+  val elemPolicy: HTMLElement => String = _.tag
+  val resultPolicy: Iterable[HTMLElement] => Result[String] = it => Result(it.get(tag))
   val format: FormatType = Text
 
-  val content: String = scala.io.Source.fromResource("html/Resources.html").mkString("")
+  "Exporter with batch write on file" should "correctly write on file final result" in:
 
-  val document: ScrapeDocument = ScrapeDocument(content, URL.empty)
+    val docEither: Either[HttpError, ScrapeDocument] = GET(baseURL)
+    val results = scrapePolicy(docEither.getOrElse(fail()))
 
-  override def beforeEach(): Unit =
-     pathDSL = Files.createTempDirectory("exporter-tests-DSL")
-     pathDSL.toFile.deleteOnExit()
-     pathExporter = Files.createTempDirectory("exporter-tests-standard")
-     pathExporter.toFile.deleteOnExit()
+    expected = if format == FormatType.Text
+      then Formats.string(resultPolicy(results))
+      else Formats.json.apply(resultPolicy(results))
 
-  override def afterEach(): Unit =
-    Files.walk(pathDSL)
-      .sorted(java.util.Comparator.reverseOrder())
-      .forEach(Files.deleteIfExists(_))
-    Files.walk(pathExporter)
-      .sorted(java.util.Comparator.reverseOrder())
-      .forEach(Files.deleteIfExists(_))
+    val filePath = path.resolve("exporter.txt")
 
-  def getDSLResultAsIterable[T](doc: ScrapeDocument, policy: ScraperPolicy[T]): Iterable[T] =
-    policy.apply(doc)
-
-  "Exporter with batch write on file" should "behave the same" in:
-
-    val result: Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
-    val configBuilder: ConfigurationBuilder[String] = new ConfigurationBuilder(
-      Configuration.empty[String], ScrapingResultSetting[String]())
-
-    val app: ScoobyRunnable[String] = scooby:
+    mockedScooby:
       exports:
-        Batch:
+        batch:
           strategy:
-            results output:
-              // ToFile(pathDSL.toString + "/" + fileDSL) withFormat format
-              ToConsole withFormat format
-
-          aggregate:
-            _ ++ _
-
-    resultDSL = Await.result(app.run(), 10.seconds)
-
-    expectedResult = Result(scrapePolicy.apply(document))
-
-    // TODO once result is correctly returned, apply this test resultDSL shouldBe expectedResult
-
-    val writeFormat = if format == FormatType.Text then Formats.string else Formats.string // TODO Once JSON Formats implemented apply it
-
-    val testKit = BehaviorTestKit(batch(ExportingBehaviors.writeOnFile(Path.of(pathExporter.toString + "/" + fileExporter), writeFormat))(AggregationBehaviors.default))
-    testKit.run(ExporterCommands.Export(expectedResult))
-    testKit.run(SignalEnd())
-
-    val filePathDSL = pathDSL.resolve(fileDSL)
-    val filePathExporter = pathExporter.resolve(fileExporter)
-
-    Files.exists(filePathExporter) shouldBe true
-    Files.readAllLines(filePathExporter).get(0) shouldBe "List(<li class=\"myClass\"><a href=\"#\">Link</a></li>)"
-
-    // TODO once result is correctly returned, apply this test Files.exists(filePathDSL) shouldBe true
-    // TODO once result is correctly returned, apply this test Files.readAllLines(filePathDSL).get(0) shouldBe "List(<li class=\"myClass\"><a href=\"#\">Link</a></li>)"
+            results get tag output:
+              toFile(filePath.toString) withFormat format
+    .scrapeExportInspectFileContains(baseURL, filePath, expected, scrapePolicy)
 
 
-  "Exporter with stream write on console" should "behave the same" in:
-    // TODO once fixed stream export, apply and verify
-    true shouldBe true
-//    given Iterable[String] = getDSLResultAsIterable(document, scrapePolicy)
-//    given ConfigurationBuilder[String] = new ConfigurationBuilder(Configuration.empty[String], ScrapingResultSetting[String]())
-//
-//    val app: ScoobyRunnable[String] = scooby:
-//      exports:
-//        Streaming:
-//          results outputTo:
-//            ToConsole withFormat Text
-//
-//    expectedResult = Result(scrapePolicy.apply(document))
-//
-//    val outCaptureDSL = new ByteArrayOutputStream()
-//    Console.withOut(new PrintStream(outCaptureDSL)) {
-//      resultDSL = Await.result(app.run(), 10.seconds)
-//    }
-//    // Assert the captured output
-//    val outputDSL = outCaptureDSL.toString
-//    println(s"DSL: $outputDSL")
-//    outputDSL should include(resultDSL.toString) // TODO once result is correctly returned, apply this
-//
-//    val writeFormat = if format == FormatType.Text then Formats.string else Formats.string // TODO Once JSON Formats implemented apply it
-//    val testKit = BehaviorTestKit(stream(ExportingBehaviors.writeOnConsole(writeFormat)))
-//
-//    // Capture the output
-//    val outCaptureStandard = new ByteArrayOutputStream()
-//    Console.withOut(new PrintStream(outCaptureStandard)) {
-//      testKit.run(ExporterCommands.Export(expectedResult))
-//      testKit.run(SignalEnd())
-//    }
-//
-//    // Assert the captured output
-//    val outputStandard = outCaptureStandard.toString
-//    println(s"Standard: $outputStandard")
-//    outputStandard should include(expectedResult.toString)
+  "Exporter with stream write on console" should "correctly output all result's items" in:
+
+    val docEither: Either[HttpError, ScrapeDocument] = GET(baseURL)
+    expectedIterable = scrapePolicy(docEither.getOrElse(fail())).map(elemPolicy)
+
+    val separator = if format == FormatType.Text then System.lineSeparator() else ","
+
+    mockedScooby:
+      exports:
+        streaming:
+          results get tag  output:
+            toConsole withFormat format
+    .scrapeExportInspectConsoleContains(baseURL, expectedIterable, separator, scrapePolicy)

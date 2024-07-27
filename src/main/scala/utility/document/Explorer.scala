@@ -5,7 +5,6 @@ import utility.document.html.*
 import utility.http.URL
 
 import scala.util.matching.Regex
-import utility.http.URL
 import utility.http.URL.toUrl
 
 /**

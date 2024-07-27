@@ -35,7 +35,7 @@ object Export:
   import Context.Stream.*
   export ExportOps.SafeOps.*
   export ExportOps.FormatType.*
-  export ExportOps.{exports, Streaming, Batch, strategy, aggregate, results, ToFile, ToConsole}
+  export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole}
 
   object ExportOps:
 
@@ -54,7 +54,7 @@ object Export:
      * @tparam T the [[Result]]'s type.
      * @return the [[StreamExportationContext]] built.
      */
-    def Streaming[T](using context: StrategiesContext[T]): StreamExportationContext[T] = 
+    def streaming[T](using context: StrategiesContext[T]): StreamExportationContext[T] = 
       StreamExportationContext[T](context)
 
     /**
@@ -63,7 +63,7 @@ object Export:
      * @tparam T the [[Result]]'s type.
      * @return the [[BatchExportationContext]] built.
      */
-    def Batch[T](using context: StrategiesContext[T]): BatchExportationContext[T] = 
+    def batch[T](using context: StrategiesContext[T]): BatchExportationContext[T] = 
       BatchExportationContext[T](context)
 
     /**
@@ -106,7 +106,7 @@ object Export:
      * @tparam T the type of [[Result]] to export.
      * @return the [[WriteOnOutput]] with configuration built.
      */
-    infix def ToFile[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+    infix def toFile[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
       WriteOnOutput[T](exporter, ExportSupport.File(path))
 
     /**
@@ -115,7 +115,7 @@ object Export:
      * @tparam T the type of [[Result]] to export.
      * @return the [[WriteOnOutput]] with configuration built.
      */
-    infix def ToConsole[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+    infix def toConsole[T](using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
       WriteOnOutput[T](exporter, ExportSupport.Console)
 
     /**
@@ -130,12 +130,15 @@ object Export:
      * @tparam T type of results returned by the scraping
      */
     private type OutputDefinitionScope[T] = ExportStrategyContext[T] ?=> Iterable[T] => Unit
+
     /**
      * Collection of operators for "export" part of the DSL, performing also syntax checks.
      */
     object SafeOps:
       import UnsafeOps.*
+
       extension [T](x: Iterable[T])
+
         /**
          * Context used to apply the [[Exporter]] consume function.
          * @param f the consume function to apply.
@@ -150,6 +153,7 @@ object Export:
     private[Export] object UnsafeOps:
 
       extension [T](x: Iterable[T])
+
         /**
           * Unsafe version of the one inside [[org.unibo.scooby.dsl.Export.ExportOps.SafeOps]]
           * @param f the consume function to apply.
@@ -163,11 +167,13 @@ object Export:
    * @tparam T type of the results returned by the scraping
    */
   private type ExportDefinitionScope[T] = StrategiesContext[T] ?=> Unit
+
   /**
    * Collection of contexts used inside the "export" part of the DSL.
    */
   private[Export] object Context:
     import Export.ExportOps.{ExportSupport, FormatType}
+
     /**
      * Context used to parse the exporting strategies given in configuration.
      * @param builder the [[ConfigurationBuilder]] containing all application parameters.
@@ -241,17 +247,20 @@ object Export:
     private type StrategyDefinitionScope[T] = Iterable[T] ?=> Unit
 
     object Batch:
+
       /**
        * Type alias representing the "Batch" section under the "exports" part of the DSL
        * @tparam T type of results returned by the scraping.
        */
       private type BatchDefinitionScope[T] = BatchSettingContext[T] ?=> Unit
+
       /**
        * The exporter batch technique's context.
        * @param context the context used to set the [[BatchExporting]] configuration.
        * @tparam T the [[Result]]'s type.
        */
       case class BatchExportationContext[T](context: StrategiesContext[T]):
+
         /**
          * Builder used to set the [[BatchExporting]] configuration.
          * @param block the function used to set the [[BatchExporting]] configuration.
@@ -305,6 +314,7 @@ object Export:
           context.aggregation = (res1: Result[T], res2: Result[T]) => Result(block(res1.data, res2.data))
           
     object Stream:
+
       /**
        * The exporter stream technique's context.
        * @param context the context used to set the [[StreamExporting]] configuration.

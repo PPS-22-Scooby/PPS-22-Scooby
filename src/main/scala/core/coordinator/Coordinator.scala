@@ -10,7 +10,6 @@ import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 import utility.http.URL
 import utility.http.URL.*
 
-
 enum CoordinatorCommand:
 
   /**

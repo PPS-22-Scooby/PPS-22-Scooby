@@ -6,8 +6,6 @@ import utility.http.HttpStatus.INVALID
 
 import sttp.model.RequestMetadata
 
-import scala.concurrent.duration.FiniteDuration
-
 /**
  * Simple, synchronous HTTP client backend that utilizes the sttp library under the hood
  */
