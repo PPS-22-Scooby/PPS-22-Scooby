@@ -34,7 +34,7 @@ class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll:
       |  <nav>
       |    <ul>
       |      ${classSelector.zipWithIndex.map { case (cls, index) =>
-                s"""<li class="$cls"><a href="#${index}">Link $index${if index % 2 == 0 then " " + regEx else ""}</a></li>"""
+                s"""<li class="$cls"><a href="#$index">Link $index${if index % 2 == 0 then " " + regEx else ""}</a></li>"""
               }.mkString("\n")}
       |      <li><a href="#about">About</a></li>
       |    </ul>

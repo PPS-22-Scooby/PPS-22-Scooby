@@ -87,7 +87,7 @@ object Crawler:
    * @return
    *    the behavior of the Crawler actor
    */
-  def buildWithClient[T](
+  private def buildWithClient[T](
               coordinator: ActorRef[CoordinatorCommand],
               exporter: ActorRef[ExporterCommands],
               scrapeRule: ScraperPolicy[T],

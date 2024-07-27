@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 import org.slf4j.event.Level
 import utility.http.Clients.SimpleHttpClient
 
-import org.unibo.scooby.core.exporter.ExporterCommands
+import core.exporter.ExporterCommands
 
 
 class StepDefinitions extends ScalaDsl with EN :

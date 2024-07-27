@@ -14,7 +14,7 @@ import utility.{MockServer, ScalaTestWithMockServer}
 
 import akka.http.scaladsl.server.Route
 import org.scalatest.BeforeAndAfterEach
-import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
+import core.scraper.ScraperPolicies.ScraperPolicy
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}

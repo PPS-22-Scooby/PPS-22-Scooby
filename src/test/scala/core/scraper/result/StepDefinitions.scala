@@ -136,7 +136,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[Seq[String]]
         res match
           case JsSuccess(resList, _) =>
-            resultString1 = Result.fromData(resList(0))
+            resultString1 = Result.fromData(resList.head)
             resultString2 = Result.fromData(resList(1))
           case JsError(errors) =>
             println(errors)
@@ -144,7 +144,7 @@ class StepDefinitions extends ScalaDsl with EN:
         val res = Json.parse(result).validate[Seq[Map[String, String]]]
         res match
           case JsSuccess(resMap, _) =>
-            resultMap1 = Result(resMap(0))
+            resultMap1 = Result(resMap.head)
             resultMap2 = Result(resMap(1))
           case JsError(errors) =>
             println(errors)

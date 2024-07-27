@@ -3,13 +3,13 @@ package utility.document
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.unibo.scooby.utility.http.URL
+import utility.http.URL
 
 import scala.Seq
 
 class ExplorerTest extends AnyFlatSpec with should.Matchers:
 
-  val html = """<html>
+  val html: String = """<html>
                 |<head></head>
                 |<body>
                 | <p id="test">Test</p>
@@ -21,7 +21,7 @@ class ExplorerTest extends AnyFlatSpec with should.Matchers:
                 | </body>
                 | </html>
                 |""".stripMargin
-  val url = URL("https://www.example.com/path")
+  val url: URL = URL("https://www.example.com/path")
 
   "A Document with RegExpExplorer" should "find element inside string given Regular Expression" in:
     val document = new Document(html, url) with RegExpExplorer
