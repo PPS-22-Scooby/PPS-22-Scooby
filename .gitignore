@@ -43,6 +43,15 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Metals ###
+.metals/
+.bloop/
+project/.bloop/
+project/metals.sbt
+project/project/.bloop
+project/project/metals.sbt
+project/project/project/metals.sbt
+
 ### VS Code ###
 .vscode/
 

@@ -29,7 +29,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
-  "StreamExporter" should "receive Export message and call exporting function" in :
+  "StreamExporter" should "receive Export message and call exporting function" in:
     val filePath = path.resolve("test.txt")
     val testKit = BehaviorTestKit(stream(ExportingBehaviors.writeOnFile(filePath)))
     testKit.run(Export(Result((1 to 5).toList)))
@@ -54,7 +54,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     import JsonConverter.given
     val filePath = path.resolve("test.txt")
     val document: ScrapeDocument = ScrapeDocument("<div><p>Text 1</p><p>Par 2</p></div><div><p>Text 2</p></div>", URL.empty)
-    val htmlElements = document.getElementByTag("div")
+    val htmlElements = document.getElementsByTag("div")
     val testKit = BehaviorTestKit(batch(ExportingBehaviors.writeOnFile[HTMLElement](filePath, Formats.json))(AggregationBehaviors.default))
     testKit.run(Export(Result(htmlElements)))
     Files.exists(filePath) shouldBe false

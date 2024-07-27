@@ -9,11 +9,11 @@ import core.exporter.{Exporter, ExporterCommands, ExporterRouter}
 import core.scooby.Configuration.{CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import core.scraper.ScraperPolicies
-import utility.document.Document
-import utility.http.URL
+import utility.http.{ClientConfiguration, URL}
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
+import core.scooby.Configuration.CoordinatorConfiguration
 
 /**
  * Main commands to be used inside Scooby
@@ -71,7 +71,8 @@ object ScoobyActor:
             exporterRouter,
             configuration.scraperConfiguration.scrapePolicy,
             configuration.crawlerConfiguration.explorationPolicy,
-            configuration.crawlerConfiguration.maxDepth
+            configuration.crawlerConfiguration.maxDepth,
+            configuration.crawlerConfiguration.networkOptions
           ))
           crawler ! CrawlerCommand.Crawl(configuration.crawlerConfiguration.url)
 
@@ -92,6 +93,7 @@ object ScoobyActor:
         exporters.foreach(_ ! SignalEnd())
 
         onFinishedExecution()
+
         Behaviors.stopped
 
   /**
@@ -110,19 +112,15 @@ object Main:
           URL("https://www.example.com"),
           ExplorationPolicies.allLinks,
           2,
-          utility.http.Configuration.default
+          ClientConfiguration.default
         ),
         ScraperConfiguration(ScraperPolicies.scraperRule(Seq("link"), "tag")),
         ExporterConfiguration(Seq(
           BatchExporting(
             ExportingBehaviors.writeOnConsole(Formats.string),
             AggregationBehaviors.default
-          ),
-          BatchExporting(
-            ExportingBehaviors.writeOnConsole(Formats.string),
-            AggregationBehaviors.default
-          )
-        ))
+          ))),
+        CoordinatorConfiguration(100)
       )
     )
 
