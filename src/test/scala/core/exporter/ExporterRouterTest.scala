@@ -4,8 +4,11 @@ package core.exporter
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
 import core.scraper.Result
+
+import akka.actor.typed.ActorRef
+import org.unibo.scooby.core.scooby.{Configuration, ScoobyActor, ScoobyCommand}
 
 import scala.language.postfixOps
 
@@ -16,6 +19,7 @@ class ExporterRouterTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
   val probe2 = testKit.createTestProbe[ExporterCommands]()
   val probe3 = testKit.createTestProbe[ExporterCommands]()
   val exporters = Seq(probe1.ref, probe2.ref, probe3.ref)
+  val mockScooby: ActorRef[ScoobyCommand] = BehaviorTestKit(ScoobyActor(Configuration.empty)).ref
 
   "ExporterRouterTest" should "broadcast messages to other exporters" in:
 
@@ -33,7 +37,7 @@ class ExporterRouterTest extends AnyFlatSpec, Matchers, BeforeAndAfterAll:
     val router = testKit.spawn(ExporterRouter(exporters))
 
     val command1 = ExporterCommands.Export(Result((1 to 5).toList))
-    val command2 = ExporterCommands.SignalEnd()
+    val command2 = ExporterCommands.SignalEnd(mockScooby)
 
     router ! command1
     router ! command2

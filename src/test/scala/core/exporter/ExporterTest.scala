@@ -8,10 +8,12 @@ import org.scalatest.matchers.should.Matchers
 import ExporterCommands.*
 import core.scraper.Result
 import core.exporter.Exporter.*
-
 import utility.document.ScrapeDocument
 import utility.document.html.HTMLElement
 import utility.http.URL
+
+import akka.actor.typed.ActorRef
+import org.unibo.scooby.core.scooby.{Configuration, ScoobyActor, ScoobyCommand}
 
 import java.nio.file.{Files, Path}
 import scala.compiletime.uninitialized
@@ -19,6 +21,7 @@ import scala.compiletime.uninitialized
 class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
 
   var path: Path = uninitialized
+  val mockScooby: ActorRef[ScoobyCommand] = BehaviorTestKit(ScoobyActor(Configuration.empty)).ref
 
   override def beforeEach(): Unit =
     path = Files.createTempDirectory("exporter-tests")
@@ -46,7 +49,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     testKit.run(Export(Result((6 to 10).toList)))
     Files.exists(filePath) shouldBe false
 
-    testKit.run(SignalEnd())
+    testKit.run(SignalEnd(mockScooby))
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).get(0) shouldBe "List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"
 
@@ -59,7 +62,7 @@ class ExporterTest extends AnyFlatSpec, Matchers, BeforeAndAfterEach:
     testKit.run(Export(Result(htmlElements)))
     Files.exists(filePath) shouldBe false
 
-    testKit.run(SignalEnd())
+    testKit.run(SignalEnd(mockScooby))
     Files.exists(filePath) shouldBe true
     Files.readAllLines(filePath).toString should be
     """[{"tag":"div","attributes":{},"text":"Text 1 Par 2","children":[{"tag":"p","attributes":{},"text":"Text 1","children":[]},{"tag":"p","attributes":{},"text":"Par 2","children":[]}]},{"tag":"div","attributes":{},"text":"Text 2","children":[{"tag":"p","attributes":{},"text":"Text 2","children":[]}]}]""".stripMargin
