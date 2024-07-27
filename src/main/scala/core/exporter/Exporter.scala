@@ -2,8 +2,10 @@ package org.unibo.scooby
 package core.exporter
 import core.scraper.Result
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
+import org.unibo.scooby.core.scooby.ScoobyCommand
+import org.unibo.scooby.core.scooby.ScoobyCommand.ExportFinished
 import play.api.libs.json.Writes
 
 import java.nio.charset.StandardCharsets
@@ -38,8 +40,10 @@ enum ExporterCommands:
   case Export[A](result: Result[A])
   /**
    * Command to signal the end of computation, indicating that no more results will be sent.
+   * @param replyTo Actor to answer to after exporting has finished
    */
-  case SignalEnd()
+  case SignalEnd(replyTo: ActorRef[ScoobyCommand])
+
 
 /**
  * Companion object for the `Exporter` actor, providing factory methods for creating different types of exporting behaviors.
@@ -60,9 +64,10 @@ object Exporter:
         case Export(result: Result[A]) =>
           exportingFunction(result)
           Behaviors.same
-        case SignalEnd() =>
-          context.log.error("Stream Exporter can only accept stream results")
-          Behaviors.same
+        case SignalEnd(replyTo) =>
+          context.log.warn("Ignoring batch results inside Stream exporter")
+          replyTo ! ExportFinished
+          Behaviors.stopped
 
   /**
    * Creates a behavior for folding (aggregating) export.
@@ -80,9 +85,10 @@ object Exporter:
       Behaviors.receiveMessage :
         case Export(newResult: Result[A]) =>
           fold(aggregation(result, newResult))(exportingFunction)(aggregation)
-        case SignalEnd() =>
+        case SignalEnd(replyTo) =>
           exportingFunction(result)
-          Behaviors.same
+          replyTo ! ExportFinished
+          Behaviors.stopped
 
   /**
    * Creates a behavior for batching export.
