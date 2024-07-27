@@ -277,7 +277,7 @@ object Export:
           given batchStrategyContext: BatchSettingContext[T] = BatchSettingContext[T](
             ExportingBehaviors.writeOnConsole(Formats.string), AggregationBehaviors.default)
           block
-          context.exportingStrategies = Seq(BatchExporting(
+          context.exportingStrategies ++= Seq(BatchExporting(
             batchStrategyContext.policy,
             batchStrategyContext.aggregation
           ))
