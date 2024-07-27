@@ -3,7 +3,7 @@ package utility.document
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.unibo.scooby.utility.http.URL
+import utility.http.URL
 
 import scala.Seq
 
