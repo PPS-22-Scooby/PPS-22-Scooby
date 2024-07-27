@@ -68,15 +68,13 @@ object Aggregator:
     private def aggregateBatch(map1: Map[K, V], map2: Map[K, V]): Map[K, V] =
       (map1.keySet ++ map2.keySet).map {
         key =>
-          val value = (map1.get(key), map2.get(key)) match
+          val value = ((map1.get(key), map2.get(key)): @unchecked) match
             case (Some(val1), Some(val2)) =>
               summon[SingleElemAggregator[V]].aggregate(val1, val2)
             case (Some(val1), _) =>
               val1
             case (_, Some(val2)) =>
               val2
-            case _ =>
-              throw new IllegalStateException("An unexpected error occurs.")
           key -> value
       }.toMap
 

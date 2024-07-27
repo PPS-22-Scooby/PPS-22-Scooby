@@ -31,13 +31,11 @@ trait ScalaTestWithMockServer(port: Int = 8080, routes: Route = MockServer.Route
   val webServerSystem: ActorSystem[MockServer.Command] = ActorSystem(MockServer(port, routes), "WebServerSystem")
 
   override def beforeAll(): Unit =
-    println("start now")
     val startFuture = webServerSystem.ask[MockServer.Command](ref => Start(ref))(timeout, system.scheduler)
     val result = Await.result(startFuture, timeout.duration)
     result shouldBe ServerStarted
 
   override def afterAll(): Unit =
-    println("shutdown now")
     webServerSystem ! Stop
     testKit.shutdownTestKit()
 
@@ -171,7 +169,7 @@ object MockServer:
 
   def apply(port: Int = 8080, routes: Route = Routes.defaultTestingRoutes): Behavior[Command] = 
     Behaviors.setup: context =>
-      implicit val system: ActorSystem[_] = context.system
+      implicit val system: ActorSystem[?] = context.system
       implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
       def running(bindingFuture: Future[Http.ServerBinding]): Behavior[Command] =

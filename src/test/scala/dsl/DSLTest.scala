@@ -1,24 +1,24 @@
 package org.unibo.scooby
 package dsl
 
-import Application.scooby
-import core.crawler.ExplorationPolicies
-import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
-import core.scooby.Configuration.{CoordinatorConfiguration, CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
-import core.scooby.SingleExporting.BatchExporting
-import core.scooby.{Configuration, Scooby}
-import core.scraper.ScraperPolicies
-import core.scooby.Main
-import dsl.util.ScoobyTest
-import utility.document.html.HTMLElement
-import utility.document.{CommonHTMLExplorer, CrawlDocument, Document, ScrapeDocument}
-import utility.http.{ClientConfiguration, URL}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.{be, should}
-
-import scala.concurrent.Await
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+//import Application.scooby
+//import core.crawler.ExplorationPolicies
+//import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
+//import core.scooby.Configuration.{CoordinatorConfiguration, CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
+//import core.scooby.SingleExporting.BatchExporting
+//import core.scooby.{Configuration, Scooby}
+//import core.scraper.ScraperPolicies
+//import core.scooby.Main
+//import dsl.util.ScoobyTest
+//import utility.document.html.HTMLElement
+//import utility.document.{CommonHTMLExplorer, CrawlDocument, Document, ScrapeDocument}
+//import utility.http.{ClientConfiguration, URL}
+//import org.scalatest.flatspec.AnyFlatSpec
+//import org.scalatest.matchers.should.Matchers
+//import org.scalatest.matchers.should.Matchers.{be, should}
+//
+//import scala.concurrent.Await
+//import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 //class DSLTest extends ScoobyTest:
 
