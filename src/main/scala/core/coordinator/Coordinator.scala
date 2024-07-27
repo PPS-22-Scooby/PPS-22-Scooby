@@ -10,6 +10,12 @@ import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
 import utility.http.URL
 import utility.http.URL.*
 
+/**
+ * Type alias for a function that a Coordinator policy in terms of a page that should be explored and
+ * a list of already explored pages.
+ */
+type Policy = (URL, Set[URL]) => Boolean
+
 enum CoordinatorCommand:
 
   /**
@@ -62,9 +68,9 @@ object Coordinator:
   /**
    * The behavior of the Coordinator actor when it is first created.
    */
-  def apply(maxNumberOfLinks: Int = 2000): Behavior[CoordinatorCommand] =
+  def apply(maxNumberOfLinks: Int = 2000, policy: Policy = CoordinatorPolicies.defaultPolicy): Behavior[CoordinatorCommand] =
     Behaviors.setup { context =>
-      new Coordinator(context, maxNumberOfLinks).idle(Set.empty, Set.empty)
+      new Coordinator(context, maxNumberOfLinks, policy).idle(Set.empty, Set.empty)
     }
 
 /**
@@ -72,22 +78,19 @@ object Coordinator:
  *
  * @param context
  *   The context in which the actor is running.
+*  @param maxNumberOfLinks
+ *   Maximum number of links that can be explored by crawlers
+ * @param policy
+ *  The policy of the [[Coordinator]]
+ *
  */
 class Coordinator(
                    context: ActorContext[CoordinatorCommand],
-                   maxNumberOfLinks: Int
+                   maxNumberOfLinks: Int,
+                   policy: Policy
                  ):
 
   import CoordinatorCommand.*
-
-  /**
-   * Execute the default policy on the page
-   * @param pageUrl
-   * @param alreadyCrawledUrl
-   * @return
-   */
-  private def executePolicy(pageUrl: URL, alreadyCrawledUrl: Set[URL]): Boolean =
-    !alreadyCrawledUrl.map(_.domain).contains(pageUrl.domain)
 
   /**
    * The behavior of the Coordinator actor when it is idle.
@@ -113,7 +116,7 @@ class Coordinator(
         
       case CheckPages(pages, replyTo) =>
         val checkResult = pages.filter(_.isAbsolute)
-          .filter(page => executePolicy(page, crawledPages))
+          .filter(page => policy(page, crawledPages))
 
         val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
@@ -131,3 +134,16 @@ class Coordinator(
 
       case _ => Behaviors.same
     }
+
+/**
+ * Contains the different coordinator policies that can be used by
+ * the coordinator.
+ */
+object CoordinatorPolicies:
+  /**
+   * Execute the default policy on the page
+   *
+   * @return the policy that should be executed
+   */
+  def defaultPolicy: Policy = (page: URL, alreadyCrawledUrl: Set[URL]) =>
+    !alreadyCrawledUrl.map(_.domain).contains(page.domain)
