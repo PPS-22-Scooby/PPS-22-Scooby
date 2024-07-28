@@ -35,8 +35,8 @@ object Application extends ScoobyEmbeddable with App:
       batch:
         strategy:
           results get tag output:
-            toConsole withFormat Text
-            toFile("prova") withFormat Text
+            toConsole withFormat text
+            toFile("prova") withFormat json
 
         aggregate:
           _ ++ _

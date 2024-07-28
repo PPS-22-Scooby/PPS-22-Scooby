@@ -9,6 +9,7 @@ import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
 import dsl.syntax.catchRecursiveCtx
 import monocle.syntax.all.*
+import org.unibo.scooby.utility.document.html.HTMLElement
 import play.api.libs.json.Writes
 
 import java.nio.file.Path
@@ -34,7 +35,7 @@ object Export:
   import Context.Batch.*
   import Context.Stream.*
   export ExportOps.SafeOps.*
-  export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole, Text, Json}
+  export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole, text, json}
 
   object ExportOps:
 
@@ -121,8 +122,8 @@ object Export:
      * Export format types supported.
      */
     enum FormatType:
-      case Text
-      case Json[T](writes: Writes[T])
+      private[Export] case Text
+      private[Export] case Json[T](writes: Writes[T])
 
     /**
      * Utility keyword to obtain the Text export strategy
@@ -130,8 +131,8 @@ object Export:
      * @tparam T type of the scrape result
      * @return the [[FormatType]] text
      */
-    def Text[T](using context: ExportStrategyContext[T]): FormatType = FormatType.Text
-
+    def text[T](using context: ExportStrategyContext[T]): FormatType = FormatType.Text
+    
     /**
      * Utility keyword to obtain the Json export strategy
      * @param context context withing this keyword can be used
@@ -139,7 +140,7 @@ object Export:
      * @tparam T type of the scrape result
      * @return the [[FormatType]] text
      */
-    def Json[T](using context: ExportStrategyContext[T])(using writer: Writes[T]): FormatType =
+    def json[T](using context: ExportStrategyContext[T])(using writer: Writes[T]): FormatType =
       FormatType.Json(writer)
 
 
@@ -161,7 +162,7 @@ object Export:
          * Context used to apply the [[Exporter]] consume function.
          * @param f the consume function to apply.
          */
-        inline infix def output(f: OutputDefinitionScope[T]): Unit  =
+        inline infix def output(f: OutputDefinitionScope[T]): Unit =
           catchRecursiveCtx[ExportStrategyContext[?]]("output")
           x.outputOp(f)
 
