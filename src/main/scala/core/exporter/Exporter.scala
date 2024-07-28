@@ -115,14 +115,16 @@ object Exporter:
      * @param format   The formatting behavior to use for converting results to strings.
      * @return An exporting behavior.
      */
-    def writeOnFile[A](filePath: Path, format: FormattingBehavior[A] = Formats.string): ExportingBehavior[A] =
+    def writeOnFile[A](filePath: Path,
+                       format: FormattingBehavior[A] = Formats.string,
+                       overwrite: Boolean = true): ExportingBehavior[A] =
       (result: Result[A]) =>
         Try :
           val writer = Files.newBufferedWriter(
             filePath,
             StandardCharsets.UTF_8,
             StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND
+            if overwrite then StandardOpenOption.WRITE else StandardOpenOption.APPEND
           )
           val content = format(result)
           (writer, content)

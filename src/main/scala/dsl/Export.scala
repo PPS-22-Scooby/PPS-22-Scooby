@@ -49,12 +49,13 @@ object Export:
 
     /**
      * Build the [[Exporter]] stream context.
+     *
      * @param context the [[StrategiesContext]] containing exporting strategies.
      * @tparam T the [[Result]]'s type.
-     * @return the [[StreamExportationContext]] built.
+     * @return the [[StreamStrategyContext]] built.
      */
-    def streaming[T](using context: StrategiesContext[T]): StreamExportationContext[T] =
-      StreamExportationContext[T](context)
+    def streaming[T](using context: StrategiesContext[T]): StreamStrategyContext[T] =
+      StreamStrategyContext[T](context)
 
     /**
      * Build the [[Exporter]] batch context.
@@ -245,6 +246,10 @@ object Export:
             case FormatType.Json(writer: Writes[T]) =>
               given Writes[T] = writer
               Formats.json
+           // case StreamStrategyContext(_) => false
+//          val overwrite = context.strategyType match
+//            case StrategyType.Batch => true
+//            case StrategyType.Streaming => false
 
           support match
             case ExportSupport.File(path: String) =>
@@ -286,7 +291,7 @@ object Export:
          * @param block the function used to set the [[BatchExporting]] configuration.
          */
         inline infix def apply(block: BatchDefinitionScope[T]): Unit =
-          catchRecursiveCtx[BatchSettingContext[?]]("Batch")
+          catchRecursiveCtx[BatchSettingContext[?]]("batch")
           visitCtxUnsafe(block)
 
         /**
@@ -340,9 +345,9 @@ object Export:
        * @param context the context used to set the [[StreamExporting]] configuration.
        * @tparam T the [[Result]]'s type.
        */
-      case class StreamExportationContext[T](context: StrategiesContext[T]):
+      case class StreamStrategyContext[T](context: StrategiesContext[T]):
         inline infix def apply(block: StrategyDefinitionScope[T]): Unit =
-          catchRecursiveCtx[Iterable[?]]("Streaming")
+          catchRecursiveCtx[Iterable[?]]("streaming")
           context.exportingStrategies = context.exportingStrategies :+ StreamExporting[T](
             (res: Result[T]) =>
               given Iterable[T] = res.data
