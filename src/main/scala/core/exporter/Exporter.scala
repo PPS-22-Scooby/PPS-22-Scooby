@@ -169,7 +169,7 @@ object Exporter:
 
     /**
      * Converts a `Result[A]` to a JSON string representation.
-     * This function uses an implicit `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
+     * This function uses a given `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
      * The `Writes` typeclass is provided by Play Framework's JSON library and must be available in the scope
      * where this function is used. This allows for flexible and type-safe JSON serialization of various data types.
      *
