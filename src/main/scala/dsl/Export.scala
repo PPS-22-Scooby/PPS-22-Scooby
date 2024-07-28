@@ -1,15 +1,14 @@
 package org.unibo.scooby
 package dsl
 
-import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
-import core.exporter.FormattingBehavior
-import core.scooby.SingleExporting
-import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
-import core.scraper.Result
-import dsl.DSL.ConfigurationBuilder
-import dsl.syntax.catchRecursiveCtx
 import monocle.syntax.all.*
-import org.unibo.scooby.utility.document.html.HTMLElement
+import org.unibo.scooby.core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats}
+import org.unibo.scooby.core.exporter.FormattingBehavior
+import org.unibo.scooby.core.scooby.SingleExporting
+import org.unibo.scooby.core.scooby.SingleExporting.{BatchExporting, StreamExporting}
+import org.unibo.scooby.core.scraper.Result
+import org.unibo.scooby.dsl.DSL.ConfigurationBuilder
+import org.unibo.scooby.dsl.syntax.catchRecursiveCtx
 import play.api.libs.json.Writes
 
 import java.nio.file.Path
@@ -132,7 +131,7 @@ object Export:
      * @return the [[FormatType]] text
      */
     def text[T](using context: ExportStrategyContext[T]): FormatType = FormatType.Text
-    
+
     /**
      * Utility keyword to obtain the Json export strategy
      * @param context context withing this keyword can be used
@@ -251,7 +250,7 @@ object Export:
             case ExportSupport.File(path: String) =>
               ExportingBehaviors.writeOnFile(Path.of(path), format)(Result(it))
             case ExportSupport.Console =>
-              println(it.mkString("\n"))
+              ExportingBehaviors.writeOnConsole(format)(Result(it))
 
     /**
      * The context used to retrieve type of [[Result]].
