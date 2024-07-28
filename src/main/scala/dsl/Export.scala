@@ -9,7 +9,7 @@ import core.scraper.Result
 import dsl.DSL.ConfigurationBuilder
 import dsl.syntax.catchRecursiveCtx
 import monocle.syntax.all.*
-import play.api.libs.json.{JsValue, Writes}
+import play.api.libs.json.Writes
 
 import java.nio.file.Path
 
@@ -34,8 +34,7 @@ object Export:
   import Context.Batch.*
   import Context.Stream.*
   export ExportOps.SafeOps.*
-  export ExportOps.FormatType.*
-  export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole}
+  export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole, Text, Json}
 
   object ExportOps:
 
@@ -54,7 +53,7 @@ object Export:
      * @tparam T the [[Result]]'s type.
      * @return the [[StreamExportationContext]] built.
      */
-    def streaming[T](using context: StrategiesContext[T]): StreamExportationContext[T] = 
+    def streaming[T](using context: StrategiesContext[T]): StreamExportationContext[T] =
       StreamExportationContext[T](context)
 
     /**
@@ -63,7 +62,7 @@ object Export:
      * @tparam T the [[Result]]'s type.
      * @return the [[BatchExportationContext]] built.
      */
-    def batch[T](using context: StrategiesContext[T]): BatchExportationContext[T] = 
+    def batch[T](using context: StrategiesContext[T]): BatchExportationContext[T] =
       BatchExportationContext[T](context)
 
     /**
@@ -72,7 +71,7 @@ object Export:
      * @tparam T the [[Result]]'s type.
      * @return the [[BatchStrategyContext]]
      */
-    def strategy[T](using context: BatchSettingContext[T]): BatchStrategyContext[T] = 
+    def strategy[T](using context: BatchSettingContext[T]): BatchStrategyContext[T] =
       BatchStrategyContext[T](context)
 
     /**
@@ -123,7 +122,26 @@ object Export:
      */
     enum FormatType:
       case Text
-      case Json
+      case Json[T](writes: Writes[T])
+
+    /**
+     * Utility keyword to obtain the Text export strategy
+     * @param context context withing this keyword can be used
+     * @tparam T type of the scrape result
+     * @return the [[FormatType]] text
+     */
+    def Text[T](using context: ExportStrategyContext[T]): FormatType = FormatType.Text
+
+    /**
+     * Utility keyword to obtain the Json export strategy
+     * @param context context withing this keyword can be used
+     * @param writer JSON writer of the Play library
+     * @tparam T type of the scrape result
+     * @return the [[FormatType]] text
+     */
+    def Json[T](using context: ExportStrategyContext[T])(using writer: Writes[T]): FormatType =
+      FormatType.Json(writer)
+
 
     /**
      * Type alias representing the "output" section under "strategy"
@@ -155,9 +173,9 @@ object Export:
       extension [T](x: Iterable[T])
 
         /**
-          * Unsafe version of the one inside [[org.unibo.scooby.dsl.Export.ExportOps.SafeOps]]
-          * @param f the consume function to apply.
-          */
+         * Unsafe version of the one inside [[org.unibo.scooby.dsl.Export.ExportOps.SafeOps]]
+         * @param f the consume function to apply.
+         */
         def outputOp(f: OutputDefinitionScope[T]): Unit  =
           given ExportStrategyContext[T] = ExportStrategyContext[T]()
           f(x)
@@ -224,10 +242,8 @@ object Export:
         (it: Iterable[T]) =>
           val format: FormattingBehavior[T] = strategy match
             case FormatType.Text => Formats.string
-            case FormatType.Json =>
-              import play.api.libs.json.{Json as PlayJson, *}
-              given Writes[T] with
-                override def writes(o: T): JsValue = PlayJson.toJson(o)
+            case FormatType.Json(writer: Writes[T]) =>
+              given Writes[T] = writer
               Formats.json
 
           support match
@@ -293,8 +309,8 @@ object Export:
        * @tparam T the [[Result]]'s type.
        */
       case class BatchSettingContext[T](
-        var policy: Result[T] => Unit, 
-        var aggregation: (Result[T], Result[T]) => Result[T])
+                                         var policy: Result[T] => Unit,
+                                         var aggregation: (Result[T], Result[T]) => Result[T])
 
       /**
        * Context to set batch policy function.
@@ -316,7 +332,7 @@ object Export:
       case class BatchAggregateContext[T](context: BatchSettingContext[T]):
         infix def apply(block: (Iterable[T], Iterable[T]) => Iterable[T]): Unit =
           context.aggregation = (res1: Result[T], res2: Result[T]) => Result(block(res1.data, res2.data))
-          
+
     object Stream:
 
       /**
@@ -328,7 +344,7 @@ object Export:
         inline infix def apply(block: StrategyDefinitionScope[T]): Unit =
           catchRecursiveCtx[Iterable[?]]("Streaming")
           context.exportingStrategies = context.exportingStrategies :+ StreamExporting[T](
-          (res: Result[T]) =>
-            given Iterable[T] = res.data
-            block
+            (res: Result[T]) =>
+              given Iterable[T] = res.data
+              block
           )
