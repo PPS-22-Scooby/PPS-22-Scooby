@@ -35,6 +35,7 @@ object Export:
   import Context.Stream.*
   export ExportOps.SafeOps.*
   export ExportOps.{exports, streaming, batch, strategy, aggregate, results, toFile, toConsole, text, json}
+  export ExportOps.FileAction.*
 
   object ExportOps:
 
@@ -100,14 +101,34 @@ object Export:
       case File(path: String)
 
     /**
-     * Build the exporting function as write on [[File]].
-     * @param path the path to retrieve the [[File]].
+     * Action to perform on file (overwrite or append) when exporting
+     */
+    private[Export] enum FileAction:
+      case Append
+      case Overwrite
+
+    /**
+     * Build the exporting function as write on [[File]], overwriting it if already existing.
+     * @param path     the path to retrieve the [[File]].
      * @param exporter context used to retrieve type of [[Result]].
      * @tparam T the type of [[Result]] to export.
      * @return the [[WriteOnOutput]] with configuration built.
      */
-    infix def toFile[T](path: String)(using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
-      WriteOnOutput[T](exporter, ExportSupport.File(path))
+    infix def toFile[T](path: String)
+                       (using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      toFile(path, FileAction.Overwrite)
+
+    /**
+     * Build the exporting function as write on [[File]].
+     * @param path     the path to retrieve the [[File]].
+     * @param exporter context used to retrieve type of [[Result]].
+     * @param fileAction action to perform on the file (append or overwrite if existing)
+     * @tparam T the type of [[Result]] to export.
+     * @return the [[WriteOnOutput]] with configuration built.
+     */
+    infix def toFile[T](path: String, fileAction: FileAction)
+                       (using exporter: ExportStrategyContext[T]): WriteOnOutput[T] =
+      WriteOnOutput[T](exporter, ExportSupport.File(path), fileAction)
 
     /**
      * Build the exporting function as write on [[Console]].
@@ -192,6 +213,7 @@ object Export:
    */
   private[Export] object Context:
     import Export.ExportOps.{ExportSupport, FormatType}
+    import Export.ExportOps.FileAction
 
     /**
      * Context used to parse the exporting strategies given in configuration.
@@ -230,9 +252,11 @@ object Export:
      * Context used to define the exporting function.
      * @param context the export context used to retrieve type of [[Result]].
      * @param support the [[ExportSupport]] to use.
+     * @param fileAction specifies what to do in case the output is directed to a file (overwrite or append)
      * @tparam T the [[Result]]'s type.
      */
-    case class WriteOnOutput[T](context: ExportStrategyContext[T], support: ExportSupport):
+    case class WriteOnOutput[T](context: ExportStrategyContext[T], support: ExportSupport,
+                                fileAction: FileAction = FileAction.Overwrite):
 
       /**
        * Build the export function parsing the [[FormatType]] to use.
@@ -246,14 +270,12 @@ object Export:
             case FormatType.Json(writer: Writes[T]) =>
               given Writes[T] = writer
               Formats.json
-           // case StreamStrategyContext(_) => false
-//          val overwrite = context.strategyType match
-//            case StrategyType.Batch => true
-//            case StrategyType.Streaming => false
-
+          val fileOverwrite = fileAction match
+            case FileAction.Overwrite => true
+            case FileAction.Append => false
           support match
             case ExportSupport.File(path: String) =>
-              ExportingBehaviors.writeOnFile(Path.of(path), format)(Result(it))
+              ExportingBehaviors.writeOnFile(Path.of(path), format, fileOverwrite)(Result(it))
             case ExportSupport.Console =>
               ExportingBehaviors.writeOnConsole(format)(Result(it))
 

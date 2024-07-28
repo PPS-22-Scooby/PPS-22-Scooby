@@ -29,7 +29,7 @@ object Application extends ScoobyApplication:
       batch:
         strategy:
           results get(el => (el.tag, el.text)) output:
-            toConsole withFormat json
+            toFile("prova") withFormat json
 
         aggregate:
           _ ++ _

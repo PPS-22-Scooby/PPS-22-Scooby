@@ -120,11 +120,12 @@ object Exporter:
                        overwrite: Boolean = true): ExportingBehavior[A] =
       (result: Result[A]) =>
         Try :
+          println(overwrite)
           val writer = Files.newBufferedWriter(
             filePath,
             StandardCharsets.UTF_8,
             StandardOpenOption.CREATE,
-            if overwrite then StandardOpenOption.WRITE else StandardOpenOption.APPEND
+            if overwrite then StandardOpenOption.TRUNCATE_EXISTING else StandardOpenOption.APPEND,
           )
           val content = format(result)
           (writer, content)
