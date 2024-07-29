@@ -1,20 +1,19 @@
 package org.unibo.scooby
 
-import scala.concurrent.Await
+import org.unibo.scooby.Application.scooby
+import org.unibo.scooby.dsl.ScoobyApplication
+
 import scala.concurrent.duration.DurationInt
-import Application.scooby
-import dsl.ScoobyEmbeddable
 
-object Application extends ScoobyEmbeddable with App:
+object Application extends ScoobyApplication:
 
-  private val app = scooby:
+  scooby:
     config:
       network:
         Timeout is 9.seconds
         MaxRequests is 5
         headers:
-          "Authorization" to "prova"
-          "Agent" to "gr"
+          "User-Agent" to "Scooby/1.0-alpha (https://github.com/PPS-22-Scooby/PPS-22-Scooby)"
       options:
         MaxDepth is 2
         MaxLinks is 20
@@ -25,25 +24,12 @@ object Application extends ScoobyEmbeddable with App:
       policy:
         hyperlinks not external
     scrape:
-      elements that :
-        haveAttribute("href") and dont:
-          haveAttributeValue("href", "/domains/reserved") or
-          haveAttributeValue("href", "/about")
-        .and:
-          followRule { element.tag == "a" } and followRule { element.tag == "div" }
+      elements
     exports:
       batch:
         strategy:
-          results get tag output:
-            toConsole withFormat Text
-            toFile("prova") withFormat Text
+          results get(el => (el.tag, el.text)) output:
+            toFile("prova") withFormat json
 
         aggregate:
           _ ++ _
-          
-//      streaming:
-//        results.groupBy(_.tag).view.mapValues(_.size).toMap output:
-//          toConsole withFormat Text
-
-  val result = Await.result(app.run(), 10.seconds)
-  println(result)

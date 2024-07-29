@@ -16,6 +16,7 @@ object DSL:
   export Export.*
   export Utils.*
   export HTML.*
+  export core.exporter.JsonConverter.htmlElementWrites
 
   /**
    * Temporary empty class to hold the scraping result type.

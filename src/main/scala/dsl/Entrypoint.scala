@@ -13,7 +13,7 @@ import scala.util.Success
 import core.scooby.SingleExporting
 
 trait ScoobyApplication extends App:
-  export DSL.*
+  export DSL.{*, given}
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): Unit =
     given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(Configuration.empty[T], ScrapingResultSetting[T]())
     // TODO currently having the write on console as default export, consider to leave or remove it
@@ -26,7 +26,7 @@ trait ScoobyApplication extends App:
 
 
 trait ScoobyEmbeddable:
-  export DSL.*
+  export DSL.{*, given}
   def scooby[T](init: ConfigurationBuilder[T] ?=> Unit): ScoobyRunnable[T] =
     given builder: ConfigurationBuilder[T] = new ConfigurationBuilder(Configuration.empty[T], ScrapingResultSetting[T]())
     init

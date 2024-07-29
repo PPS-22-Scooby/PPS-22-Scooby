@@ -115,14 +115,16 @@ object Exporter:
      * @param format   The formatting behavior to use for converting results to strings.
      * @return An exporting behavior.
      */
-    def writeOnFile[A](filePath: Path, format: FormattingBehavior[A] = Formats.string): ExportingBehavior[A] =
+    def writeOnFile[A](filePath: Path,
+                       format: FormattingBehavior[A] = Formats.string,
+                       overwrite: Boolean = true): ExportingBehavior[A] =
       (result: Result[A]) =>
         Try :
           val writer = Files.newBufferedWriter(
             filePath,
             StandardCharsets.UTF_8,
             StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND
+            if overwrite then StandardOpenOption.TRUNCATE_EXISTING else StandardOpenOption.APPEND,
           )
           val content = format(result)
           (writer, content)
@@ -169,7 +171,7 @@ object Exporter:
 
     /**
      * Converts a `Result[A]` to a JSON string representation.
-     * This function uses an implicit `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
+     * This function uses a given `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
      * The `Writes` typeclass is provided by Play Framework's JSON library and must be available in the scope
      * where this function is used. This allows for flexible and type-safe JSON serialization of various data types.
      *
