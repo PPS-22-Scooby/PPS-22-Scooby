@@ -120,7 +120,6 @@ object Exporter:
                        overwrite: Boolean = true): ExportingBehavior[A] =
       (result: Result[A]) =>
         Try :
-          println(overwrite)
           val writer = Files.newBufferedWriter(
             filePath,
             StandardCharsets.UTF_8,
