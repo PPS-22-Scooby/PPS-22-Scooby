@@ -1,10 +1,16 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / version := "1.0"
 
 ThisBuild / scalaVersion := "3.4.2"
 
 ThisBuild / scalacOptions ++= Seq("-Wunused:all")
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", _*) => MergeStrategy.discard
+  case "reference.conf" => MergeStrategy.concat
+  case _ => MergeStrategy.first
+}
 
 lazy val idePackagePrefix = settingKey[String]("Package prefix for IDE").withRank(KeyRanks.Invisible)
 lazy val root = (project in file("."))
@@ -34,7 +40,7 @@ libraryDependencies ++= Seq(
   "org.jsoup" % "jsoup" % "1.18.1",
   "com.softwaremill.sttp.client3" %% "core" % "3.9.7",
   "dev.optics" %% "monocle-core"  % "3.2.0",
-  "dev.optics" %% "monocle-macro" % "3.2.0",
+  "dev.optics" %% "monocle-macro" % "3.2.0"
 )
 
 Test / parallelExecution := false
