@@ -29,6 +29,7 @@ node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresol
 node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
 node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">App</span></span>", class="trait vertex"];
 node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">DelayedInit</span></span>", class="trait vertex"];
+node6 [id=node6, label="<span style=\"color: #FFFFFF;\">object <a href=\"../Application$.html\" t=\"n\">Application</a></span>", class="object vertex"];
 
 
  node0 -> node1;
@@ -39,6 +40,7 @@ node0 -> node4;
 node4 -> node1;
 node4 -> node5;
 node5 -> node1;
+node6 -> node0;
 
 }
 </script>
@@ -63,6 +65,16 @@ node5 -> node1;
      </div>
      <div>
       class <span data-unresolved-link="" t="n">Any</span>
+     </div><span></span>
+    </div>
+   </dd>
+   <dt class="body-small">
+    Known subtypes
+   </dt>
+   <dd class="body-medium">
+    <div class="mono-small-block subtypes">
+     <div>
+      object <a href="../Application$.html" t="n">Application</a>
      </div><span></span>
     </div>
    </dd>
@@ -769,6 +781,36 @@ node5 -> node1;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="htmlElementWrites-0" data-f-export="from DSL}">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">export </span></span><a href="ScoobyApplication.html#htmlElementWrites-0" t="n" class="documentableName ">htmlElementWrites</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo">
+            Exported from <a href="DSL$.html">DSL</a>
+           </div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Defines how to write an <code>HTMLElement</code> to JSON. The <code>Writes</code> instance specifies how to convert the various fields of an <code>HTMLElement</code> into a JSON representation. This includes the tag name, attributes map, optional text content, and children elements. The children elements are handled recursively using <code>lazyWrite</code> to support nested structures without running into issues with infinite recursion.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Defines how to write an <code>HTMLElement</code> to JSON. The <code>Writes</code> instance specifies how to convert the various fields of an <code>HTMLElement</code> into a JSON representation. This includes the tag name, attributes map, optional text content, and children elements. The children elements are handled recursively using <code>lazyWrite</code> to support nested structures without running into issues with infinite recursion.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="id-0" data-f-export="from DSL}">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -953,12 +995,12 @@ node5 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="streaming-ac5" data-f-export="from DSL}">
+        <div class="documentableElement" id="streaming-fffff205" data-f-export="from DSL}">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoobyApplication.html#streaming-ac5" t="n" class="documentableName ">streaming</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">StrategiesContext</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">StreamExportationContext</span>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoobyApplication.html#streaming-fffff205" t="n" class="documentableName ">streaming</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">StrategiesContext</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">StreamStrategyContext</span>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -1000,7 +1042,7 @@ node5 -> node1;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>the <span data-unresolved-link="" title="Problem linking StreamExportationContext: No DRI found for query">StreamExportationContext</span> built.</p>
+               <p>the <span data-unresolved-link="" title="Problem linking StreamStrategyContext: No DRI found for query">StreamStrategyContext</span> built.</p>
               </dd>
              </dl>
             </div>
@@ -1075,6 +1117,61 @@ node5 -> node1;
               </dt>
               <dd class="body-medium">
                <p>text as <span data-unresolved-link="">String</span>.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="text-fffff357" data-f-export="from DSL}">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoobyApplication.html#text-fffff357" t="n" class="documentableName ">text</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ExportStrategyContext</span>[<span t="t">T</span>]): <a href="Export$$ExportOps$$FormatType.html" t="t">FormatType</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo">
+            Exported from <a href="DSL$.html">DSL</a>
+           </div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Utility keyword to obtain the Text export strategy</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Utility keyword to obtain the Text export strategy</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>type of the scrape result</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               context
+              </dt>
+              <dd class="body-medium">
+               <p>context withing this keyword can be used</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the <a href="Export$$ExportOps$$FormatType.html">FormatType</a> text</p>
               </dd>
              </dl>
             </div>

@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="Application$.html" t="n" class="documentableName ">Application</a><span t="k"> extends </span><a href="dsl/ScoobyEmbeddable.html" t="t">ScoobyEmbeddable</a><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">App</span></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="Application$.html" t="n" class="documentableName ">Application</a><span t="k"> extends </span><a href="dsl/ScoobyApplication.html" t="t">ScoobyApplication</a></span><span class="signature-long"></span>
  </div>
 </div>
 <div class="cover">
@@ -27,7 +27,7 @@
 node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Object</span></span>", class="class vertex"];
 node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
 node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
-node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"dsl/ScoobyEmbeddable.html\" t=\"n\">ScoobyEmbeddable</a></span>", class="trait vertex"];
+node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"dsl/ScoobyApplication.html\" t=\"n\">ScoobyApplication</a></span>", class="trait vertex"];
 node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">App</span></span>", class="trait vertex"];
 node6 [id=node6, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">DelayedInit</span></span>", class="trait vertex"];
 
@@ -38,7 +38,7 @@ node1 -> node3;
 node3 -> node2;
 node0 -> node4;
 node4 -> node1;
-node0 -> node5;
+node4 -> node5;
 node5 -> node1;
 node5 -> node6;
 node6 -> node1;
@@ -53,13 +53,13 @@ node6 -> node1;
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
      <div>
+      trait <a href="dsl/ScoobyApplication.html" t="n">ScoobyApplication</a>
+     </div>
+     <div>
       trait <span data-unresolved-link="" t="n">App</span>
      </div>
      <div>
       trait <span data-unresolved-link="" t="n">DelayedInit</span>
-     </div>
-     <div>
-      trait <a href="dsl/ScoobyEmbeddable.html" t="n">ScoobyEmbeddable</a>
      </div>
      <div>
       class <span data-unresolved-link="" t="n">Object</span>
@@ -165,12 +165,12 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="scooby-141" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="scooby-58c" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Application$.html#scooby-141" t="n" class="documentableName ">scooby</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">init</span>: (<a href="dsl/DSL$$ConfigurationBuilder.html" t="t">ConfigurationBuilder</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><span data-unresolved-link="" t="t">Unit</span>): <a href="dsl/ScoobyRunnable.html" t="t">ScoobyRunnable</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Application$.html#scooby-58c" t="n" class="documentableName ">scooby</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">init</span>: (<a href="dsl/DSL$$ConfigurationBuilder.html" t="t">ConfigurationBuilder</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><span data-unresolved-link="" t="t">Unit</span>): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -187,7 +187,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#scooby-141">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#scooby-58c">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -249,23 +249,6 @@ node6 -> node1;
         </div>
        </div>
       </section>
-      <section id="Concrete-fields">
-       <div class="documentableList expand">
-        <div class="documentableList-expander">
-         <button class="icon-button show-content expand"></button>
-         <h4 class="groupHeader h200">Concrete fields</h4>
-        </div>
-        <div class="documentableElement" id="result-0">
-         <div class="documentableElement-expander">
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="Application$.html#result-0" t="n" class="documentableName ">result</a>: <a href="core/scraper/Result.html" t="t">Result</a>[<a href="utility/document/html/HTMLElement.html" t="t">HTMLElement</a>]
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </section>
       <section id="Inherited-fields">
        <div class="documentableList expand">
         <div class="documentableList-expander">
@@ -317,7 +300,7 @@ node6 -> node1;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Inherited defined exports</h4>
         </div>
-        <div class="documentableElement" id="ConfigurationBuilder-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="ConfigurationBuilder-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -341,7 +324,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#ConfigurationBuilder-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#ConfigurationBuilder-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -349,7 +332,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="CrawlContext-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="CrawlContext-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -373,7 +356,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#CrawlContext-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#CrawlContext-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -381,7 +364,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="ExportOps-0" data-f-export="from DSL}" data-f-keywords="final" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="ExportOps-0" data-f-export="from DSL}" data-f-keywords="final" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -405,7 +388,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#ExportOps-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#ExportOps-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -413,7 +396,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="SafeOps-0" data-f-export="from DSL}" data-f-keywords="final" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="SafeOps-0" data-f-export="from DSL}" data-f-keywords="final" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -437,7 +420,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#SafeOps-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#SafeOps-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -445,7 +428,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="ScrapingResultSetting-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="ScrapingResultSetting-0" data-f-export="from DSL$}" data-f-keywords="final" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -469,7 +452,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#ScrapingResultSetting-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#ScrapingResultSetting-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -477,7 +460,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="aggregate-188" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="aggregate-188" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -530,7 +513,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#aggregate-188">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#aggregate-188">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -538,7 +521,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="attributes-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="attributes-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -573,7 +556,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#attributes-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#attributes-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -581,7 +564,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="batch-331" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="batch-331" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -634,7 +617,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#batch-331">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#batch-331">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -642,7 +625,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="classes-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="classes-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -677,7 +660,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#classes-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#classes-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -685,7 +668,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="document-fffffb71" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="document-fffffb71" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -738,7 +721,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#document-fffffb71">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#document-fffffb71">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -746,7 +729,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="dont-51" data-f-export="from DSL}" data-f-keywords="infix,inline" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="dont-51" data-f-export="from DSL}" data-f-keywords="infix,inline" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -799,7 +782,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#dont-51">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#dont-51">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -807,7 +790,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="elements-fffff089" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="elements-fffff089" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -860,7 +843,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#elements-fffff089">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#elements-fffff089">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -868,7 +851,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="exports-bfd" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="exports-bfd" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -921,7 +904,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#exports-bfd">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#exports-bfd">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -929,7 +912,44 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="id-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="htmlElementWrites-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">export </span></span><a href="Application$.html#htmlElementWrites-0" t="n" class="documentableName ">htmlElementWrites</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo">
+            Exported from <a href="dsl/DSL$.html">DSL</a>
+           </div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Defines how to write an <code>HTMLElement</code> to JSON. The <code>Writes</code> instance specifies how to convert the various fields of an <code>HTMLElement</code> into a JSON representation. This includes the tag name, attributes map, optional text content, and children elements. The children elements are handled recursively using <code>lazyWrite</code> to support nested structures without running into issues with infinite recursion.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Defines how to write an <code>HTMLElement</code> to JSON. The <code>Writes</code> instance specifies how to convert the various fields of an <code>HTMLElement</code> into a JSON representation. This includes the tag name, attributes map, optional text content, and children elements. The children elements are handled recursively using <code>lazyWrite</code> to support nested structures without running into issues with infinite recursion.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="dsl/ScoobyApplication.html#htmlElementWrites-0">ScoobyApplication</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="id-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -964,7 +984,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#id-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#id-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -972,7 +992,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="outerText-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="outerText-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1007,7 +1027,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#outerText-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#outerText-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1015,7 +1035,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="results-731" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="results-731" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1068,7 +1088,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#results-731">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#results-731">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1076,7 +1096,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="strategy-924" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="strategy-924" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1129,7 +1149,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#strategy-924">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#strategy-924">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1137,12 +1157,12 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="streaming-ac5" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="streaming-fffff205" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Application$.html#streaming-ac5" t="n" class="documentableName ">streaming</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">StrategiesContext</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">StreamExportationContext</span>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Application$.html#streaming-fffff205" t="n" class="documentableName ">streaming</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">StrategiesContext</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">StreamStrategyContext</span>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -1184,13 +1204,13 @@ node6 -> node1;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>the <span data-unresolved-link="" title="Problem linking StreamExportationContext: No DRI found for query">StreamExportationContext</span> built.</p>
+               <p>the <span data-unresolved-link="" title="Problem linking StreamStrategyContext: No DRI found for query">StreamStrategyContext</span> built.</p>
               </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#streaming-ac5">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#streaming-fffff205">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1198,7 +1218,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="tag-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="tag-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1233,7 +1253,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#tag-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#tag-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1241,7 +1261,68 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="text-0" data-f-export="from DSL}" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="text-fffff357" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Application$.html#text-fffff357" t="n" class="documentableName ">text</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ExportStrategyContext</span>[<span t="t">T</span>]): <a href="dsl/Export$$ExportOps$$FormatType.html" t="t">FormatType</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo">
+            Exported from <a href="dsl/DSL$.html">DSL</a>
+           </div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Utility keyword to obtain the Text export strategy</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Utility keyword to obtain the Text export strategy</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>type of the scrape result</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               context
+              </dt>
+              <dd class="body-medium">
+               <p>context withing this keyword can be used</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the <a href="dsl/Export$$ExportOps$$FormatType.html">FormatType</a> text</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="dsl/ScoobyApplication.html#text-fffff357">ScoobyApplication</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="text-0" data-f-export="from DSL}" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1276,7 +1357,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#text-0">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#text-0">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1284,7 +1365,7 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="toConsole-888" data-f-export="from DSL}" data-f-keywords="infix" data-f-inherited="ScoobyEmbeddable">
+        <div class="documentableElement" id="toConsole-888" data-f-export="from DSL}" data-f-keywords="infix" data-f-inherited="ScoobyApplication">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
@@ -1337,7 +1418,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="dsl/ScoobyEmbeddable.html#toConsole-888">ScoobyEmbeddable</a>
+               <a href="dsl/ScoobyApplication.html#toConsole-888">ScoobyApplication</a>
               </dd>
              </dl>
             </div>
@@ -1352,4 +1433,4 @@ node6 -> node1;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li><li><a href="#Concrete-fields">Concrete fields</a></li><li><a href="#Inherited-fields">Inherited fields</a></li></ul></li><li><a href="#Exports">Exports</a><ul><li><a href="#Inherited-defined-exports">Inherited defined exports</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li><li><a href="#Inherited-fields">Inherited fields</a></li></ul></li><li><a href="#Exports">Exports</a><ul><li><a href="#Inherited-defined-exports">Inherited defined exports</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
