@@ -100,9 +100,59 @@ node3 -> node2;
         </div>
         <div class="documentableElement" id="apply-b04">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Scraper$.html#apply-b04" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">exporterRouter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span t="t">T</span>): <span data-unresolved-link="" t="t">Behavior</span>[<a href="ScraperCommands.html" t="t">ScraperCommands</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Creates a new <a href="Scraper.html">Scraper</a> running actor.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Creates a new <a href="Scraper.html">Scraper</a> running actor.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>result type of the <span data-unresolved-link="" title="Problem linking ScraperPolicy: No DRI found for query">ScraperPolicy</span></p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               exporterRouter
+              </dt>
+              <dd class="body-medium">
+               <p>the <span data-unresolved-link="" title="Problem linking Exporter: No DRI found for query">Exporter</span> to send results to</p>
+              </dd>
+              <dt class="body-small">
+               scrapeRule
+              </dt>
+              <dd class="body-medium">
+               <p>the <span data-unresolved-link="" title="Problem linking ScraperPolicy: No DRI found for query">ScraperPolicy</span> of the <a href="Scraper.html">Scraper</a></p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the <a href="Scraper.html">Scraper</a>'s <span data-unresolved-link="" title="Problem linking Behavior: No DRI found for query">Behavior</span></p>
+              </dd>
+             </dl>
+            </div>
            </div>
           </div>
          </div>

@@ -253,22 +253,26 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Collection of DSL operators to customize the Export properties of Scooby application</p>
+             <p>Collection of DSL operators to customize the <span data-unresolved-link="" title="Problem linking Exporter: No DRI found for query">Exporter</span> properties of Scooby application</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Collection of DSL operators to customize the Export properties of Scooby application</p>
+              <p>Collection of DSL operators to customize the <span data-unresolved-link="" title="Problem linking Exporter: No DRI found for query">Exporter</span> properties of Scooby application</p>
               <p>Example usage:</p>
               <div class="snippet mono-small-block">
                <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span> exports:
-</span><span line-number="2" class=""><span class="tooltip-container"></span>  Batch:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  batch:
 </span><span line-number="3" class=""><span class="tooltip-container"></span>    strategy:
 </span><span line-number="4" class=""><span class="tooltip-container"></span>      results get tag output:
-</span><span line-number="5" class=""><span class="tooltip-container"></span>        ToConsole withFormat Text
-</span><span line-number="6" class=""><span class="tooltip-container"></span>        ToFile("outputFileName") withFormat Text
+</span><span line-number="5" class=""><span class="tooltip-container"></span>        toConsole withFormat text
+</span><span line-number="6" class=""><span class="tooltip-container"></span>        // or toFile("outputFileName") withFormat text
 </span><span line-number="7" class=""><span class="tooltip-container"></span>
 </span><span line-number="8" class=""><span class="tooltip-container"></span>    aggregate:
 </span><span line-number="9" class=""><span class="tooltip-container"></span>      _ ++ _
+</span><span line-number="10" class=""><span class="tooltip-container"></span>
+</span><span line-number="11" class=""><span class="tooltip-container"></span>  streaming:
+</span><span line-number="12" class=""><span class="tooltip-container"></span>    results get tag output:
+</span><span line-number="13" class=""><span class="tooltip-container"></span>      toConsole withFormat text
 </span></code></pre>
                <div class="buttons"></div>
               </div>
