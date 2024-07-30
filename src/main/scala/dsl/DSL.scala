@@ -25,13 +25,13 @@ object DSL:
   case class ScrapingResultSetting[T]()
 
   /**
-   * Builder available at the global level of the DSL, necessary to build the final Scooby configuration
+   * Wrapper available at the global level of the DSL, necessary to build the final Scooby configuration
    * @param configuration variable configuration, modified throughout the DSL usage
    * @param scrapingResultSetting object symbolizing the scraping result type
    * @tparam T type of the [[Configuration]]
    */
-  class ConfigurationBuilder[T](var configuration: Configuration[T], var scrapingResultSetting: ScrapingResultSetting[T]):
-    def build: Configuration[T] = configuration
+  class ConfigurationWrapper[T](var configuration: Configuration[T], var scrapingResultSetting: ScrapingResultSetting[T]):
+    def value: Configuration[T] = configuration
 
   /**
    * Container for several utility keywords of the DSL

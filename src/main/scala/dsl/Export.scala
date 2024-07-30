@@ -7,7 +7,7 @@ import org.unibo.scooby.core.exporter.FormattingBehavior
 import org.unibo.scooby.core.scooby.SingleExporting
 import org.unibo.scooby.core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 import org.unibo.scooby.core.scraper.Result
-import org.unibo.scooby.dsl.DSL.ConfigurationBuilder
+import org.unibo.scooby.dsl.DSL.ConfigurationWrapper
 import org.unibo.scooby.dsl.syntax.catchRecursiveCtx
 import play.api.libs.json.Writes
 
@@ -41,11 +41,12 @@ object Export:
 
     /**
      * Build the [[Exporter]] context to set up the exporting strategies.
-     * @param builder the [[ConfigurationBuilder]] containing all application parameters.
+ *
+     * @param builder the [[ConfigurationWrapper]] containing all application parameters.
      * @tparam T the [[Result]]'s type.
      * @return the [[ExportContext]] built.
      */
-    def exports[T](using builder: ConfigurationBuilder[T]): ExportContext[T] =
+    def exports[T](using builder: ConfigurationWrapper[T]): ExportContext[T] =
       ExportContext[T](builder)
 
     /**
@@ -217,10 +218,11 @@ object Export:
 
     /**
      * Context used to parse the exporting strategies given in configuration.
-     * @param builder the [[ConfigurationBuilder]] containing all application parameters.
+ *
+     * @param builder the [[ConfigurationWrapper]] containing all application parameters.
      * @tparam T the [[Result]]'s type.
      */
-    case class ExportContext[T](builder: ConfigurationBuilder[T]):
+    case class ExportContext[T](builder: ConfigurationWrapper[T]):
 
       /**
        * Builder used to summon the [[StrategiesContext]] containing exporting strategies and parse them in application

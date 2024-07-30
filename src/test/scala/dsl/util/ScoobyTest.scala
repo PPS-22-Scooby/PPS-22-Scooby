@@ -4,7 +4,7 @@ package dsl.util
 import core.scooby
 import core.scooby.{Configuration, SingleExporting}
 import core.scraper.Result
-import dsl.DSL.ConfigurationBuilder
+import dsl.DSL.ConfigurationWrapper
 import dsl.ScoobyEmbeddable
 import utility.document.{CrawlDocument, ScrapeDocument}
 import utility.http.Clients.SimpleHttpClient
@@ -41,7 +41,7 @@ class ScoobyTest(mockServerPort: Int = 8080, route: Route = MockServer.Routes.st
       .sorted(java.util.Comparator.reverseOrder())
       .forEach(Files.deleteIfExists(_))
 
-  def mockedScooby[T](init: ConfigurationBuilder[T] ?=> Unit): Configuration[T] =
+  def mockedScooby[T](init: ConfigurationWrapper[T] ?=> Unit): Configuration[T] =
     scooby(init).config
 
   extension[T] (config: Configuration[T])

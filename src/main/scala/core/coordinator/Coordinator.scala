@@ -101,7 +101,7 @@ class Coordinator(
    *   The set of pages that have been crawled. This is used to keep track of which pages have already been crawled, so
    *   that the actor doesn't crawl the same page multiple times.
    * @return
-   *   A Behavior[Command] that describes how the actor should process the next message it receives.
+   *   A [[Behavior]] of [[CoordinatorCommand]] that describes how the actor should process the next message it receives.
    */
   def idle(crawledPages: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
@@ -142,7 +142,7 @@ object CoordinatorPolicies:
   /**
    * Execute the default policy on the page
    *
-   * @return the policy that should be executed
+   * @return the [[Policy]] that should be executed
    */
   def defaultPolicy: Policy = (page: URL, alreadyCrawledUrl: Set[URL]) =>
     !alreadyCrawledUrl.map(_.domain).contains(page.domain)

@@ -46,7 +46,9 @@ object Scooby:
     scooby ! Start
     Await.result(scooby.whenTerminated, Duration.Inf)
 
-
+/**
+ * Actor that represents the guardian actor for the Scooby application
+ */
 object ScoobyActor:
   import ScoobyCommand.*
 
@@ -65,12 +67,11 @@ object ScoobyActor:
           val coordinator = context.spawn(Coordinator(), "Coordinator")
 
           // 2. Handle exporting
-
           val exporters = configuration.exporterConfiguration.exportingStrategies.zipWithIndex.map {
             case (SingleExporting.StreamExporting(behavior), index) =>
-              context.spawn(Exporter.stream(behavior), s"Exporter${index}-Stream")
+              context.spawn(Exporter.stream(behavior), s"Exporter$index-Stream")
             case (SingleExporting.BatchExporting(behavior, aggregation), index) =>
-              context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter${index}-Batch")
+              context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter$index-Batch")
           }
 
           val exporterRouter = context.spawn(ExporterRouter(exporters), "ExporterRouter")
@@ -113,25 +114,3 @@ object ScoobyActor:
    */
   private def onFinishedExecution(): Unit =
     println("Process end with success!")
-
-
-object Main:
-  def main(args: Array[String]): Unit =
-    Scooby.run(
-      Configuration(
-        CrawlerConfiguration(
-          URL("https://www.example.com"),
-          ExplorationPolicies.allLinks,
-          2,
-          ClientConfiguration.default
-        ),
-        ScraperConfiguration(ScraperPolicies.scraperRule(Seq("link"), "tag")),
-        ExporterConfiguration(Seq(
-          BatchExporting(
-            ExportingBehaviors.writeOnConsole(Formats.string),
-            AggregationBehaviors.default
-          ))),
-        CoordinatorConfiguration(100)
-      )
-    )
-
