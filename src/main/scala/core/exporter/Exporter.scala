@@ -62,7 +62,9 @@ object Exporter:
     Behaviors.setup : context =>
       Behaviors.receiveMessage :
         case Export(result: Result[A]) =>
-          exportingFunction(result)
+          Try:
+            exportingFunction(result)
+          .fold(e => println(s"An error occurred while exporting in stream config: $e"), identity)
           Behaviors.same
         case SignalEnd(replyTo) =>
           context.log.warn("Ignoring batch results inside Stream exporter")
@@ -86,7 +88,9 @@ object Exporter:
         case Export(newResult: Result[A]) =>
           fold(aggregation(result, newResult))(exportingFunction)(aggregation)
         case SignalEnd(replyTo) =>
-          exportingFunction(result)
+          Try:
+            exportingFunction(result)
+          .fold(e => println(s"An error occurred while exporting in batch config: $e"), identity)
           replyTo ! ExportFinished
           Behaviors.stopped
 
