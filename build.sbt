@@ -1,4 +1,4 @@
-ThisBuild / version := "1.0"
+ThisBuild / version := sys.env.getOrElse("RELEASE_VERSION", "v0.1.0-SNAPSHOT")
 
 ThisBuild / scalaVersion := "3.4.2"
 
