@@ -5,9 +5,10 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import core.crawler.CrawlerCommand
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
-
 import utility.http.URL
 import utility.http.URL.*
+
+import scala.annotation.unused
 
 /**
  * Type alias for a function that a Coordinator policy in terms of a page that should be explored and
@@ -84,7 +85,7 @@ object Coordinator:
  *
  */
 class Coordinator(
-                   context: ActorContext[CoordinatorCommand],
+                   @unused context: ActorContext[CoordinatorCommand],
                    maxNumberOfLinks: Int,
                    policy: Policy
                  ):

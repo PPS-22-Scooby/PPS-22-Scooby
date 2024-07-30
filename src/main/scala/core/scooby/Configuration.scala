@@ -8,12 +8,14 @@ import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.http.{ClientConfiguration, URL}
 import core.scooby.Configuration.CoordinatorConfiguration
 
+import scala.annotation.unused
+
 /**
  * Single Exporting option. Configures one single Exporter
  * @param behavior behavior to be assign to this Exporter
  * @tparam A type inside of [[Result]] that will be exported
  */
-enum SingleExporting[A](behavior: ExportingBehavior[A]):
+enum SingleExporting[A](@unused behavior: ExportingBehavior[A]):
   /**
    * Exporting via stream strategy, meaning that Results will be exported as they are obtained by the scrapers
    */

@@ -1,9 +1,8 @@
 package org.unibo.scooby
 package utility.http.backends
 
-import utility.http.*
-import utility.http.HttpStatus.INVALID
-
+import org.unibo.scooby.utility.http.*
+import org.unibo.scooby.utility.http.HttpStatus.INVALID
 import sttp.model.RequestMetadata
 
 /**
@@ -13,8 +12,6 @@ trait SttpSyncBackend extends Backend[Response]:
   import HttpMethod.*
   import sttp.client3
   import sttp.client3.{HttpClientSyncBackend, SttpBackendOptions, UriContext, asString, basicRequest}
-
-  import scala.concurrent.duration.DurationInt
 
   /**
    * Type alias for Request of the sttp library
@@ -93,12 +90,6 @@ trait SttpSyncBackend extends Backend[Response]:
         ,
         response.request.asRequest
       )
-
-  /**
-   * Timeout to use in case the [[ClientConfiguration]] provided doesn't set the [[NetworkTimeout]] configuration
-   */
-  private lazy val defaultTimeout = 5.seconds
-
   /**
    * STTP backend used internally to make HTTP calls.
    */

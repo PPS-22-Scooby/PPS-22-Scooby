@@ -1,20 +1,16 @@
 package org.unibo.scooby
 package core.scooby
 
-import core.coordinator.Coordinator
-import core.crawler.{Crawler, CrawlerCommand, ExplorationPolicies}
-import core.exporter.Exporter.*
-import core.exporter.ExporterCommands.SignalEnd
-import core.exporter.{Exporter, ExporterCommands, ExporterRouter}
-import core.scooby.Configuration.{CoordinatorConfiguration, CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
-import core.scooby.SingleExporting.{BatchExporting, StreamExporting}
-import core.scraper.ScraperPolicies
-import utility.http.{ClientConfiguration, URL}
-
+import akka.actor.typed.*
 import akka.actor.typed.scaladsl.AskPattern.*
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.*
 import akka.util.Timeout
+import org.unibo.scooby.core.coordinator.Coordinator
+import org.unibo.scooby.core.crawler.{Crawler, CrawlerCommand}
+import org.unibo.scooby.core.exporter.Exporter.*
+import org.unibo.scooby.core.exporter.ExporterCommands.SignalEnd
+import org.unibo.scooby.core.exporter.{Exporter, ExporterCommands, ExporterRouter}
+import org.unibo.scooby.core.scooby.SingleExporting.{BatchExporting, StreamExporting}
 
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, Future}
