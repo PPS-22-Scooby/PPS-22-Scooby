@@ -28,6 +28,10 @@ class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: Scraper
   import ScraperCommands._
   import core.exporter.ExporterCommands
 
+  /**
+   * Defines [[Scraper]]'s [[Behavior]].
+   * @return the [[Behavior]]
+   */
   def idle(): Behavior[ScraperCommands] =
     Behaviors.setup: context =>
       Behaviors.receiveMessage:
@@ -35,8 +39,6 @@ class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: Scraper
           val res = resultFromRule(doc)
           exporterRouter ! ExporterCommands.Export(res)
           Behaviors.stopped
-
-
 
   private def resultFromRule(argument: ScrapeDocument): Result[T] =
     Result(scrapeRule(argument))
@@ -46,6 +48,13 @@ class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: Scraper
  */
 object Scraper:
 
+  /**
+   * Creates a new [[Scraper]] running actor.
+   * @param exporterRouter the [[Exporter]] to send results to
+   * @param scrapeRule the [[ScraperPolicy]] of the [[Scraper]]
+   * @tparam T result type of the [[ScraperPolicy]]
+   * @return the [[Scraper]]'s [[Behavior]]
+   */
   def apply[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: ScraperPolicy[T]): Behavior[ScraperCommands] =
     Behaviors.setup {
       context => new Scraper(exporterRouter, scrapeRule).idle()
@@ -78,8 +87,8 @@ object ScraperPolicies:
     ScrapeDocument(content, url)
 
   /**
-   * Utility for scraper's rules based on selectBy attribute, given selectors specified.
-   * Admissible values are id, tag, class and css.
+   * Utility for [[ScraperPolicy]] based on selectBy attribute, given selectors specified.
+   * Admissible values for selectBy are id, tag, class, css and regex.
    *
    * @param selectors a [[Seq]] of selectors used in scraper rule.
    * @param selectBy a selector to specify the rule.
@@ -101,7 +110,7 @@ object ScraperPolicies:
         throw Error(s"Not yet implemented rule by $selectBy")
 
   /**
-   * A scraper rule based on elements' ids given.
+   * A [[ScraperPolicy]] based on elements' ids given.
    * @param ids a [[Seq]] of ids used in the rule.
    * @return the rule based on elements' ids.
    */
@@ -109,7 +118,7 @@ object ScraperPolicies:
     ids.map(scraper.getElementById).map(_.fold("")(_.outerHtml)).filter(_.nonEmpty)
 
   /**
-   * A scraper rule based on elements' tags given.
+   * A [[ScraperPolicy]] based on elements' tags given.
    *
    * @param tags a [[Seq]] of tags used in the rule.
    * @return the rule based on elements' tags.
@@ -118,7 +127,7 @@ object ScraperPolicies:
     tags.flatMap(scraper.getElementsByTag).map(_.outerHtml)
 
   /**
-   * A scraper rule based on elements' classes given.
+   * A [[ScraperPolicy]] based on elements' classes given.
    *
    * @param classesNames a [[Seq]] of classes used in the rule.
    * @return the rule based on elements' classes.
@@ -127,7 +136,7 @@ object ScraperPolicies:
     classesNames.flatMap(scraper.getElementsByClass).map(_.outerHtml)
 
   /**
-   * A scraper rule based on css selectors given.
+   * A [[ScraperPolicy]] based on css selectors given.
    *
    * @param selectors a [[Seq]] of selectors used in the rule.
    * @return the rule based on css selectors.
@@ -136,7 +145,7 @@ object ScraperPolicies:
     selectors.flatMap(scraper.select(_)).map(_.outerHtml)
 
   /**
-   * A scraper rule based on regular expressions given.
+   * A [[ScraperPolicy]] based on regular expressions given.
    *
    * @param regex a [[Seq]] of regex used in the rule.
    * @return the rule based on regex.
