@@ -189,7 +189,7 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
             Behaviors.same
           else
             context.log.info(s"${context.self.path.name} has reached max depth! Terminating...")
-            Behaviors.stopped
+            buffer.unstashAll(waitingForChildren(1))
 
     /**
      * Sub-behavior for the Crawler that recursively spawns the children Crawlers.

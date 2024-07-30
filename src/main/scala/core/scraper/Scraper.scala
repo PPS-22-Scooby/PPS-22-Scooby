@@ -2,13 +2,13 @@ package org.unibo.scooby
 package core.scraper
 
 import utility.document.ScrapeDocument
-
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import core.exporter.ExporterCommands
-
 import ScraperPolicies.ScraperPolicy
 import utility.http.URL
+
+import scala.util.Try
 
 /**
  * Enum representing all [[Scraper]]'s messages.
@@ -32,8 +32,10 @@ class Scraper[T](exporterRouter: ActorRef[ExporterCommands], scrapeRule: Scraper
     Behaviors.setup: context =>
       Behaviors.receiveMessage:
         case ScraperCommands.Scrape(doc: ScrapeDocument) =>
-          val res = resultFromRule(doc)
-          exporterRouter ! ExporterCommands.Export(res)
+          Try:
+            val res = resultFromRule(doc)
+            exporterRouter ! ExporterCommands.Export(res)
+          .fold(e => println(s"An error occurred while scraping: $e"), identity)
           Behaviors.stopped
 
 
