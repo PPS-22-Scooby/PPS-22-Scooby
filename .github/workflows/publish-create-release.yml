@@ -40,10 +40,17 @@ jobs:
           echo "sbt.version=1.10.0" > ./project/build.properties
           sbt sbtVersion
 
-      - name: Generate the jar
+      - name: Get tag name
+        id: get_tag_name
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Set release version
+        run: echo "RELEASE_VERSION=${{ env.TAG_NAME }}" >> $GITHUB_ENV
+
+      - name: Run sbt assembly
         run: sbt assembly
         env:
-          RELEASE_VERSION: $${{ github.ref }}
+          RELEASE_VERSION: ${{ env.TAG_NAME }}
 
       - name: Create GitHub Release
         id: create_release
@@ -51,8 +58,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref  }}
-          release_name: Scooby-${{ github.ref }}
+          tag_name: ${{ env.TAG_NAME  }}
+          release_name: Scooby-${{ env.TAG_NAME }}
           draft: false
           prerelease: false
 
@@ -62,6 +69,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/scala-3.4.2/PPS-22-Scooby-assembly-${{ github.ref }}.jar
-          asset_name: scooby-library-${{ github.ref }}.jar
+          asset_path: ./target/scala-3.4.2/PPS-22-Scooby-assembly-${{ env.TAG_NAME }}.jar
+          asset_name: scooby-library-${{ env.TAG_NAME }}.jar
           asset_content_type: application/java-archive
