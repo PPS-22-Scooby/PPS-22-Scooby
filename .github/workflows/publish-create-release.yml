@@ -2,8 +2,8 @@ name: Create Release
 
 on:
   push:
-    branches:
-      - '*'
+    branches: ["*"]
+
 jobs:
   release:
     runs-on: ubuntu-latest
