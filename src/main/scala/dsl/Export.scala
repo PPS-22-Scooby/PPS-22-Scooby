@@ -14,19 +14,23 @@ import play.api.libs.json.Writes
 import java.nio.file.Path
 
 /**
- * Collection of DSL operators to customize the Export properties of Scooby application
+ * Collection of DSL operators to customize the [[Exporter]] properties of Scooby application
  *
  * Example usage:
  * {{{
  *   exports:
- *    Batch:
+ *    batch:
  *      strategy:
  *        results get tag output:
- *          ToConsole withFormat Text
- *          ToFile("outputFileName") withFormat Text
+ *          toConsole withFormat text
+ *          // or toFile("outputFileName") withFormat text
  *
  *      aggregate:
  *        _ ++ _
+ *
+ *    streaming:
+ *      results get tag output:
+ *        toConsole withFormat text
  * }}}
  */
 object Export:
