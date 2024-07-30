@@ -56,7 +56,7 @@ object Exporter:
    *
    * @tparam A The type of data in the result.
    * @param exportingFunction The function that defines how to export the result.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def stream[A](exportingFunction: ExportingBehavior[A]): Behavior[ExporterCommands] =
     Behaviors.setup : context =>
@@ -76,7 +76,7 @@ object Exporter:
    * @param result            The initial result to start with.
    * @param exportingFunction The function that defines how to export the aggregated result.
    * @param aggregation       The function that defines how to aggregate results.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def fold[A](result: Result[A])
              (exportingFunction: ExportingBehavior[A])
@@ -96,7 +96,7 @@ object Exporter:
    * @tparam A The type of data in the result.
    * @param exportingFunction The function that defines how to export the result.
    * @param aggregation       The function that defines how to aggregate results.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def batch[A](exportingFunction: ExportingBehavior[A])
               (aggregation: AggregationBehavior[A]): Behavior[ExporterCommands] =
