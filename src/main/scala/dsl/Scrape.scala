@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package dsl
 
-import dsl.DSL.{ConfigurationBuilder, ScrapingResultSetting}
+import dsl.DSL.{ConfigurationWrapper, ScrapingResultSetting}
 import utility.document.*
 
 import monocle.syntax.all.*
@@ -40,7 +40,7 @@ object Scrape:
      * @param globalScope global Scooby scope (i.g. "scooby: ...")
      * @tparam T type of the result returned by this scraping behavior
      */
-    inline def scrape[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationBuilder[T]): Unit =
+    inline def scrape[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationWrapper[T]): Unit =
       catchRecursiveCtx[ScrapeDocument]("scrape")
       scrapeOp(block)
 
@@ -54,7 +54,7 @@ object Scrape:
      * @param globalScope global Scooby scope (i.g. "scooby: ...")
      * @tparam T type of the result returned by this scraping behavior
      */
-    def scrapeOp[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationBuilder[T]): Unit =
+    def scrapeOp[T](block: ScrapeBehaviorScope[T])(using globalScope: ConfigurationWrapper[T]): Unit =
       globalScope.configuration = globalScope.configuration.focus(_.scraperConfiguration.scrapePolicy).replace:
         doc =>
           given ScrapeDocument = doc
