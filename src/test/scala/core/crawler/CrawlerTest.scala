@@ -2,28 +2,20 @@ package org.unibo.scooby
 package core.crawler
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
+import akka.actor.typed.{ActorRef, Behavior}
 import core.crawler.CrawlerCommand.{Crawl, CrawlerCoordinatorResponse}
 import core.coordinator.CoordinatorCommand
 import utility.http.URL
 import utility.http.URL.*
-import utility.MockServer
 import utility.ScalaTestWithMockServer
 
 
 import akka.actor.testkit.typed.{CapturedLogEvent, Effect}
 import akka.actor.testkit.typed.Effect.*
-import org.scalatest.BeforeAndAfterAll
 
-import scala.concurrent.Await
-import scala.concurrent.duration.*
-import akka.actor.typed.scaladsl.AskPattern.*
-import akka.util.Timeout
 import org.slf4j.event.Level
 import core.exporter.ExporterCommands
-import utility.document.ScrapeDocument
 
 import scala.language.{implicitConversions, postfixOps}
 

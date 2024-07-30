@@ -1,17 +1,14 @@
 package org.unibo.scooby
 package dsl
 
-import core.exporter.Exporter.Formats
-import core.scraper.ScraperPolicies.ScraperPolicy
-import core.scraper.{Result, ScraperPolicies}
-
-import dsl.Export.ExportOps.FormatType
-import dsl.util.ScoobyTest
-
-import utility.document.ScrapeDocument
-import utility.document.html.HTMLElement
-import utility.http.HttpError
-import utility.http.api.Calls.GET
+import org.unibo.scooby.core.exporter.Exporter.Formats
+import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
+import org.unibo.scooby.core.scraper.{Result, ScraperPolicies}
+import org.unibo.scooby.dsl.util.ScoobyTest
+import org.unibo.scooby.utility.document.ScrapeDocument
+import org.unibo.scooby.utility.document.html.HTMLElement
+import org.unibo.scooby.utility.http.HttpError
+import org.unibo.scooby.utility.http.api.Calls.GET
 
 import scala.compiletime.uninitialized
 
@@ -23,16 +20,13 @@ class DSLExporterTest extends ScoobyTest:
   val scrapePolicy: ScraperPolicy[HTMLElement] = doc => doc.getAllElements
   val elemPolicy: HTMLElement => String = _.tag
   val resultPolicy: Iterable[HTMLElement] => Result[String] = it => Result(it.get(tag))
-  val format: FormatType = Text
 
   "Exporter with batch write on file" should "correctly write on file final result" in:
 
     val docEither: Either[HttpError, ScrapeDocument] = GET(baseURL)
     val results = scrapePolicy(docEither.getOrElse(fail()))
 
-    expected = if format == FormatType.Text
-      then Formats.string(resultPolicy(results))
-      else Formats.json.apply(resultPolicy(results))
+    expected = Formats.string(resultPolicy(results))
 
     val filePath = path.resolve("exporter.txt")
 
@@ -41,7 +35,7 @@ class DSLExporterTest extends ScoobyTest:
         batch:
           strategy:
             results get tag output:
-              toFile(filePath.toString) withFormat format
+              toFile(filePath.toString) withFormat text
     .scrapeExportInspectFileContains(baseURL, filePath, expected, scrapePolicy)
 
 
@@ -50,11 +44,11 @@ class DSLExporterTest extends ScoobyTest:
     val docEither: Either[HttpError, ScrapeDocument] = GET(baseURL)
     expectedIterable = scrapePolicy(docEither.getOrElse(fail())).map(elemPolicy)
 
-    val separator = if format == FormatType.Text then System.lineSeparator() else ","
+    val separator = System.lineSeparator()
 
     mockedScooby:
       exports:
         streaming:
           results get tag  output:
-            toConsole withFormat format
+            toConsole withFormat text
     .scrapeExportInspectConsoleContains(baseURL, expectedIterable, separator, scrapePolicy)

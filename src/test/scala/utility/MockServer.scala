@@ -110,7 +110,6 @@ object MockServer:
             headerValueByName("check-header"): headerVal =>
               if (headerVal == "ok")
                 extractRequest: request =>
-                  request.headers
                   complete:
                     HttpResponse(
                       status = StatusCodes.OK,

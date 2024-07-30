@@ -2,7 +2,7 @@ package org.unibo.scooby
 package dsl
 
 import core.crawler.ExplorationPolicy
-import dsl.DSL.ConfigurationBuilder
+import dsl.DSL.ConfigurationWrapper
 import utility.document.CrawlDocument
 import utility.http.URL
 
@@ -51,7 +51,7 @@ object Crawl:
      * @param globalScope global scooby scope
      * @tparam T type of the configuration
      */
-    inline def crawl[T](block: CrawlScope)(using globalScope: ConfigurationBuilder[T]): Unit =
+    inline def crawl[T](block: CrawlScope)(using globalScope: ConfigurationWrapper[T]): Unit =
       catchRecursiveCtx[CrawlContext]("crawl")
       crawlOp(block)
 
@@ -59,9 +59,9 @@ object Crawl:
      * "crawl" level keyword for setting the exploration policy
      *
      * @param block   nested definitions of crawl settings
-     * @param builder context provided by the "crawl" keyword
+     * @param context context provided by the "crawl" keyword
      */
-    inline def policy(block: PolicyScope)(using builder: CrawlContext): Unit =
+    inline def policy(block: PolicyScope)(using context: CrawlContext): Unit =
       catchRecursiveCtx[CrawlDocument]("policy")
       policyOp(block)
 
@@ -84,21 +84,21 @@ object Crawl:
      * @param globalScope global scooby scope
      * @tparam T type of the configuration
      */
-    def crawlOp[T](block: CrawlScope)(using globalScope: ConfigurationBuilder[T]): Unit =
-      given builder: CrawlContext = CrawlContext("", globalScope.configuration.crawlerConfiguration.explorationPolicy)
+    def crawlOp[T](block: CrawlScope)(using globalScope: ConfigurationWrapper[T]): Unit =
+      given context: CrawlContext = CrawlContext("", globalScope.configuration.crawlerConfiguration.explorationPolicy)
       block
       globalScope.configuration = globalScope.configuration
-        .focus(_.crawlerConfiguration.url)                 .replace(URL(builder.url))
-        .focus(_.crawlerConfiguration.explorationPolicy)   .replace(builder.policy)
+        .focus(_.crawlerConfiguration.url)                 .replace(URL(context.url))
+        .focus(_.crawlerConfiguration.explorationPolicy)   .replace(context.policy)
 
     /**
      * Internal operation to handle the exploration policy
      *
      * @param policy  the exploration policy to use
-     * @param builder context provided by the "crawl" keyword
+     * @param context context provided by the "crawl" keyword
      */
-    def policyOp(policy: PolicyScope)(using builder: CrawlContext): Unit =
-    builder.policy = doc =>
+    def policyOp(policy: PolicyScope)(using context: CrawlContext): Unit =
+    context.policy = doc =>
       given CrawlDocument = doc
       policy
 
@@ -106,10 +106,10 @@ object Crawl:
    * "crawl" level keyword for setting the URL to start crawling from
    *
    * @param init    the URL to start crawling from
-   * @param builder context provided by the "crawl" keyword
+   * @param context context provided by the "crawl" keyword
    */
-  def url(init: => String)(using builder: CrawlContext): Unit =
-    builder.url = init
+  def url(init: => String)(using context: CrawlContext): Unit =
+    context.url = init
 
   /**
    * Retrieves all hyperlinks, present in the body, from the current crawl document context

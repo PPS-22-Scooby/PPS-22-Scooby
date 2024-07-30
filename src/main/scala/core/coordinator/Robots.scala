@@ -42,7 +42,7 @@ object Robots:
    * @param robotsTxt
    *   The content of the robots.txt file as a String.
    * @return
-   *   A List of disallowed paths for the user-agent "*".
+   *   A [[Set]] of disallowed paths for the user-agent "*".
    */
   def parseRobotsTxt(robotsTxt: String): Set[String] =
     val lines = robotsTxt.split("\n").toList
@@ -66,7 +66,7 @@ object Robots:
 
 
   /**
-   * Checks if a given URL is allowed to be visited according to the disallow rules.
+   * Checks if a given string URL is allowed to be visited according to the disallow rules.
    *
    * @param url
    *   The URL to check.

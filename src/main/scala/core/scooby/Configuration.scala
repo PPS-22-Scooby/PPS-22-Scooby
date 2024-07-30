@@ -8,12 +8,14 @@ import core.scraper.ScraperPolicies.ScraperPolicy
 import utility.http.{ClientConfiguration, URL}
 import core.scooby.Configuration.CoordinatorConfiguration
 
+import scala.annotation.unused
+
 /**
  * Single Exporting option. Configures one single Exporter
  * @param behavior behavior to be assign to this Exporter
  * @tparam A type inside of [[Result]] that will be exported
  */
-enum SingleExporting[A](behavior: ExportingBehavior[A]):
+enum SingleExporting[A](@unused behavior: ExportingBehavior[A]):
   /**
    * Exporting via stream strategy, meaning that Results will be exported as they are obtained by the scrapers
    */
@@ -31,6 +33,7 @@ enum SingleExporting[A](behavior: ExportingBehavior[A]):
  * @param crawlerConfiguration configuration for the crawler
  * @param scraperConfiguration configuration for the scraper
  * @param exporterConfiguration configuration for the exporter
+ * @param coordinatorConfiguration configuration for the coordinator
  * @tparam T type of [[Result]] that will be exported
  */
 case class Configuration[T](crawlerConfiguration: CrawlerConfiguration,
@@ -54,14 +57,14 @@ object Configuration:
   object CrawlerConfiguration:
 
     /**
-     * Represent the default configuration of the crawler.
-     * @return
+     * Represent the default configuration of the crawler. The policy will get all the links in the document
+     * @return an empty [[CrawlerConfiguration]]
      */
     def empty: CrawlerConfiguration =
       CrawlerConfiguration(
         URL.empty,
-        _ => Iterable.empty, +
-          0,
+        doc => doc.getAllLinkOccurrences,
+        0,
         ClientConfiguration.default
       )
 
@@ -74,6 +77,11 @@ object Configuration:
   case class ScraperConfiguration[T](scrapePolicy: ScraperPolicy[T])
 
   object ScraperConfiguration:
+    /**
+     * Represent the default configuration of the scraper. The scraping behavior will return nothing.
+     * @tparam T the type of results returned by the scraping. In this case will be [[Nothing]]
+     * @return an empty [[ScraperConfiguration]]
+     */
     def empty[T]: ScraperConfiguration[T] = ScraperConfiguration(_ => Iterable.empty)
 
   /**
@@ -85,10 +93,20 @@ object Configuration:
   case class ExporterConfiguration[T](exportingStrategies: Seq[SingleExporting[T]])
 
   object ExporterConfiguration:
+    /**
+     * Represent the default configuration of the exporter. The default exporting behavior will not export anything.
+     * @tparam T the type of results return by the scraping
+     * @return an empty [[ExporterConfiguration]]
+     */
     def empty[T]: ExporterConfiguration[T] = ExporterConfiguration(Seq.empty[SingleExporting[T]])
 
 
   case class CoordinatorConfiguration(maxLinks: Int)
 
+  /**
+   * Represent a default Scooby [[Configuration]]. Used mainly for debug or initialization purposes.
+   * @tparam T type of results return by the scraping.
+   * @return an empty (default) Scooby [[Configuration]]
+   */
   def empty[T]: Configuration[T] = Configuration(CrawlerConfiguration.empty, ScraperConfiguration.empty[T],
     ExporterConfiguration.empty[T], CoordinatorConfiguration(100))

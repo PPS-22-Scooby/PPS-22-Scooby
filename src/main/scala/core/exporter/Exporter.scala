@@ -2,8 +2,10 @@ package org.unibo.scooby
 package core.exporter
 import core.scraper.Result
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
+import org.unibo.scooby.core.scooby.ScoobyCommand
+import org.unibo.scooby.core.scooby.ScoobyCommand.ExportFinished
 import play.api.libs.json.Writes
 
 import java.nio.charset.StandardCharsets
@@ -38,8 +40,10 @@ enum ExporterCommands:
   case Export[A](result: Result[A])
   /**
    * Command to signal the end of computation, indicating that no more results will be sent.
+   * @param replyTo Actor to answer to after exporting has finished
    */
-  case SignalEnd()
+  case SignalEnd(replyTo: ActorRef[ScoobyCommand])
+
 
 /**
  * Companion object for the `Exporter` actor, providing factory methods for creating different types of exporting behaviors.
@@ -52,17 +56,20 @@ object Exporter:
    *
    * @tparam A The type of data in the result.
    * @param exportingFunction The function that defines how to export the result.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def stream[A](exportingFunction: ExportingBehavior[A]): Behavior[ExporterCommands] =
     Behaviors.setup : context =>
       Behaviors.receiveMessage :
         case Export(result: Result[A]) =>
-          exportingFunction(result)
+          Try:
+            exportingFunction(result)
+          .fold(e => println(s"An error occurred while exporting in stream config: $e"), identity)
           Behaviors.same
-        case SignalEnd() =>
-          context.log.error("Stream Exporter can only accept stream results")
-          Behaviors.same
+        case SignalEnd(replyTo) =>
+          context.log.warn("Ignoring batch results inside Stream exporter")
+          replyTo ! ExportFinished
+          Behaviors.stopped
 
   /**
    * Creates a behavior for folding (aggregating) export.
@@ -71,7 +78,7 @@ object Exporter:
    * @param result            The initial result to start with.
    * @param exportingFunction The function that defines how to export the aggregated result.
    * @param aggregation       The function that defines how to aggregate results.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def fold[A](result: Result[A])
              (exportingFunction: ExportingBehavior[A])
@@ -80,9 +87,12 @@ object Exporter:
       Behaviors.receiveMessage :
         case Export(newResult: Result[A]) =>
           fold(aggregation(result, newResult))(exportingFunction)(aggregation)
-        case SignalEnd() =>
-          exportingFunction(result)
-          Behaviors.same
+        case SignalEnd(replyTo) =>
+          Try:
+            exportingFunction(result)
+          .fold(e => println(s"An error occurred while exporting in batch config: $e"), identity)
+          replyTo ! ExportFinished
+          Behaviors.stopped
 
   /**
    * Creates a behavior for batching export.
@@ -90,7 +100,7 @@ object Exporter:
    * @tparam A The type of data in the result.
    * @param exportingFunction The function that defines how to export the result.
    * @param aggregation       The function that defines how to aggregate results.
-   * @return A behavior for handling `ExporterCommands`.
+   * @return A [[Behavior]] for handling `ExporterCommands`.
    */
   def batch[A](exportingFunction: ExportingBehavior[A])
               (aggregation: AggregationBehavior[A]): Behavior[ExporterCommands] =
@@ -109,14 +119,16 @@ object Exporter:
      * @param format   The formatting behavior to use for converting results to strings.
      * @return An exporting behavior.
      */
-    def writeOnFile[A](filePath: Path, format: FormattingBehavior[A] = Formats.string): ExportingBehavior[A] =
+    def writeOnFile[A](filePath: Path,
+                       format: FormattingBehavior[A] = Formats.string,
+                       overwrite: Boolean = true): ExportingBehavior[A] =
       (result: Result[A]) =>
         Try :
           val writer = Files.newBufferedWriter(
             filePath,
             StandardCharsets.UTF_8,
             StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND
+            if overwrite then StandardOpenOption.TRUNCATE_EXISTING else StandardOpenOption.APPEND,
           )
           val content = format(result)
           (writer, content)
@@ -163,7 +175,7 @@ object Exporter:
 
     /**
      * Converts a `Result[A]` to a JSON string representation.
-     * This function uses an implicit `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
+     * This function uses a given `Writes[Iterable[A]]` to serialize the `Result`'s data into JSON format.
      * The `Writes` typeclass is provided by Play Framework's JSON library and must be available in the scope
      * where this function is used. This allows for flexible and type-safe JSON serialization of various data types.
      *

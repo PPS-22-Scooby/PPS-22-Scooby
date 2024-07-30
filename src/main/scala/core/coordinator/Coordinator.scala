@@ -3,12 +3,18 @@ package core.coordinator
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
-import utility.rule.ConditionalRule
 import core.crawler.CrawlerCommand
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
-
 import utility.http.URL
 import utility.http.URL.*
+
+import scala.annotation.unused
+
+/**
+ * Type alias for a function that a Coordinator policy in terms of a page that should be explored and
+ * a list of already explored pages.
+ */
+type Policy = (URL, Set[URL]) => Boolean
 
 enum CoordinatorCommand:
 
@@ -62,15 +68,9 @@ object Coordinator:
   /**
    * The behavior of the Coordinator actor when it is first created.
    */
-  def apply(maxNumberOfLinks: Int = 2000): Behavior[CoordinatorCommand] =
-    import utility.rule.Rule.policy
+  def apply(maxNumberOfLinks: Int = 2000, policy: Policy = CoordinatorPolicies.defaultPolicy): Behavior[CoordinatorCommand] =
     Behaviors.setup { context =>
-      val defaultUrlPolicy: ConditionalRule[(URL, Set[URL])] = policy:
-        (url: URL, crawledPages: Set[URL]) => !crawledPages
-          .map(_.domain)
-          .contains(url.domain)
-
-      new Coordinator(context, defaultUrlPolicy, maxNumberOfLinks).idle(Set.empty, Set.empty)
+      new Coordinator(context, maxNumberOfLinks, policy).idle(Set.empty, Set.empty)
     }
 
 /**
@@ -78,11 +78,16 @@ object Coordinator:
  *
  * @param context
  *   The context in which the actor is running.
+*  @param maxNumberOfLinks
+ *   Maximum number of links that can be explored by crawlers
+ * @param policy
+ *  The policy of the [[Coordinator]]
+ *
  */
 class Coordinator(
-                   context: ActorContext[CoordinatorCommand], 
-                   urlPolicy: ConditionalRule[(URL, Set[URL])],
-                   maxNumberOfLinks: Int
+                   @unused context: ActorContext[CoordinatorCommand],
+                   maxNumberOfLinks: Int,
+                   policy: Policy
                  ):
 
   import CoordinatorCommand.*
@@ -97,7 +102,7 @@ class Coordinator(
    *   The set of pages that have been crawled. This is used to keep track of which pages have already been crawled, so
    *   that the actor doesn't crawl the same page multiple times.
    * @return
-   *   A Behavior[Command] that describes how the actor should process the next message it receives.
+   *   A [[Behavior]] of [[CoordinatorCommand]] that describes how the actor should process the next message it receives.
    */
   def idle(crawledPages: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
@@ -110,7 +115,9 @@ class Coordinator(
         Behaviors.same
         
       case CheckPages(pages, replyTo) =>
-        val checkResult = pages.filter(_.isAbsolute).filter(page => urlPolicy.executeOn(page, crawledPages))
+        val checkResult = pages.filter(_.isAbsolute)
+          .filter(page => policy(page, crawledPages))
+
         val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
         idle(crawledPages ++ checkResult.toSet, blackList)
@@ -127,3 +134,16 @@ class Coordinator(
 
       case _ => Behaviors.same
     }
+
+/**
+ * Contains the different coordinator policies that can be used by
+ * the coordinator.
+ */
+object CoordinatorPolicies:
+  /**
+   * Execute the default policy on the page
+   *
+   * @return the [[Policy]] that should be executed
+   */
+  def defaultPolicy: Policy = (page: URL, alreadyCrawledUrl: Set[URL]) =>
+    !alreadyCrawledUrl.map(_.domain).contains(page.domain)

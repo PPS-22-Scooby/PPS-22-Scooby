@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package dsl
 
-import dsl.DSL.ConfigurationBuilder
+import dsl.DSL.ConfigurationWrapper
 import utility.http.ClientConfiguration
 
 import monocle.Lens
@@ -61,7 +61,7 @@ object Config:
        * @param globalScope global scooby scope (i.e. "scope: ...")
        * @tparam T type of the configuration (i.e. type of the result returned by this scraping behavior)
        */
-      inline def config[T](block: GlobalConfigScope)(using globalScope: ConfigurationBuilder[T]): Unit =
+      inline def config[T](block: GlobalConfigScope)(using globalScope: ConfigurationWrapper[T]): Unit =
         catchRecursiveCtx[ConfigContext]("config")
         configOp(block)
 
@@ -111,7 +111,7 @@ object Config:
        * @param globalScope global scooby scope (i.e. "scope: ...")
        * @tparam T type of the configuration (i.e. type of the result returned by this scraping behavior)
        */
-      def configOp[T](block: GlobalConfigScope)(using globalScope: ConfigurationBuilder[T]): Unit =
+      def configOp[T](block: GlobalConfigScope)(using globalScope: ConfigurationWrapper[T]): Unit =
         given context: ConfigContext = ConfigContext(ConfigOptions(), ClientConfiguration.default)
         block
         globalScope.configuration = globalScope.configuration
