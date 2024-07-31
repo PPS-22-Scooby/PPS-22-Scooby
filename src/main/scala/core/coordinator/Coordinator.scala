@@ -110,7 +110,7 @@ class Coordinator(
         val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(page.toString))
         idle(crawledPages, disallowed)
 
-      case CheckPages(pages, replyTo) if pages.size > maxNumberOfLinks =>
+      case CheckPages(pages, replyTo) if crawledPages.size >= maxNumberOfLinks =>
         replyTo ! CrawlerCoordinatorResponse(Iterator.empty)
         Behaviors.same
         
