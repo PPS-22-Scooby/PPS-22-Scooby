@@ -111,7 +111,7 @@ class Coordinator(
   def idle(crawledUrls: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
       case SetupRobots(url, replyTo) =>
-        val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(url.toString))
+        val disallowed = Robots.getDisallowedFromRobots(url)
         replyTo ! RobotsChecked(disallowed.nonEmpty)
         idle(crawledUrls, disallowed)
 

@@ -1,8 +1,9 @@
 package org.unibo.scooby
 package core.coordinator
 
-import utility.http.Clients.SimpleHttpClient
-import utility.http.{HttpError, Request, Response, URL}
+import org.unibo.scooby.utility.http.Clients.SimpleHttpClient
+import org.unibo.scooby.utility.http.api.Calls.GET
+import org.unibo.scooby.utility.http.{HttpError, URL}
 
 /**
  * The `Robots` object provides functionalities to fetch and parse the robots.txt file from a given website. It also
@@ -10,31 +11,33 @@ import utility.http.{HttpError, Request, Response, URL}
  * file.
  */
 object Robots:
+  given httpClient: SimpleHttpClient = SimpleHttpClient()
 
+  /**
+   * A shortcut for {{{parseRobotsTxt(fetchRobotsTxt(rootUrl).getOrElse(""))}}}
+   * @param rootUrl root URL of the site
+   * @return a [[Set]] of disallowed URLs
+   */
+  def getDisallowedFromRobots(rootUrl: URL): Set[String] =
+    parseRobotsTxt(fetchRobotsTxt(rootUrl).getOrElse(""))
+  
   /**
    * Fetches the robots.txt file from the specified site URL.
    *
    * @param siteUrl
    *   The URL of the site from which to fetch the robots.txt file.
    * @return
-   *   The content of the robots.txt file as a String. Returns an error message if fetching fails.
+   *   The content of the robots.txt file as an [[Option]] of [[String]]. Returns [[None]] if Robots.txt isn't found
+   *   or if its content is empty
    */
-  def fetchRobotsTxt(siteUrl: String): String =
-    val httpClient: SimpleHttpClient = SimpleHttpClient()
-    val parsedUrl = URL(siteUrl)
-    // TODO: change 'https' to a method within URLs that allows the protocol
-    val robotsUrl = s"${parsedUrl.toString}/robots.txt"
-    Request.builder.get().at(robotsUrl).build match
-      case Left(err: HttpError) =>
-        s"Error fetching robots.txt: ${err.message}"
-      case Right(request: Request) =>
-        request.send(httpClient) match
-          case Left(s: HttpError) =>
-            s"Error while get $robotsUrl: ${s.message}"
-          case Right(response: Response) =>
-            response.body match
-              case None => "No content found in robots.txt"
-              case Some(content: String) => content
+  def fetchRobotsTxt(siteUrl: URL): Option[String] =
+    val robotsUrl = siteUrl / "robots.txt"
+    val fetchResult: Either[HttpError, Option[String]] = GET(robotsUrl)
+    fetchResult match
+      case Left(_) =>
+        // Error fetching robots.txt
+        Option.empty
+      case Right(optionalContent: Option[String]) => optionalContent
 
   /**
    * Parses the content of a robots.txt file and extracts the disallow rules.
@@ -45,6 +48,7 @@ object Robots:
    *   A [[Set]] of disallowed paths for the user-agent "*".
    */
   def parseRobotsTxt(robotsTxt: String): Set[String] =
+    if robotsTxt.isEmpty then return Set.empty
     val lines = robotsTxt.split("\n").toList
     val initialState = (Option.empty[String], List.empty[String])
 

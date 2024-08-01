@@ -14,7 +14,7 @@ import scala.language.{implicitConversions, postfixOps}
 class RobotsTest extends ScalaTestWithMockServer:
 
   "fetchRobotsTxt" should "fetch the robots.txt content from a given URL" in:
-    val content = Robots.fetchRobotsTxt("https://www.unibo.it/robots.txt")
+    val content = Robots.fetchRobotsTxt("https://www.unibo.it/robots.txt".toUrl)
     content should not be empty
 
 
@@ -43,9 +43,8 @@ class RobotsTest extends ScalaTestWithMockServer:
 
 
   "The full workflow" should "fetch, parse and check URLs correctly" in:
-    val siteUrl = "http://localhost:8080"
-    val robotsTxt = Robots.fetchRobotsTxt(siteUrl)
-    val disallowRules = Robots.parseRobotsTxt(robotsTxt)
+    val siteUrl = "http://localhost:8080".toUrl
+    val disallowRules = Robots.getDisallowedFromRobots(siteUrl)
     val allowedUrl = "https://www.example.com/public/data"
     val disallowedUrl = "https://www.example.com/private/data"
 
