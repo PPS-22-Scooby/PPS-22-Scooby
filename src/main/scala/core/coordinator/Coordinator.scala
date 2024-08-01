@@ -5,6 +5,8 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import core.crawler.CrawlerCommand
 import core.crawler.CrawlerCommand.CrawlerCoordinatorResponse
+import org.unibo.scooby.core.scooby.ScoobyCommand
+import org.unibo.scooby.core.scooby.ScoobyCommand.RobotsChecked
 import utility.http.URL
 import utility.http.URL.*
 
@@ -23,8 +25,10 @@ enum CoordinatorCommand:
    *
    * @param page
    *   The page to set up the robots.txt file for.
+   * @param replyTo
+   *   The actor to which reply when Robots.txt has been checked
    */
-  case SetupRobots(page: URL)
+  case SetupRobots(page: URL, replyTo: ActorRef[ScoobyCommand])
 
   /**
    * A message that instructs the Coordinator actor to check a list of pages.
@@ -98,38 +102,39 @@ class Coordinator(
    * The method uses the Behaviors.receiveMessage function from the Akka Typed API to define the actor's behavior when
    * it receives a message. It matches on the type of the message and executes the corresponding code block.
    *
-   * @param crawledPages
+   * @param crawledUrls
    *   The set of pages that have been crawled. This is used to keep track of which pages have already been crawled, so
    *   that the actor doesn't crawl the same page multiple times.
    * @return
    *   A [[Behavior]] of [[CoordinatorCommand]] that describes how the actor should process the next message it receives.
    */
-  def idle(crawledPages: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
+  def idle(crawledUrls: Set[URL], blackList: Set[String]): Behavior[CoordinatorCommand] =
     Behaviors.receiveMessage {
-      case SetupRobots(page) =>
-        val disallowed = Robots.parseRobotsTxt(Robots.fetchRobotsTxt(page.toString))
-        idle(crawledPages, disallowed)
+      case SetupRobots(url, replyTo) =>
+        val disallowed = Robots.getDisallowedFromRobots(url)
+        replyTo ! RobotsChecked(disallowed.nonEmpty)
+        idle(crawledUrls, disallowed)
 
-      case CheckPages(pages, replyTo) if crawledPages.size >= maxNumberOfLinks =>
+      case CheckPages(urls, replyTo) if crawledUrls.size >= maxNumberOfLinks =>
         replyTo ! CrawlerCoordinatorResponse(Iterator.empty)
         Behaviors.same
-        
-      case CheckPages(pages, replyTo) =>
-        val checkResult = pages.filter(_.isAbsolute)
-          .filter(page => policy(page, crawledPages))
+
+      case CheckPages(urls, replyTo) =>
+        val checkResult = urls.filter(_.isAbsolute)
+          .filter(page => policy(page, crawledUrls))
 
         val checkedUrlAndBlackList = checkResult.filter(url => Robots.canVisit(url.toString, blackList))
         replyTo ! CrawlerCoordinatorResponse(checkedUrlAndBlackList.iterator)
-        idle(crawledPages ++ checkResult.toSet, blackList)
+        idle(crawledUrls ++ checkResult.toSet, blackList)
 
-      case SetCrawledPages(pages) =>
-        val validPages = pages.toSet.filter(_.isAbsolute)
-          .diff(crawledPages)
-          .filterNot(el => crawledPages.map(_.withoutProtocol).contains(el.withoutProtocol))
-        idle(crawledPages ++ validPages, blackList)
+      case SetCrawledPages(urls) =>
+        val validPages = urls.toSet.filter(_.isAbsolute)
+          .diff(crawledUrls)
+          .filterNot(el => crawledUrls.map(_.withoutProtocol).contains(el.withoutProtocol))
+        idle(crawledUrls ++ validPages, blackList)
 
       case GetCrawledPages(replyTo) =>
-        replyTo ! crawledPages.toList
+        replyTo ! crawledUrls.toList
         Behaviors.same
 
       case _ => Behaviors.same
@@ -145,5 +150,5 @@ object CoordinatorPolicies:
    *
    * @return the [[Policy]] that should be executed
    */
-  def defaultPolicy: Policy = (page: URL, alreadyCrawledUrl: Set[URL]) =>
-    !alreadyCrawledUrl.map(_.domain).contains(page.domain)
+  def defaultPolicy: Policy = (url: URL, alreadyCrawledUrl: Set[URL]) =>
+    !alreadyCrawledUrl.map(_.domain).contains(url.domain)

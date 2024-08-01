@@ -66,7 +66,7 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
       coordinator ! CheckPages(pages, probe.ref)
       val response = probe.receiveMessage()
 
-      assert(!response.result.isEmpty, "Excpeted a non-empty iterator")
+      assert(response.result.nonEmpty, "Excpeted a non-empty iterator")
 
       val otherPages = List(url"http://example2.com")
       coordinator ! CheckPages(otherPages, probe.ref)

@@ -4,14 +4,14 @@ package core.crawler
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, TestProbe}
 import io.cucumber.scala.{EN, ScalaDsl}
 import core.coordinator.CoordinatorCommand
-import utility.http.{Request, URL}
-
+import utility.http.{ClientConfiguration, Request, URL}
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.testkit.typed.scaladsl.FishingOutcomes.fail
 import org.scalatest.matchers.should.Matchers.shouldBe
 import org.slf4j.event.Level
 import utility.http.Clients.SimpleHttpClient
 import core.exporter.ExporterCommands
+import scala.concurrent.duration.DurationInt
 
 
 class StepDefinitions extends ScalaDsl with EN :
@@ -20,7 +20,8 @@ class StepDefinitions extends ScalaDsl with EN :
   val coordinatorProbe: TestProbe[CoordinatorCommand] = testKit.createTestProbe[CoordinatorCommand]()
   val exporterProbe: TestProbe[ExporterCommands] = testKit.createTestProbe[ExporterCommands]()
   val behaviorTestKit: BehaviorTestKit[CrawlerCommand] = BehaviorTestKit(Crawler(coordinatorProbe.ref, exporterProbe.ref, _.content,
-    ExplorationPolicies.allLinks, 3))
+    ExplorationPolicies.allLinks, 3, 
+    networkConfiguration = ClientConfiguration.default.copy(networkTimeout = 3.seconds)))
 
   var url: URL = URL.empty
 
