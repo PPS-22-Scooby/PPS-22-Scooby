@@ -58,12 +58,18 @@ class CoordinatorTest extends AnyWordSpecLike with BeforeAndAfterAll :
       probe.expectMessage(List(url"http://www.google.com"))
 
     "return an empty iterator when the number of pages to check is not lower than maxNumberOfLinks" in :
-      val maxNumberOfLinks = 5
+      val maxNumberOfLinks = 1
       val coordinator = testKit.spawn(Coordinator(maxNumberOfLinks))
       val probe = testKit.createTestProbe[CrawlerCoordinatorResponse]()
-      val pages = List.fill(maxNumberOfLinks + 1)(url"http://example.com")
+      val pages = List(url"http://example.com")
 
       coordinator ! CheckPages(pages, probe.ref)
       val response = probe.receiveMessage()
 
-      assert(response.result.isEmpty, "Expected an empty iterator when maxNumberOfLinks is not lower than the number of crawledPages")
+      assert(response.result.nonEmpty, "Excpeted a non-empty iterator")
+
+      val otherPages = List(url"http://example2.com")
+      coordinator ! CheckPages(otherPages, probe.ref)
+
+      val response2 = probe.receiveMessage()
+      assert(response2.result.isEmpty, "Expected an empty iterator when maxNumberOfLinks is not lower than the number of crawledPages")
