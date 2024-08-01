@@ -2,7 +2,10 @@ package org.unibo.scooby
 package core.coordinator
 
 import org.scalatest.flatspec.AnyFlatSpec
+import org.unibo.scooby.core.coordinator.CoordinatorCommand.CheckPages
+import org.unibo.scooby.core.crawler.CrawlerCommand
 import utility.ScalaTestWithMockServer
+import org.unibo.scooby.utility.http.URL.toUrl
 
 import scala.language.{implicitConversions, postfixOps}
 
@@ -46,4 +49,15 @@ class RobotsTest extends ScalaTestWithMockServer:
 
     Robots.canVisit(allowedUrl, disallowRules) should be(true)
     Robots.canVisit(disallowedUrl, disallowRules) should be(false)
+
+
+  "The coordinator" should "disallow invalid URLs when contacted" in:
+    val siteUrl = "http://localhost:8080"
+    val probe = testKit.createTestProbe[CrawlerCommand.CrawlerCoordinatorResponse]()
+    val coordinator = testKit.spawn(Coordinator())
+    val allowedUrl = "https://www.example.com/public/data"
+    val disallowedUrl = "https://www.example.com/private/data"
+    coordinator ! CheckPages(List(allowedUrl.toUrl, disallowedUrl.toUrl), probe.ref)
+    assert(probe.receiveMessage().result.toSet == Set(allowedUrl))
+
 
