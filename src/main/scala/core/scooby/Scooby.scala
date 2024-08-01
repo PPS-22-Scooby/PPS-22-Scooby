@@ -57,7 +57,7 @@ object ScoobyActor:
 
   /**
    * Builds the main [[ScoobyActor]]'s behavior
-   * @param configuration configuration to be used for this application
+   * @param configuration [[Configuration]] to be used for this application
    * @tparam T type of the [[Result]]s that will be exported
    * @return the behavior for the [[ScoobyActor]]
    */
@@ -76,6 +76,14 @@ object ScoobyActor:
         case ExportFinished =>
           Behaviors.stopped(() => println("Something wrong happened. Unexpected \"ExportFinished\" received"))
 
+  /**
+   * Waits for the Coordinator to have checked for the Robots.txt file at the root URL
+   * @param configuration [[Configuration]] to be used for this application
+   * @param coordinator coordinator Actor previously spawned
+   * @tparam T type of the [[Result]]s that will be exported
+   * @return the behavior for the [[ScoobyActor]] that waits for [[RobotsChecked]] and resumes the application starting
+   *         behavior
+   */
   private def waitRobotsChecked[T](configuration: Configuration[T],
                                    coordinator: ActorRef[CoordinatorCommand]): Behavior[ScoobyCommand] =
     Behaviors.setup: context =>
@@ -88,11 +96,10 @@ object ScoobyActor:
             case (SingleExporting.BatchExporting(behavior, aggregation), index) =>
               context.spawn(Exporter.batch(behavior)(aggregation), s"Exporter$index-Batch")
 
-
+          // 3. Spawn an ExporterRouter to broadcast exports messages
           val exporterRouter = context.spawn(ExporterRouter(exporters), "ExporterRouter")
 
-
-          // 3. Spawn a crawler
+          // 4. Spawn a crawler
           val crawler = context.spawnAnonymous(Crawler(
             coordinator,
             exporterRouter,
