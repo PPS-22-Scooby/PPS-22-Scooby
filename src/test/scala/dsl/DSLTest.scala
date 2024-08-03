@@ -122,4 +122,4 @@ class DSLTest extends AnyFlatSpec, ScoobyEmbeddable, BeforeAndAfterEach, Matcher
     val resultDSL: Map[String, Int] = resultsToCheckAsMapWithSize(Await.result(appDSL.run(), 10.seconds), _.tag)
     val resultStandard: Map[String, Int] = resultsToCheckAsMapWithSize(Await.result(appStandard.run(), 10.seconds), _.tag)
 
-    resultDSL == resultStandard shouldBe true
+    resultDSL shouldBe resultStandard
