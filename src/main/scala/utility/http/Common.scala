@@ -96,9 +96,12 @@ sealed case class Request private (
    *   error otherwise.
    */
   def send[R](client: Client[R]): Either[HttpError, R] =
-    try Right(client.send(this))
-    catch
-      case ex: Exception => Left(ex.asHttpError)
+    if client.requestCount >= client.configuration.maxRequests then
+      Left("Reached the maximum amount of requests".asHttpError)
+    else
+      try Right(client.sendAndIncrement(this))
+      catch
+        case ex: Exception => Left(ex.asHttpError)
 
 /**
  * Class used to wrap an HTTP response
