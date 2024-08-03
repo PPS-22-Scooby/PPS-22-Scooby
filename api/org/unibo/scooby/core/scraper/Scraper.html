@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Scraper.html" t="n" class="documentableName ">Scraper</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">exporterRouter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>)
+  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Scraper.html" t="n" class="documentableName ">Scraper</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">exporterRouter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapePolicy</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>)
  </div>
 </div>
 <div class="cover">
@@ -36,10 +36,10 @@
     <p>the exporter router <span data-unresolved-link="" title="Problem linking ActorRef: No DRI found for query">ActorRef</span> where to redirect the scraping results</p>
    </dd>
    <dt class="body-small">
-    scrapeRule
+    scrapePolicy
    </dt>
    <dd class="body-medium">
-    <p>the scraping rule the actor uses.</p>
+    <p>the scraping policy used by the actor.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>

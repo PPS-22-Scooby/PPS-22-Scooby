@@ -101,7 +101,7 @@ node3 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Crawler$.html#apply-fffff8c0" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">networkConfiguration</span>: <a href="../../utility/http/ClientConfiguration.html" t="t">ClientConfiguration</a>): <span data-unresolved-link="" t="t">Behavior</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Crawler$.html#apply-fffff8c0" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapePolicy</span>: ()<span t="k"> =&gt; </span><span t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">networkConfiguration</span>: <a href="../../utility/http/ClientConfiguration.html" t="t">ClientConfiguration</a>): <span data-unresolved-link="" t="t">Behavior</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>]
            </div>
           </div>
          </div>
@@ -159,10 +159,10 @@ node3 -> node2;
                <p>network configuration for the HTTP client</p>
               </dd>
               <dt class="body-small">
-               scrapeRule
+               scrapePolicy
               </dt>
               <dd class="body-medium">
-               <p>scraping rule for the <span data-unresolved-link="" title="Problem linking Scraper: No DRI found for query">Scraper</span>s spawned by this Crawler</p>
+               <p>scraping policy for the <span data-unresolved-link="" title="Problem linking Scraper: No DRI found for query">Scraper</span>s spawned by this Crawler</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

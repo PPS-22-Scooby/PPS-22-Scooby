@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporterRouter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapeRule</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">client</span>: <a href="../../utility/http/Clients$$SimpleHttpClient.html" t="t">SimpleHttpClient</a>)
+  <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Crawler.html" t="n" class="documentableName ">Crawler</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">context</span>: <span data-unresolved-link="" t="t">ActorContext</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">coordinator</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../coordinator/CoordinatorCommand.html" t="t">CoordinatorCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">exporterRouter</span>: <span data-unresolved-link="" t="t">ActorRef</span>[<a href="../exporter/ExporterCommands.html" t="t">ExporterCommands</a>], <span t="k"></span><span data-unresolved-link="" t="n">scrapePolicy</span>: ()<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="n">explorationPolicy</span>: <a href="../crawler.html#ExplorationPolicy-0" t="t">ExplorationPolicy</a>, <span t="k"></span><span data-unresolved-link="" t="n">maxDepth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">buffer</span>: <span data-unresolved-link="" t="t">StashBuffer</span>[<a href="CrawlerCommand.html" t="t">CrawlerCommand</a>], <span t="k"></span><span data-unresolved-link="" t="n">client</span>: <a href="../../utility/http/Clients$$SimpleHttpClient.html" t="t">SimpleHttpClient</a>)
  </div>
 </div>
 <div class="cover">
@@ -72,10 +72,10 @@
     <p>max recursion depth for crawlers (maximum depth of the tree of crawlers)</p>
    </dd>
    <dt class="body-small">
-    scrapeRule
+    scrapePolicy
    </dt>
    <dd class="body-medium">
-    <p>scraping rule for the <span data-unresolved-link="" title="Problem linking Scraper: No DRI found for query">Scraper</span>s spawned by this Crawler</p>
+    <p>scraping policy for the <span data-unresolved-link="" title="Problem linking Scraper: No DRI found for query">Scraper</span>s spawned by this Crawler</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
