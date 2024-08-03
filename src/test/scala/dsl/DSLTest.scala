@@ -24,7 +24,7 @@ class DSLTest extends AnyFlatSpec, ScoobyEmbeddable, BeforeAndAfterEach, Matcher
   var path: Path = uninitialized
 
   val tout: FiniteDuration = 9.seconds
-  val maxRequest: Int = 5
+  val maxRequest: Int = 500
   val auth: (String, String) = ("Authorization", "prova")
   // val agent: (String, String) = ("Agent", "gr")
   val maxDepth: Int = 2
@@ -122,4 +122,4 @@ class DSLTest extends AnyFlatSpec, ScoobyEmbeddable, BeforeAndAfterEach, Matcher
     val resultDSL: Map[String, Int] = resultsToCheckAsMapWithSize(Await.result(appDSL.run(), 10.seconds), _.tag)
     val resultStandard: Map[String, Int] = resultsToCheckAsMapWithSize(Await.result(appStandard.run(), 10.seconds), _.tag)
 
-    resultDSL == resultStandard shouldBe true
+    resultDSL shouldBe resultStandard
