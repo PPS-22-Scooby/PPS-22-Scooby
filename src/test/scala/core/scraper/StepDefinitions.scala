@@ -43,7 +43,7 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
       case JsError(errors) =>
         println(errors)
   
-  And("""I have a document to apply rule to""") : () =>
+  And("""I have a document to apply policy to""") : () =>
     docContent =
     s"""
        |<html lang="en">
@@ -92,7 +92,7 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
 
     scrapeDocument = new ScrapeDocument(docContent, docUrl)
     
-  When("""The scraper applies the rule""") : () =>
+  When("""The scraper applies the policy""") : () =>
     scraperActor ! ScraperCommands.Scrape(scrapeDocument)
 
   Then("""It should send the result""") : () =>

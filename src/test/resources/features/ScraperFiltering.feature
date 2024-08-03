@@ -1,15 +1,15 @@
 Feature: Scraper data filtering.
 
-  Scenario: Successfully apply the rule
+  Scenario: Successfully apply the policy
     Given I have a scraper with a proper configuration
-    And   I have a document to apply rule to
-    When  The scraper applies the rule
+    And   I have a document to apply policy to
+    When  The scraper applies the policy
     Then  It should send the result
 
   Scenario: No matching after data filtering
     Given I have a scraper with a proper configuration
     And   I have a document with no matching
-    When  The scraper applies the rule
+    When  The scraper applies the policy
     Then  It should send an empty result
 
   Scenario Outline: Different filtering strategies should be supported.
@@ -25,7 +25,7 @@ Feature: Scraper data filtering.
         </ul>
       </html>
     """
-    When  The scraper applies the rule
+    When  The scraper applies the policy
     Then  The scraper should obtain <results> as result
     Examples:
       |   by    |           parameters           |                                                                      results                                                                         |
