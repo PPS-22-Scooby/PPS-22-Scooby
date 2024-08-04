@@ -1,6 +1,7 @@
 package org.unibo.scooby
 package utility.http
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt
 
@@ -22,14 +23,31 @@ trait Backend[R] extends HttpClient:
    * @param request
    *   request to be sent
    * @return
-   *   a response of type [[R]], depending on the Backend implementation
+   *   a response of type [[R]], depending on the [[Backend]] implementation
    */
   def send(request: Request): R
+
+  /**
+   * Sends the provided [[Request]] and automatically increments the amount of sent requests
+   * @param request 
+   *   request to be sent
+   * @return
+   *   a response of type [[R]], depending on the [[Backend]] implementation
+   */
+  private[http] def sendAndIncrement(request: Request): R =
+    nRequests.incrementAndGet()
+    send(request)
 
 /**
  * Empty trait that represents an HTTP client. To be useful, you need to mix-in [[Backend]] Traits
  */
-trait HttpClient(val configuration: ClientConfiguration)
+trait HttpClient(val configuration: ClientConfiguration):
+  protected var nRequests: AtomicInteger = AtomicInteger(0)
+
+  /**
+   * Counter for requests made within this client
+   */
+  def requestCount: Int = nRequests.intValue()
 
 /**
  * Collection of useful clients types, using different backends.

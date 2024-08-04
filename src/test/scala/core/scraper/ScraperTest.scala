@@ -71,13 +71,13 @@ class ScraperTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with 
   var scraperNoMatch: ActorRef[ScraperCommands] = uninitialized
 
   override def beforeEach(): Unit =
-    scraperId = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelector, "id")))
-    scraperTag = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(tagSelector, "tag")))
-    scraperClass = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(classSelector, "class")))
-    scraperCss = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(cssSelector, "css")))
-    scraperRegEx = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(Seq(regEx), "regex")))
-    scraperMultiPolicies = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelector, "id").concat(ScraperPolicies.scraperRule(Seq(regEx), "regex"))))
-    scraperNoMatch = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(idSelectorNoMatch, "id")))
+    scraperId = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(idSelector, "id")))
+    scraperTag = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(tagSelector, "tag")))
+    scraperClass = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(classSelector, "class")))
+    scraperCss = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(cssSelector, "css")))
+    scraperRegEx = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(Seq(regEx), "regex")))
+    scraperMultiPolicies = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(idSelector, "id").concat(ScraperPolicies.scraperPolicy(Seq(regEx), "regex"))))
+    scraperNoMatch = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(idSelectorNoMatch, "id")))
 
   override def afterAll(): Unit =
     testKit.shutdownTestKit()

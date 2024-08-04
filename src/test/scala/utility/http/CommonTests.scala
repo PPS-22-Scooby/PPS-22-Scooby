@@ -42,9 +42,8 @@ class CommonTests extends AnyFlatSpec with should.Matchers:
     request.headers should be(Map.empty)
 
   "A Request builder" should "build the GET Request using an already built URL" in :
-    val urlEither = URL(exampleUrl)
-    urlEither.isValid should be(true)
-    val url = urlEither
+    val url = URL(exampleUrl)
+    url.isValid should be(true)
     val request: Request = Request.builder.at(url).build.getOrElse{ fail ("Illegal URL")}
     request.url should be(url)
     request.body should be(Option.empty)

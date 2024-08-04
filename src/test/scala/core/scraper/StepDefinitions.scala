@@ -33,17 +33,17 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
   Given("""I have a scraper with a proper configuration""") : () =>
     val selectors: Seq[String] = Seq("li", "p")
 
-    scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, "tag")))
+    scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(selectors, "tag")))
   
   Given("""^I have a scraper with (.*) filtering strategy and (.*) selectors$"""): (by: String, sel: String) =>
     val res = Json.parse(sel).validate[Seq[String]]
     res match
       case JsSuccess(selectors, _) =>
-        scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperRule(selectors, by)))
+        scraperActor = testKit.spawn(Scraper(exporterProbe.ref, ScraperPolicies.scraperPolicy(selectors, by)))
       case JsError(errors) =>
         println(errors)
   
-  And("""I have a document to apply rule to""") : () =>
+  And("""I have a document to apply policy to""") : () =>
     docContent =
     s"""
        |<html lang="en">
@@ -92,7 +92,7 @@ class StepDefinitions extends AnyFlatSpec, Matchers, BeforeAndAfterAll, ScalaDsl
 
     scrapeDocument = new ScrapeDocument(docContent, docUrl)
     
-  When("""The scraper applies the rule""") : () =>
+  When("""The scraper applies the policy""") : () =>
     scraperActor ! ScraperCommands.Scrape(scrapeDocument)
 
   Then("""It should send the result""") : () =>

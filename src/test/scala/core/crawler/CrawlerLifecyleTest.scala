@@ -15,7 +15,7 @@ import akka.actor.typed.scaladsl.Behaviors
 
 class CrawlerLifecyleTest extends ScalaTestWithMockServer:
 
-  val scraperRulePlaceholder: ScraperPolicy[String] = ScraperPolicies.scraperRule(Seq("body"), "tag")
+  val scraperPolicyPlaceholder: ScraperPolicy[String] = ScraperPolicies.scraperPolicy(Seq("body"), "tag")
 
   "Crawler" should "die if there is no valid link" in:
     val mockedBehavior: Behavior[CoordinatorCommand] = Behaviors.receiveMessage:
@@ -33,7 +33,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
     val crawler = testKit.spawn(Crawler(
       mockedCoordinator,
       exporterProbe.ref,
-      scraperRulePlaceholder,
+      scraperPolicyPlaceholder,
       _.frontier,
       2
     ))
@@ -59,7 +59,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
     val crawler = testKit.spawn(Crawler(
       mockedCoordinator,
       exporterProbe.ref,
-      scraperRulePlaceholder,
+      scraperPolicyPlaceholder,
       ExplorationPolicies.allLinks,
       1
     ))
@@ -72,7 +72,7 @@ class CrawlerLifecyleTest extends ScalaTestWithMockServer:
     val crawler2 = testKit.spawn(Crawler(
       mockedCoordinator,
       exporterProbe.ref,
-      scraperRulePlaceholder,
+      scraperPolicyPlaceholder,
       ExplorationPolicies.allLinks,
       2
     ))
