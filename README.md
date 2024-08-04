@@ -44,13 +44,13 @@ PPS-22-Scooby is built using Scala with Actor libraries for concurrency manageme
 
 ## Get Started:
 
-To use PPS-22-Scooby, ensure you have SBT installed to build the project and clone the repository.
+To start using Scooby from a new SBT project you need to manually add the library.
+- start generating the new project using SBT;
+- download the latest release of the Scooby library;
+- create a new `lib` folder inside your sbt project;
+- place the downloaded jar inside the `lib` folder you've just created;
+- create a class that extends either `org.unibo.scooby.dsl.ScoobyEmbeddable` or `org.unibo.scooby.dsl.ScoobyApplication`
 
-After positioning in the `PPS-22-Scooby` directory, run ```sbt compile``` to install all dependencies required by the application.
-
-Inside `src/main/scala/Application.scala` is provided a runnable template of the application, configured using DSL.
-A scooby application can be configured both via DSL and standard configuration, for the sake of simplicity an example
-of standard configuration can be found in `src/test/dsl/DSLTest.scala` file.
 
 To import the application in a different scala file, all is required is
 
