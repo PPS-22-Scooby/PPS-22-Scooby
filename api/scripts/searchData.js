@@ -287,7 +287,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"PPS-22-Scooby","t":"PPS-22-Sco
 {"l":"org/unibo/scooby/utility/http/Deserializer$.html#scrapeDocument-0","e":false,"i":"","n":"scrapeDocument","t":"scrapeDocument: Deserializer[Response, ScrapeDocument]","d":"org.unibo.scooby.utility.http.Deserializer","k":"given","x":""},
 {"l":"org/unibo/scooby/utility/http/HttpClient.html#","e":false,"i":"","n":"HttpClient","t":"HttpClient(val configuration: ClientConfiguration)","d":"org.unibo.scooby.utility.http","k":"trait","x":""},
 {"l":"org/unibo/scooby/utility/http/HttpClient.html#configuration-0","e":false,"i":"","n":"configuration","t":"configuration: ClientConfiguration","d":"org.unibo.scooby.utility.http.HttpClient","k":"val","x":""},
-{"l":"org/unibo/scooby/utility/http/HttpClient.html#nRequests-0","e":false,"i":"","n":"nRequests","t":"nRequests: Int","d":"org.unibo.scooby.utility.http.HttpClient","k":"var","x":""},
+{"l":"org/unibo/scooby/utility/http/HttpClient.html#nRequests-0","e":false,"i":"","n":"nRequests","t":"nRequests: AtomicInteger","d":"org.unibo.scooby.utility.http.HttpClient","k":"var","x":""},
 {"l":"org/unibo/scooby/utility/http/HttpClient.html#requestCount-0","e":false,"i":"","n":"requestCount","t":"requestCount: Int","d":"org.unibo.scooby.utility.http.HttpClient","k":"def","x":""},
 {"l":"org/unibo/scooby/utility/http/HttpError.html#","e":false,"i":"","n":"HttpError","t":"HttpError(ex: Exception, errorType: HttpErrorType)","d":"org.unibo.scooby.utility.http","k":"class","x":""},
 {"l":"org/unibo/scooby/utility/http/HttpError.html#message-0","e":false,"i":"","n":"message","t":"message: String","d":"org.unibo.scooby.utility.http.HttpError","k":"def","x":""},
