@@ -56,14 +56,6 @@ enum CoordinatorCommand:
    */
   case GetCrawledPages(replyTo: ActorRef[List[URL]])
 
-  /**
-   * A message that contains the result of a CheckPages message.
-   *
-   * @param result
-   *   A iterator of pages and their crawled status.
-   */
-  case PagesChecked(result: Iterator[String])
-
 /**
  * The Coordinator object contains the definitions of the messages that the Coordinator actor can receive.
  */
