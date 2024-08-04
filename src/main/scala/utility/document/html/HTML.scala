@@ -2,9 +2,9 @@ package org.unibo.scooby
 package utility.document.html
 
 import utility.document.Parser
-
 import org.jsoup.Jsoup
 
+import java.util.Objects
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -76,13 +76,6 @@ case class HTMLDom private (htmlDocument: org.jsoup.nodes.Document):
  *   the Jsoup Element instance
  */
 case class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
-
-  override def equals(obj: Any): Boolean = obj match {
-    case that: HTMLElement => this.text.trim == that.text.trim
-    case _ => false
-  }
-
-  override def hashCode(): Int = text.trim.hashCode
   /**
    * Gets the text of the HTML element.
    *
@@ -153,6 +146,23 @@ case class HTMLElement private (htmlElement: org.jsoup.nodes.Element):
    * @return the parent HTML element
    */
   def parent: HTMLElement = HTMLElement(htmlElement.parent())
+
+  /**
+   * Equals method of HTMLElement.
+   * @param other other HTMLElement to compare with
+   * @return `true` if tag, classes, attributes and text are equal, `false` otherwise
+   */
+  override def equals(other: Any): Boolean = other match
+    case el: HTMLElement =>
+      el.tag == tag && el.classes == classes && el.attributes == attributes && el.text.trim == text.trim
+    case _ => false
+
+  /**
+   * Hashcode method of HTMLElement
+   * @return the hash code for this HTMLElement, built upon tag, classes, attributes and text
+   */
+  override def hashCode(): Int = Objects.hash(tag, classes, attributes, text.trim)
+
 
 object HTMLDom:
   private[html] def apply(htmlDocument: org.jsoup.nodes.Document): HTMLDom =
