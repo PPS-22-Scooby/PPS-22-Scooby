@@ -108,7 +108,7 @@ object Export:
     /**
      * Action to perform on file (overwrite or append) when exporting
      */
-    enum FileAction:
+    private[Export] enum FileAction:
       case Append
       case Overwrite
 
