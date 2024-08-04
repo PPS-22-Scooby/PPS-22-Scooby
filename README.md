@@ -60,7 +60,7 @@ import org.unibo.scooby.dsl.ScoobyApplication
 
 object MyObject extends ScoobyApplication:
 
-  val appDSL = scooby:
+  scooby:
     config:
       network:
         Timeout is 9.seconds
@@ -82,7 +82,7 @@ object MyObject extends ScoobyApplication:
       batch:
         strategy:
           results get(el => (el.tag, el.text)) output:
-            toFile("test.txt") withFormat json
+            toFile("test.json") withFormat json
         aggregate:
           _ ++ _
       streaming:
