@@ -153,3 +153,28 @@ exports:
     results get tag output:
       toConsole withFormat text
 ```
+
+When output is configured toFile, it's possible to define preferred file action, between Append (append results to
+already existing text in file) and Overwrite (which delete previous content of the file).
+Default behavior if not specified is Overwrite.
+
+```Scala
+exports:
+  batch:
+    strategy:
+      results get(el => (el.tag, el.text)) output:
+        toFile("testJson.txt", Append) withFormat json
+    
+    aggregate:
+      _ ++ _
+  batch:
+    strategy:
+      results get(el => (el.tag, el.text)) output:
+        toFile("testText.txt", Overwrite) withFormat text
+
+    aggregate:
+      _ ++ _
+  streaming:
+    results get tag output:
+      toConsole withFormat text
+```
