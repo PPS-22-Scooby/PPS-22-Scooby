@@ -61,7 +61,7 @@ object HTML:
    *
    * @return outer Html text as [[String]].
    */
-  def outerHTML: ElementToString = _.outerHtml
+  def outerHtml: ElementToString = _.outerHtml
 
   /**
    * Retrieves value of the specified attribute of an [[HTMLElement]].
