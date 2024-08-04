@@ -96,7 +96,7 @@ sealed case class Request private (
    *   error otherwise.
    */
   def send[R](client: Client[R]): Either[HttpError, R] =
-    if client.requestCount > client.configuration.maxRequests then
+    if client.requestCount >= client.configuration.maxRequests then
       Left("Reached the maximum amount of requests".asHttpError)
     else
       try Right(client.sendAndIncrement(this))
