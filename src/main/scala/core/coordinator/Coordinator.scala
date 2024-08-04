@@ -129,7 +129,7 @@ class Coordinator(
         replyTo ! crawledUrls.toList
         Behaviors.same
 
-      case _ => Behaviors.same
+      case null => Behaviors.same
     }
 
 /**
