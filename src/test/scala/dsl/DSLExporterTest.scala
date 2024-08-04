@@ -49,6 +49,6 @@ class DSLExporterTest extends ScoobyTest:
     mockedScooby:
       exports:
         streaming:
-          results get tag  output:
+          results get tag output:
             toConsole withFormat text
     .scrapeExportInspectConsoleContains(baseURL, expectedIterable, separator, scrapePolicy)
