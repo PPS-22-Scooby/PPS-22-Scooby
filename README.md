@@ -44,4 +44,4 @@ PPS-22-Scooby is built using Scala with Actor libraries for concurrency manageme
 
 ## Get Started:
 
-To use PPS-22-Scooby, clone the repository and follow the setup instructions in the README file. Ensure you have SBT installed to build the project.
+To use PPS-22-Scooby, have a look at the section **Get Started** at https://pps-22-scooby.github.io/
