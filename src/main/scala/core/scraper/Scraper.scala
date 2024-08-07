@@ -7,6 +7,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import core.exporter.ExporterCommands
 import ScraperPolicies.ScraperPolicy
 import utility.http.URL
+import org.unibo.scooby.utility.result.Result
 
 import scala.util.Try
 

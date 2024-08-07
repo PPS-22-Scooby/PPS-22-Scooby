@@ -1,7 +1,7 @@
 package org.unibo.scooby
-package core.scraper
+package utility.result
 
-import Aggregator.ItAggregator
+import utility.result.Aggregator.ItAggregator
 
 /**
  * Class representing [[Scraper]]'s results.

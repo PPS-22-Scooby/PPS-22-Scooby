@@ -9,7 +9,7 @@ import org.unibo.scooby.core.crawler.ExplorationPolicies
 import org.unibo.scooby.core.scooby.Configuration.{CoordinatorConfiguration, CrawlerConfiguration, ExporterConfiguration, ScraperConfiguration}
 import org.unibo.scooby.core.scooby.SingleExporting.BatchExporting
 import org.unibo.scooby.core.scooby.Configuration
-import org.unibo.scooby.core.scraper.Result
+import org.unibo.scooby.utility.result.Result
 import org.unibo.scooby.utility.document.html.HTMLElement
 import org.unibo.scooby.utility.document.{CommonHTMLExplorer, CrawlDocument, Document, ScrapeDocument}
 import org.unibo.scooby.utility.http.{ClientConfiguration, URL}
