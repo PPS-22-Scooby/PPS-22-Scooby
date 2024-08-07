@@ -10,7 +10,7 @@ import monocle.syntax.all.*
 import scala.concurrent.{Future, Promise}
 import scala.util.Success
 import core.scooby.SingleExporting
-import org.unibo.scooby.dsl.DSL.{ConfigurationWrapper, ScrapingResultSetting}
+import org.unibo.scooby.dsl.DSL.ConfigurationWrapper
 
 /**
  * Generated an empty [[ConfigurationWrapper]]
@@ -19,7 +19,7 @@ import org.unibo.scooby.dsl.DSL.{ConfigurationWrapper, ScrapingResultSetting}
  * @return an empty [[ConfigurationWrapper]]
  */
 private inline def emptyWrapper[T]: ConfigurationWrapper[T] =
-  new ConfigurationWrapper(Configuration.empty[T], ScrapingResultSetting[T]())
+  new ConfigurationWrapper(Configuration.empty[T])
 
 /**
  * Generates a new [[Configuration]] that also includes a default standard output exporting. Useful, for example, to

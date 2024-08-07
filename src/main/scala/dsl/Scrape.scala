@@ -1,7 +1,7 @@
 package org.unibo.scooby
 package dsl
 
-import dsl.DSL.{ConfigurationWrapper, ScrapingResultSetting}
+import dsl.DSL.ConfigurationWrapper
 import utility.document.*
 
 import monocle.syntax.all.*
@@ -59,5 +59,4 @@ object Scrape:
         doc =>
           given ScrapeDocument = doc
           block
-      globalScope.scrapingResultSetting = ScrapingResultSetting[T]()
 
