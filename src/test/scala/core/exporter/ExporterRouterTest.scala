@@ -5,7 +5,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit}
-import core.scraper.Result
+import utility.result.Result
 
 import akka.actor.typed.ActorRef
 import org.unibo.scooby.core.scooby.{Configuration, ScoobyActor, ScoobyCommand}

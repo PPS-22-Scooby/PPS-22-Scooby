@@ -1,5 +1,5 @@
 package org.unibo.scooby
-package core.scraper
+package utility.result
 
 /**
  * Object used to provide aggregators to [[DataResult]].

@@ -11,6 +11,7 @@ import utility.http.URL
 import core.scraper.ScraperPolicies.{*, given}
 import org.scalatest.flatspec.AnyFlatSpec
 import core.exporter.ExporterCommands
+import org.unibo.scooby.utility.result.Result
 
 import scala.compiletime.uninitialized
 

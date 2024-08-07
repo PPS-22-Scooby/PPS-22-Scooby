@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ExporterCommands.*
-import core.scraper.Result
+import utility.result.Result
 import core.exporter.Exporter.*
 import utility.document.ScrapeDocument
 import utility.document.html.HTMLElement

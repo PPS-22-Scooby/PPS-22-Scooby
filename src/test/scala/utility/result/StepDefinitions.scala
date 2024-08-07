@@ -1,5 +1,5 @@
 package org.unibo.scooby
-package core.scraper.result
+package utility.result
 
 import io.cucumber.scala.{EN, ScalaDsl}
 import org.jsoup.Jsoup
@@ -8,7 +8,6 @@ import play.api.libs.json.*
 
 import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
-import core.scraper.{Aggregator, DataResult, Result}
 
 class StepDefinitions extends ScalaDsl with EN:
 

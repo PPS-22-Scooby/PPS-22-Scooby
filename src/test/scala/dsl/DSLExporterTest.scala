@@ -3,7 +3,8 @@ package dsl
 
 import org.unibo.scooby.core.exporter.Exporter.Formats
 import org.unibo.scooby.core.scraper.ScraperPolicies.ScraperPolicy
-import org.unibo.scooby.core.scraper.{Result, ScraperPolicies}
+import org.unibo.scooby.utility.result.Result
+import org.unibo.scooby.core.scraper.ScraperPolicies
 import org.unibo.scooby.dsl.util.ScoobyTest
 import org.unibo.scooby.utility.document.ScrapeDocument
 import org.unibo.scooby.utility.document.html.HTMLElement

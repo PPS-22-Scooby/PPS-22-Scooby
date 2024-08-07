@@ -4,7 +4,7 @@ import core.exporter.Exporter.{AggregationBehaviors, ExportingBehaviors, Formats
 import core.scooby.Configuration.ExporterConfiguration
 import core.scooby.SingleExporting.BatchExporting
 import core.scooby.{Configuration, Scooby}
-import core.scraper.Result
+import utility.result.Result
 import monocle.syntax.all.*
 
 import scala.concurrent.{Future, Promise}
