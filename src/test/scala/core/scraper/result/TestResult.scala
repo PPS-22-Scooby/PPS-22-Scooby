@@ -1,11 +1,8 @@
 package org.unibo.scooby
-package core.scraper.result
-
-import core.scraper.Result
+package utility.result
 
 import org.scalatest.matchers.should.Matchers
-import core.scraper.Aggregator.given
-import core.scraper.Aggregator.SingleElemAggregator
+import utility.result.Aggregator.{SingleElemAggregator, given}
 
 import org.scalatest.wordspec.AnyWordSpecLike
 

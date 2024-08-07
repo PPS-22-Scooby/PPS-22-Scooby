@@ -6,7 +6,7 @@ import org.unibo.scooby.core.exporter.Exporter.{AggregationBehaviors, ExportingB
 import org.unibo.scooby.core.exporter.FormattingBehavior
 import org.unibo.scooby.core.scooby.SingleExporting
 import org.unibo.scooby.core.scooby.SingleExporting.{BatchExporting, StreamExporting}
-import org.unibo.scooby.core.scraper.Result
+import org.unibo.scooby.utility.result.Result
 import org.unibo.scooby.dsl.DSL.ConfigurationWrapper
 import org.unibo.scooby.dsl.syntax.catchRecursiveCtx
 import play.api.libs.json.Writes

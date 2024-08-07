@@ -4,7 +4,6 @@ package core.scraper
 import io.cucumber.scala.{EN, ScalaDsl}
 import utility.document.ScrapeDocument
 import utility.http.URL
-
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import play.api.libs.json.*
 import akka.actor.typed.{ActorRef, ActorSystem}
@@ -12,6 +11,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import core.exporter.ExporterCommands
+import org.unibo.scooby.utility.result.Result
 
 import scala.compiletime.uninitialized
 
