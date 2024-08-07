@@ -3,7 +3,6 @@ package utility.result
 
 import org.scalatest.matchers.should.Matchers
 import utility.result.Aggregator.{SingleElemAggregator, given}
-
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class TestResult extends AnyWordSpecLike with Matchers:
