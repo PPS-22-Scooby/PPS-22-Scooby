@@ -19,18 +19,11 @@ object DSL:
   export core.exporter.JsonConverter.htmlElementWrites
 
   /**
-   * Temporary empty class to hold the scraping result type.
-   * @tparam T type of the scraping result
-   */
-  case class ScrapingResultSetting[T]()
-
-  /**
    * Wrapper available at the global level of the DSL, necessary to build the final Scooby configuration
    * @param configuration variable configuration, modified throughout the DSL usage
-   * @param scrapingResultSetting object symbolizing the scraping result type
    * @tparam T type of the [[Configuration]]
    */
-  class ConfigurationWrapper[T](var configuration: Configuration[T], var scrapingResultSetting: ScrapingResultSetting[T]):
+  class ConfigurationWrapper[T](var configuration: Configuration[T]):
     def value: Configuration[T] = configuration
 
   /**

@@ -191,6 +191,8 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
             context.log.info(s"${context.self.path.name} has reached max depth! Terminating...")
             buffer.unstashAll(waitingForChildren(1))
 
+    end crawl
+
     /**
      * Sub-behavior for the Crawler that recursively spawns the children Crawlers.
      * @param links valid links that get visited. One [[Crawler]] is spawned for each.
@@ -211,12 +213,18 @@ class Crawler[T](context: ActorContext[CrawlerCommand],
 
       buffer.unstashAll(waitingForChildren(linkList.size + 1))
 
+    end visitChildren
+
+    // Idle message handling
+
     Behaviors.receiveMessage:
       case Crawl(url) => crawl(url)
       case CrawlerCoordinatorResponse(links) => visitChildren(links)
       case x: ChildTerminated =>
         buffer.stash(x)
         Behaviors.same
+
+  end idle
 
   /**
    * Last behavior for the Crawler. During this phase, the Crawler waits for all its children (crawlers and scraper) to
